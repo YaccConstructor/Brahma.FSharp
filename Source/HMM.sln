@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Viterbi_Cons", "Viterbi_Cons\Viterbi_Cons.fsproj", "{0E723DC9-77FA-4355-89E5-120CC4336E90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{837538B0-821D-4C22-A29F-2C4A7D636902}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Viterbi_Cons.Tests", "HMM.Tests\Viterbi_Cons.Tests\Viterbi_Cons.Tests.fsproj", "{6FB627CA-96FB-41AD-B9A3-E4F7D770D097}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FB627CA-96FB-41AD-B9A3-E4F7D770D097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FB627CA-96FB-41AD-B9A3-E4F7D770D097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FB627CA-96FB-41AD-B9A3-E4F7D770D097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FB627CA-96FB-41AD-B9A3-E4F7D770D097}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6FB627CA-96FB-41AD-B9A3-E4F7D770D097} = {837538B0-821D-4C22-A29F-2C4A7D636902}
+	EndGlobalSection
+EndGlobal
