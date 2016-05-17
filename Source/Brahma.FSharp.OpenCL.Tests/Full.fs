@@ -817,9 +817,9 @@ type Translator() =
                         4; 5; 6;
                         7; 8; 9
         |]
-        let resArr = [|0|]
+        let resArr = [| 0 |]
         run (new _2D(3, 3)) intArr resArr 
-        check resArr [|45|]
+        check resArr [| 45 |]
                     
 
 
