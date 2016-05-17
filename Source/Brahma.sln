@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{E54DCF27-1592-467F-8E05-F0B9745111E0}"
 EndProject
@@ -77,6 +77,12 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Brahman.Test", "Brahman.Test\Brahman.Test.fsproj", "{4E3137B9-DD0A-426A-A0D3-90C21EC1811E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brahman.Runner.CS", "Brahman.Runner.CS\Brahman.Runner.CS.csproj", "{89C75587-E3FF-4CDA-93C4-9725081766ED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AlgorithmCYK", "AlgorithmCYK", "{12742F24-B04C-492A-9A4E-4C0D6D93DC59}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AlgorithmCYK", "AlgorithmCYK\AlgorithmCYK.fsproj", "{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AlgorithmCYK.Tests", "AlgorithmCYK.Tests\AlgorithmCYK.Tests.fsproj", "{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -418,6 +424,30 @@ Global
 		{89C75587-E3FF-4CDA-93C4-9725081766ED}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{89C75587-E3FF-4CDA-93C4-9725081766ED}.Release|x64.ActiveCfg = Release|Any CPU
 		{89C75587-E3FF-4CDA-93C4-9725081766ED}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Release|x64.ActiveCfg = Release|Any CPU
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995}.Release|x86.ActiveCfg = Release|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Release|x64.ActiveCfg = Release|Any CPU
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -451,5 +481,7 @@ Global
 		{EF36E48C-A9D2-464E-8EFD-CBD050E0A2DC} = {4F9245AA-3415-412D-AF1B-536538C36D84}
 		{4E3137B9-DD0A-426A-A0D3-90C21EC1811E} = {4F9245AA-3415-412D-AF1B-536538C36D84}
 		{89C75587-E3FF-4CDA-93C4-9725081766ED} = {4F9245AA-3415-412D-AF1B-536538C36D84}
+		{F7EFCD46-BA39-4DBF-A1EE-D274B08CB995} = {12742F24-B04C-492A-9A4E-4C0D6D93DC59}
+		{644B1F24-6C8C-4BE7-8EB5-4AB229DF9FD8} = {12742F24-B04C-492A-9A4E-4C0D6D93DC59}
 	EndGlobalSection
 EndGlobal
