@@ -776,6 +776,50 @@ type Translator() =
         |]
 
     [<Test>]
+    member this.``SumTwoMatrix``() =
+        let command = 
+                <@ fun (r:_2D) (m1:array<_>) (m2:array<_>) (res:array<_>) ->
+                        let column = r.GlobalID0
+                        let row = r.GlobalID1
+                        for i in 0..row do
+                            for j in 0..column do
+                                res.[j*(row+1) + i] <- m1.[j*(row+1) + i] + m2.[j*(row+1) + i]
+                @>
+        let run,check = checkResult command
+        let intArr1 = [| 1; 2; 3;
+                         4; 5; 6;
+                         7; 8; 9
+        |]
+        let intArr2 = [| 10; 11; 12;
+                         13; 14; 15;
+                         16; 17; 18 
+        |]
+        let resArr = Array.zeroCreate 9
+        run (new _2D(3, 3)) intArr1 intArr2 resArr
+        check resArr [| 11; 13; 15;
+                        17; 19; 21;
+                        23; 25; 27
+        |]       
+    
+    [<Test>]
+    member this.``SumAllElementsOfMatrix``() =         
+        let command =
+                <@ fun (r:_2D) (m1:array<_>) (m2:array<_>) ->
+                        let column = r.GlobalID0
+                        let row = r.GlobalID1
+                        for i in 0..((row + 1)*(column + 1) - 1) do
+                                m2.[0] <- m2.[0] + m1.[i]
+                @>
+        let run,check = checkResult command
+        let intArr = [| 3; 3; 3; 11;
+                        4; 5; 6; 12;
+                        7; 8; 9; 13
+        |]
+        let resArr = [| 0 |]
+        run (new _2D(3, 4)) intArr resArr 
+        check resArr [| 84 |]
+
+    [<Test>]
     member this.twoFun() = 
         let command = 
                 <@ fun (r:_1D) (devStore:array<int>) -> 
