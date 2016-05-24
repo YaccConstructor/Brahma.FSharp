@@ -270,7 +270,7 @@ type Translator() =
             @>
         
         let run,check = checkResult command
-        run _1d intInArr
+        run _1d intInArr 
         check intInArr [|0;2;4;6|]
 
     [<Test>]
@@ -778,46 +778,48 @@ type Translator() =
     [<Test>]
     member this.``SumTwoMatrix``() =
         let command = 
-                <@ fun (r:_2D) (m1:array<_>) (m2:array<_>) (res:array<_>) ->
-                        let column = r.GlobalID0
-                        let row = r.GlobalID1
-                        for i in 0..row do
-                            for j in 0..column do
-                                res.[j*(row+1) + i] <- m1.[j*(row+1) + i] + m2.[j*(row+1) + i]
+                <@ fun (r:_2D) (a:array<_>) (b:array<_>) (c:array<_>) columns -> 
+                    let x = r.GlobalID0
+                    let y = r.GlobalID1               
+                    c.[y * columns + x] <- a.[y * columns + x] + b.[y * columns + x]
                 @>
         let run,check = checkResult command
-        let intArr1 = [| 1; 2; 3;
-                         4; 5; 6;
-                         7; 8; 9
+        let intArr1 = [| 1; 2; 3; 4; 4;
+                         4; 5; 6; 6; 6;
+                         7; 8; 9; 9; 9;
+                         9; 9; 9; 9; 9
         |]
-        let intArr2 = [| 10; 11; 12;
-                         13; 14; 15;
-                         16; 17; 18 
+        let intArr2 = [| 10; 11; 12; 12; 12;
+                         13; 14; 15; 15; 15;
+                         16; 17; 18; 18; 18;
+                         18; 18; 18; 18; 17
         |]
-        let resArr = Array.zeroCreate 9
-        run (new _2D(3, 3)) intArr1 intArr2 resArr
-        check resArr [| 11; 13; 15;
-                        17; 19; 21;
-                        23; 25; 27
+        let resArr = Array.zeroCreate 20
+        run (new _2D(4, 5)) intArr1 intArr2 resArr 4
+        check resArr [| 11; 13; 15; 16; 16;
+                        17; 19; 21; 21; 21;
+                        23; 25; 27; 27; 27;
+                        27; 27; 27; 27; 26
         |]       
     
     [<Test>]
     member this.``SumAllElementsOfMatrix``() =         
         let command =
-                <@ fun (r:_2D) (m1:array<_>) (m2:array<_>) ->
-                        let column = r.GlobalID0
-                        let row = r.GlobalID1
-                        for i in 0..((row + 1)*(column + 1) - 1) do
-                                m2.[0] <- m2.[0] + m1.[i]
+                <@ fun (r:_2D) (a:array<_>) (c:array<_>) columns -> 
+                        let x = r.GlobalID0
+                        let y = r.GlobalID1
+                        c.[0] <!+ a.[y * columns + x]   
                 @>
         let run,check = checkResult command
-        let intArr = [| 3; 3; 3; 11;
-                        4; 5; 6; 12;
-                        7; 8; 9; 13
+        let intArr = [| 2; 2; 3; 4; 4;
+                        4; 5; 6; 6; 4;
+                        7; 8; 9; 2; 4;
+                        9; 9; 9; 1; 4;
+                        1; 2; 3; 4; 5
         |]
         let resArr = [| 0 |]
-        run (new _2D(3, 4)) intArr resArr 
-        check resArr [| 84 |]
+        run (new _2D(5, 5)) intArr resArr 5
+        check resArr [| 117 |] 
 
     [<Test>]
     member this.twoFun() = 

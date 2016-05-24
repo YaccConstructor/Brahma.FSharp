@@ -25,7 +25,7 @@ open Brahma.FSharp.OpenCL.Extensions
 let random = new System.Random()
         
 let MakeMatrix rows cols =
-    Array.init (rows * cols) (fun i -> float32 (random.NextDouble()))
+    Array.init (rows * cols) (fun i -> float (random.NextDouble()))
 
 let GetOutputMatrixDimensions aRows aCols bRows bCols =
     if aCols <> bRows
@@ -36,7 +36,7 @@ let Multiply (a:array<_>) aRows aCols (b:array<_>) bRows bCols (c:array<_>) =
     let cRows, cCols = GetOutputMatrixDimensions aRows aCols bRows bCols
     for i in 0 .. cRows - 1 do
         for j in 0 .. cCols - 1 do
-            let mutable buf = 0.0f
+            let mutable buf = 0.0
             for k in 0 .. aCols - 1 do
                  buf <- buf + a.[i * aCols + k] * b.[k * bCols + j]
             c.[i * cCols + j] <- c.[i * cCols + j] + buf
@@ -46,7 +46,7 @@ let Main platformName (m1: array<_>) (m2: array<_>) =
     let rows = 200
     let columns = 200
     let localWorkSize = 2
-    //let iterations = 1
+    let iterations = 1
     let deviceType = DeviceType.Default
 
     let provider =
@@ -54,7 +54,7 @@ let Main platformName (m1: array<_>) (m2: array<_>) =
         with 
         | ex -> failwith ex.Message
 
-    //printfn "Using %A" provider
+    printfn "Using %A" provider
 
     let mutable commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head)
 
@@ -73,16 +73,16 @@ let Main platformName (m1: array<_>) (m2: array<_>) =
                 c.[ty * columns + tx] <- buf
         @>
 
-    //printfn "Multiplying two %Ax%A matrices %A times using .NET..." rows columns iterations
+    printfn "Multiplying two %Ax%A matrices %A times using .NET..." rows columns iterations
     let cNormal = Array.zeroCreate (rows * columns)
-    //for i in 0 .. iterations - 1 do
-       // Timer<string>.Global.Start()
+    for i in 0 .. iterations - 1 do
+        Timer<string>.Global.Start()
     Multiply aValues rows columns bValues rows columns cNormal
-        //Timer<string>.Global.Lap(".NET")
+    Timer<string>.Global.Lap(".NET")
 
-    //printfn "done."
+    printfn "done."
 
-    //printfn "Multiplying two %Ax%A matrices %A times using OpenCL and selected platform/device..." rows columns iterations
+    printfn "Multiplying two %Ax%A matrices %A times using OpenCL and selected platform/device..." rows columns iterations
 
     let kernel, kernelPrepare, kernelRun = provider.Compile command
     let d =(new _2D(rows, columns, localWorkSize, localWorkSize))
@@ -92,19 +92,19 @@ let Main platformName (m1: array<_>) (m2: array<_>) =
         
     let _ = commandQueue.Add(cParallel.ToHost provider).Finish()
     
-    //printfn "Verifying results..."
-    //let mutable isSuccess = true
-    //for i in 0 .. rows * columns - 1 do
-      //  if isSuccess && System.Math.Abs(float32 (cParallel.[i] - cNormal.[i])) > 0.00001f
-        //then
-          //  isSuccess <- false
-            //printfn "Expected: %A Actual: %A Error = %A" cNormal.[i] cParallel.[i] (System.Math.Abs(cParallel.[i] - cNormal.[i]))
+    printfn "Verifying results..."
+    let mutable isSuccess = true
+    for i in 0 .. rows * columns - 1 do
+        if isSuccess && System.Math.Abs(float (cParallel.[i] - cNormal.[i])) > 0.00001
+        then
+            isSuccess <- false
+            printfn "Expected: %A Actual: %A Error = %A" cNormal.[i] cParallel.[i] (System.Math.Abs(cParallel.[i] - cNormal.[i]))
         
-            //printf "%A   " cParallel.[i]
+            printf "%A   " cParallel.[i]
             
-    //rintfn "done."
+    printfn "done."
 
-    //Timer<string>.Global.Average(".NET") |> printfn "Avg. time, F#: %A"
+    Timer<string>.Global.Average(".NET") |> printfn "Avg. time, F#: %A"
     //Timer<string>.Global.Average("OpenCL") |> printfn "Avg. time, OpenCL: %A"
 
     commandQueue.Dispose()
