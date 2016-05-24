@@ -270,7 +270,7 @@ type Translator() =
             @>
         
         let run,check = checkResult command
-        run _1d intInArr
+        run _1d intInArr 
         check intInArr [|0;2;4;6|]
 
     [<Test>]
@@ -774,6 +774,52 @@ type Translator() =
                          2; 2;-1;-1;-1;
                          2; 3;-1;-1;-1
         |]
+
+    [<Test>]
+    member this.``SumTwoMatrix``() =
+        let command = 
+                <@ fun (r:_2D) (a:array<_>) (b:array<_>) (c:array<_>) columns -> 
+                    let x = r.GlobalID0
+                    let y = r.GlobalID1               
+                    c.[y * columns + x] <- a.[y * columns + x] + b.[y * columns + x]
+                @>
+        let run,check = checkResult command
+        let intArr1 = [| 1; 2; 3; 4; 4;
+                         4; 5; 6; 6; 6;
+                         7; 8; 9; 9; 9;
+                         9; 9; 9; 9; 9
+        |]
+        let intArr2 = [| 10; 11; 12; 12; 12;
+                         13; 14; 15; 15; 15;
+                         16; 17; 18; 18; 18;
+                         18; 18; 18; 18; 17
+        |]
+        let resArr = Array.zeroCreate 20
+        run (new _2D(4, 5)) intArr1 intArr2 resArr 4
+        check resArr [| 11; 13; 15; 16; 16;
+                        17; 19; 21; 21; 21;
+                        23; 25; 27; 27; 27;
+                        27; 27; 27; 27; 26
+        |]       
+    
+    [<Test>]
+    member this.``SumAllElementsOfMatrix``() =         
+        let command =
+                <@ fun (r:_2D) (a:array<_>) (c:array<_>) columns -> 
+                        let x = r.GlobalID0
+                        let y = r.GlobalID1
+                        c.[0] <!+ a.[y * columns + x]   
+                @>
+        let run,check = checkResult command
+        let intArr = [| 2; 2; 3; 4; 4;
+                        4; 5; 6; 6; 4;
+                        7; 8; 9; 2; 4;
+                        9; 9; 9; 1; 4;
+                        1; 2; 3; 4; 5
+        |]
+        let resArr = [| 0 |]
+        run (new _2D(5, 5)) intArr resArr 5
+        check resArr [| 117 |] 
 
     [<Test>]
     member this.twoFun() = 

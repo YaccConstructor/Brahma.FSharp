@@ -28,12 +28,12 @@ let rec Translate (_type:System.Type) isKernelArg size (context:TargetContext<_,
         | "int16" -> PrimitiveType<Lang>(Short) :> Type<Lang>
         | "uint16" -> PrimitiveType<Lang>(UShort) :> Type<Lang>
         | "uint32" -> PrimitiveType<Lang>(UInt) :> Type<Lang>
-        | "float"| "float32" | "single"-> PrimitiveType<Lang>(Float) :> Type<Lang>
+        | "float32" | "single"-> PrimitiveType<Lang>(Float) :> Type<Lang>
         | "byte" -> PrimitiveType<Lang>(UChar) :> Type<Lang>
         | "int64" -> PrimitiveType<Lang>(Long) :> Type<Lang>
         | "uint64" -> PrimitiveType<Lang>(ULong) :> Type<Lang>
         | "boolean" -> PrimitiveType<Lang>(Int) :> Type<Lang>
-        | "double" -> 
+        | "float"| "double" -> 
             context.Flags.enableFP64 <- true
             PrimitiveType<Lang>(Double) :> Type<Lang>        
         | "unit" -> PrimitiveType<Lang>(Void) :> Type<Lang>
