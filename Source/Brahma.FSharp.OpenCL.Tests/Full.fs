@@ -47,6 +47,50 @@ type Translator() =
             Assert.AreEqual(expected, r)
             provider.CloseAllBuffers()
         kernelPrepareF,check
+    
+    let mtrxToArr (mtrx : 't [][]) = 
+        let arr = ResizeArray<'t>()
+        let rows = mtrx.Length
+        let cols = mtrx.[0].Length
+        for i = 0 to rows - 1 do
+           for j = 0 to cols - 1 do 
+            arr.Add(mtrx.[i].[j])
+        arr.ToArray()
+    
+    [<Test>]
+    member this.``MatrixSum``() = 
+        let command = 
+            <@ 
+                fun (range : _1D) (mtrx1 : array<_>) (mtrx2 : array<_>) (res : array<_>) ->                    
+                    let i = range.GlobalID0
+                    res.[i] <- mtrx1.[i] + mtrx2.[i]
+            @>
+        let run, check = checkResult command
+        let mtrx1 = [|[|2;3;4|];[|5;7;8|];[|2;6;9|];[|6;7;8|]|]
+        let mtrx2 = [|[|1;3;4|];[|5;6;8|];[|2;3;9|];[|0;7;8|]|]
+        let rows = mtrx1.Length
+        let cols = mtrx1.[0].Length
+        let range = new _1D(rows * cols, 1)
+        let res = Array.zeroCreate (rows * cols)
+        run range (mtrxToArr mtrx1) (mtrxToArr mtrx2) res
+        check res (mtrxToArr [|[|3;6;8|];[|10;13;16|];[|4;9;18|];[|6;14;16|]|])
+              
+    [<Test>]  
+    member this.``MatrixElemSum``() = 
+        let command = 
+            <@
+                fun (range: _1D) (mtrx : array<_>) (res : array<_>) ->
+                let i = range.GlobalID0
+                res.[0] <!+  mtrx.[i]
+            @>
+        let run, check = checkResult command
+        let mtrx = [|[|2;3;4|];[|5;7;8|];[|2;6;9|];[|6;7;8|]|]
+        let rows = mtrx.Length
+        let cols = mtrx.[0].Length
+        let range = new _1D(rows * cols, 1)
+        let res = Array.zeroCreate 1
+        run range (mtrxToArr mtrx) res
+        check res [|67|]
 
     let returnResult command =
         let kernel, kernelPrepareF, kernelRunF = provider.Compile command    
