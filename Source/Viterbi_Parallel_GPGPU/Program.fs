@@ -1,12 +1,12 @@
 ﻿module Viterbi_Parallel_GPGPU
 
-open Brahma
-open Brahma.Helpers
 open OpenCL.Net
+open Brahma
 open Brahma.OpenCL
 open Brahma.FSharp.OpenCL.Core
-open Microsoft.FSharp.Quotations
 open Brahma.FSharp.OpenCL.Extensions
+open Brahma.FSharp.OpenCL.Translator
+open Microsoft.FSharp.Quotations
 open System
 open System.Threading
 open Viterbi_Cons
@@ -31,9 +31,7 @@ let Parallel (tableMax : array<_>) (tableArgMax : array<_>) stateCount (transiti
                 let row = r.GlobalID0
                 let mutable mx = 0.0
                 let mutable num = 0
-                let mutable buf = 0
                 for i in 1..rowLen - 1 do
-                    buf <- 0
                     mx <- 0.0
                     num <- 0
                     for k in 0..rowCount - 1 do
@@ -44,7 +42,6 @@ let Parallel (tableMax : array<_>) (tableArgMax : array<_>) stateCount (transiti
                             num <- k
                     tableMax.[row * rowLen + i] <- mx
                     tableArgMax.[row * rowLen + i] <! num
-                    while (buf < 100000000) do(buf <- buf + 1)
         @>
 
     let kernel, kernelPrepare, kernelRun = provider.Compile command
