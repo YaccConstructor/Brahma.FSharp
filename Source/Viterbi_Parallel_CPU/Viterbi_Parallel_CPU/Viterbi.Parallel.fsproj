@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>45da7da3-d0ad-4d74-92a8-625f6cd3facb</ProjectGuid>
+    <ProjectGuid>749a58d2-2e37-403e-adfb-9f3bc50a1d7f</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Viterbi_Parallel_GPGPU</RootNamespace>
-    <AssemblyName>Viterbi_Parallel_GPGPU</AssemblyName>
+    <RootNamespace>Viterbi_Parallel_CPU</RootNamespace>
+    <AssemblyName>Viterbi_Parallel_CPU</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
-    <Name>Viterbi_Parallel_GPGPU</Name>
+    <Name>Viterbi.Parallel</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -24,7 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\Viterbi_Parallel_GPGPU.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Viterbi_Parallel_CPU.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -35,37 +35,13 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\Viterbi_Parallel_GPGPU.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Viterbi_Parallel_CPU.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Brahma">
-      <HintPath>..\..\Bin\v40\Brahma.dll</HintPath>
-    </Reference>
-    <Reference Include="Brahma.FSharp.OpenCL.Core">
-      <HintPath>..\..\Bin\v40\Brahma.FSharp.OpenCL.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Brahma.FSharp.OpenCL.Extensions">
-      <HintPath>..\..\Bin\v40\Brahma.FSharp.OpenCL.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="Brahma.FSharp.OpenCL.Translator">
-      <HintPath>..\..\Bin\v40\Brahma.FSharp.OpenCL.Translator.dll</HintPath>
-    </Reference>
-    <Reference Include="Brahma.Helpers">
-      <HintPath>..\..\Bin\v40\Brahma.Helpers.dll</HintPath>
-    </Reference>
-    <Reference Include="Brahma.OpenCL">
-      <HintPath>..\..\Bin\v40\Brahma.OpenCL.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\..\edu\2015\143\KochetovKirill\packages\NUnit\lib\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenCL.Net">
-      <HintPath>..\..\Bin\v40\OpenCL.Net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -76,8 +52,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Viterbi_Cons\Viterbi_Cons.fsproj">
-      <Name>Viterbi_Cons</Name>
+    <ProjectReference Include="..\..\Viterbi_Cons\Viterbi.Cons.fsproj">
+      <Name>Viterbi.Cons</Name>
       <Project>{0e723dc9-77fa-4355-89e5-120cc4336e90}</Project>
       <Private>True</Private>
     </ProjectReference>

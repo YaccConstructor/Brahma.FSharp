@@ -1,6 +1,6 @@
 ﻿module HMM.Viterbi.Tests.Cons
 
-open Viterbi_Cons
+open Viterbi.Cons
 open NUnit.Framework
 open HMM.Viterbi.Tests.Src
 

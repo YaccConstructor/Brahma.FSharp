@@ -1,4 +1,4 @@
-﻿module Viterbi_Parallel_GPGPU
+﻿module Viterbi.GPGPU
 
 open OpenCL.Net
 open Brahma
@@ -9,10 +9,11 @@ open Brahma.FSharp.OpenCL.Translator
 open Microsoft.FSharp.Quotations
 open System
 open System.Threading
-open Viterbi_Cons
+open Viterbi.Cons
 
 let tableToLine fs sc (a : 'T [][]) = 
-    Array.init (fs * sc) (fun i -> a.[i / sc].[i % sc])
+    //Array.init (fs * sc) (fun i -> a.[i / sc].[i % sc])
+    Array.concat a
 
 let lineToTable fs sc (a : array<_>) = 
     Array2D.init fs sc (fun i j -> a.[i * sc + j])
@@ -59,7 +60,7 @@ let Parallel (tableMax : array<_>) (tableArgMax : array<_>) stateCount (transiti
     (lineToTable stateCount observSeq.Length tableMax, lineToTable stateCount observSeq.Length tableArgMax)
 
 let viterbiGpgpu (observSpace: int[]) (tableMax : double[][]) (tableArgMax : int[][]) stateCount  (observSeq : int[]) (transitionProbs : double[][]) (emissionProbs : double[][]) =
-    let (max, argMax) = Parallel (tableToLine stateCount observSeq.Length tableMax) (tableToLine stateCount observSeq.Length tableArgMax) stateCount (tableToLine stateCount stateCount transitionProbs) (tableToLine stateCount observSpace.Length emissionProbs) observSeq observSpace.Length
+    let (max, argMax) = Parallel (Array.concat tableMax) (Array.concat tableArgMax) stateCount (Array.concat transitionProbs) (Array.concat emissionProbs) observSeq observSpace.Length
 
     for i in 0..stateCount - 1 do
         for j in 1..observSeq.Length - 1 do
@@ -69,4 +70,4 @@ let viterbiGpgpu (observSpace: int[]) (tableMax : double[][]) (tableArgMax : int
     (tableMax, tableArgMax)
 
 let viterbi (observSpace: int[]) stateCount (startProbs : double[])  (observSeq : int[]) (transitionProbs : double[][]) (emissionProbs : double[][]) =
-    Viterbi_Cons.mainPart viterbiGpgpu (observSpace: int[]) stateCount (startProbs : double[])  (observSeq : int[]) (transitionProbs : double[][]) (emissionProbs : double[][])
+    Viterbi.Cons.mainPart viterbiGpgpu (observSpace: int[]) stateCount (startProbs : double[])  (observSeq : int[]) (transitionProbs : double[][]) (emissionProbs : double[][])

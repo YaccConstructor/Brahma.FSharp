@@ -1,6 +1,6 @@
 ﻿module HMM.Viterbi.Tests.CPU
 
-open Viterbi_Parallel_CPU
+open Viterbi.Parallel
 open NUnit.Framework
 open HMM.Viterbi.Tests.Src
 

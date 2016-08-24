@@ -1,6 +1,6 @@
 ﻿module HMM.Viterbi.Tests.GPGPU
 
-open Viterbi_Parallel_GPGPU
+open Viterbi.GPGPU
 open NUnit.Framework
 open HMM.Viterbi.Tests.Src
 

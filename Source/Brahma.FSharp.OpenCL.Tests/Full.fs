@@ -48,12 +48,6 @@ type Translator() =
             provider.CloseAllBuffers()
         kernelPrepareF,check
 
-    let tableToLine row col (a : 'T [][]) = 
-        Array.init (row * col) (fun i -> a.[i % row].[i / row])
-
-    let lineToTable row col (a : array<_>) = 
-        Array2D.init row col (fun i j -> a.[j + i * row])
-
     let returnResult command =
         let kernel, kernelPrepareF, kernelRunF = provider.Compile command    
         let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head)            
@@ -1310,8 +1304,8 @@ type Translator() =
         let m2 = [|[|9; 8; 7|]; [|6; 5; 4|]; [|3; 2; 1|]|]
         let buf = Array.zeroCreate 9
         let d = new _2D(3, 3, 1, 1)
-        run d 3 (tableToLine 3 3 m1) (tableToLine 3 3 m2) buf
-        check buf (tableToLine 3 3 [|[|10; 10; 10|]; [|10; 10; 10|]; [|10; 10; 10|]|])
+        run d 3 (Array.concat m1) (Array.concat m2) buf
+        check buf (Array.concat [|[|10; 10; 10|]; [|10; 10; 10|]; [|10; 10; 10|]|])
 
     [<Test>]
     member this.``ElemSum``() = 
@@ -1327,7 +1321,7 @@ type Translator() =
         let m = [|[|1; 2; 3|]; [|4; 5; 6|]; [|7; 8; 9|]|]
         let buf = Array.zeroCreate 1
         let d = new _2D(3, 3, 1, 1)
-        run d 3 (tableToLine 3 3 m) buf
+        run d 3 (Array.concat m) buf
         check buf [|45|]
 
 (*let x = 
