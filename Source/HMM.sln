@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Viterbi_Cons", "Viterbi_Cons\Viterbi_Cons.fsproj", "{0E723DC9-77FA-4355-89E5-120CC4336E90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{837538B0-821D-4C22-A29F-2C4A7D636902}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Viterbi_Parallel_CPU", "Viterbi_Parallel_CPU\Viterbi_Parallel_CPU\Viterbi_Parallel_CPU.fsproj", "{749A58D2-2E37-403E-ADFB-9F3BC50A1D7F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Viterbi_Parallel_GPGPU", "Viterbi_Parallel_GPGPU\Viterbi_Parallel_GPGPU.fsproj", "{45DA7DA3-D0AD-4D74-92A8-625F6CD3FACB}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HMM.Viterbi.Tests", "HMM.Tests\HMM.Viterbi.Tests\HMM.Viterbi.Tests.fsproj", "{66C08645-2A77-41B0-A1FD-2AA04A40D1B1}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Viterbi_Charts", "Viterbi_Charts\Viterbi_Charts.fsproj", "{11661BB4-6952-42EC-8F57-8B045319F10D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E723DC9-77FA-4355-89E5-120CC4336E90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{749A58D2-2E37-403E-ADFB-9F3BC50A1D7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{749A58D2-2E37-403E-ADFB-9F3BC50A1D7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{749A58D2-2E37-403E-ADFB-9F3BC50A1D7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{749A58D2-2E37-403E-ADFB-9F3BC50A1D7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45DA7DA3-D0AD-4D74-92A8-625F6CD3FACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45DA7DA3-D0AD-4D74-92A8-625F6CD3FACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45DA7DA3-D0AD-4D74-92A8-625F6CD3FACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45DA7DA3-D0AD-4D74-92A8-625F6CD3FACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66C08645-2A77-41B0-A1FD-2AA04A40D1B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66C08645-2A77-41B0-A1FD-2AA04A40D1B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66C08645-2A77-41B0-A1FD-2AA04A40D1B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66C08645-2A77-41B0-A1FD-2AA04A40D1B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11661BB4-6952-42EC-8F57-8B045319F10D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11661BB4-6952-42EC-8F57-8B045319F10D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11661BB4-6952-42EC-8F57-8B045319F10D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11661BB4-6952-42EC-8F57-8B045319F10D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{66C08645-2A77-41B0-A1FD-2AA04A40D1B1} = {837538B0-821D-4C22-A29F-2C4A7D636902}
+	EndGlobalSection
+EndGlobal
