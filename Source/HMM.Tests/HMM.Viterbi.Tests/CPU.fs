@@ -21,5 +21,9 @@ let ``RF01123q116`` () =
     HMM.Viterbi.Tests.Src.hmmTestRF01123 viterbi
 
 [<Test>]
-let ``RF00038q266len135`` () =
+let ``RF00038q266`` () =
     HMM.Viterbi.Tests.Src.hmmTestRF00038 viterbi
+
+[<Test>]
+let ``only end`` () =
+    HMM.Viterbi.Tests.Src.hmmTestRF02468_1 viterbi
