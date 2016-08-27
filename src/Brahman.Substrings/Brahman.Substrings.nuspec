@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Brahman.Substrings</id>
+    <version>0.2.0.1</version>
+    <title>Brahman.Substrings</title>
+    <authors>Semyon Grigorev</authors>
+    <owners>Semyon Grigorev</owners>
+    <licenseUrl>http://github.com/gsvgit/Brahma.FSharp/blob/master/License%20(eclipse-1.0).txt</licenseUrl>
+    <projectUrl>https://sites.google.com/site/semathsrprojects/home/brahman-opencl/brahman-substrings</projectUrl>
+    <iconUrl>https://raw.github.com/gsvgit/Brahma.FSharp/master/Assets/BrahmanSubstringLogoBW_small1.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>     Brahman is a set of snippets, algorithms and solution for end users based on Brahma.FSharp.
+     Brahman.Substrings is a library for substrings matching."
+    </description>
+    <releaseNotes>
+	All packages are updated.
+        Brahman.Substrings is a library for substrings matching. Current version is customized for data carving.
+    </releaseNotes>
+    <copyright>Copyright 2013 Semyon Grigorev [rsdpisuy@gmail.com]</copyright>
+    <tags>OpenCL GPGPU .NET F# FSharp Substrings Matching Search Carving</tags>
+    <dependencies>
+      <dependency id="Brahma.FSharp" version="[0.2.0.0]" />
+    </dependencies>
+
+  </metadata>
+
+<files>
+    <file src="..\..\Readme.txt" target="" /> 
+    <file src="..\..\..\License (eclipse-1.0).txt" target="" /> 
+    <file src="..\..\Bin\Release\v40\Brahman.*" target="lib\net40\" /> 
+</files>
+</package>

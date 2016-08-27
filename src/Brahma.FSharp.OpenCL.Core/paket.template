@@ -1,0 +1,43 @@
+type project
+id Brahma.FSharp
+title Brahma.FSharp
+owners
+    YaccConstructor
+authors 
+    Semyon Grigorev
+projectUrl
+    http://github.com/YaccConstructor/Brahma.FSharp
+iconUrl
+    https://raw.githubusercontent.com/YaccConstructor/Brahma.FSharp/master/docs/files/img/logo.png
+licenseUrl
+    http://github.com/YaccConstructor/Brahma.FSharp/blob/master/LICENSE.txt
+description
+    Brahma.FSharp is a library for F# quotations to OpenCL translation.
+requireLicenseAcceptance
+    false
+copyright
+    Copyright YaccConstructor 2016
+references
+    Brahma.dll
+    Brahma.Agents.dll
+    Brahma.OpenCL.dll
+    Brahma.Helpers.dll
+    Brahma.FSharp.OpenCL.Core.dll
+    Brahma.FSharp.OpenCL.AST.dll
+    Brahma.FSharp.OpenCL.Extensions.dll
+    Brahma.FSharp.OpenCL.Printer.dll
+    Brahma.FSharp.OpenCL.Translator.dll
+files
+    ../../bin/Brahma/Brahma.dll ==> lib/net45
+    ../../bin/Brahma.Agents/Brahma.Agents.dll ==> lib/net45
+    ../../bin/Brahma.OpenCL/Brahma.OpenCL.dll ==> lib/net45
+    ../../bin/Brahma.Helpers/Brahma.Helpers.dll ==> lib/net45
+    ../../bin/Brahma.FSharp.OpenCL.Core/Brahma.FSharp.OpenCL.Core.dll ==> lib/net45
+    ../../bin/Brahma.FSharp.OpenCL.Core/Brahma.FSharp.OpenCL.AST.dll ==> lib/net45
+    ../../bin/Brahma.FSharp.OpenCL.Core/Brahma.FSharp.OpenCL.Extensions.dll ==> lib/net45
+    ../../bin/Brahma.FSharp.OpenCL.Core/Brahma.FSharp.OpenCL.Printer.dll ==> lib/net45
+    ../../bin/Brahma.FSharp.OpenCL.Core/Brahma.FSharp.OpenCL.Translator.dll ==> lib/net45
+dependencies
+    FSharpx.Collections
+    YC.PrettyPrinter
+    OpenCL.NET = 2.2.9
