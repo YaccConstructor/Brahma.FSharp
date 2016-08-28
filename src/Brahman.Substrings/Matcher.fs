@@ -224,7 +224,7 @@ type Matcher(?maxHostMem) =
                         | ex -> failwith ex.Message
                     provider |> printfn "%A"
                     providers.Add provider
-                    let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.item 0) 
+                    let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head) 
                     let f = new Agents.WorkerConfig(1u,commandQueue,provider) |> createWorkerFun
                     new Agents.Worker<_,_>(f))
 
