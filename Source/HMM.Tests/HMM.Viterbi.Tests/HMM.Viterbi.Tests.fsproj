@@ -46,6 +46,10 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RF01315.fs" />
+    <Compile Include="RF02468.fs" />
+    <Compile Include="RF01123.fs" />
+    <Compile Include="RF00038.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="Cons.fs" />
     <Compile Include="CPU.fs" />
@@ -54,18 +58,18 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Viterbi_Cons\Viterbi_Cons.fsproj">
-      <Name>Viterbi_Cons</Name>
+    <ProjectReference Include="..\..\Viterbi_Cons\Viterbi.Cons.fsproj">
+      <Name>Viterbi.Cons</Name>
       <Project>{0e723dc9-77fa-4355-89e5-120cc4336e90}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Viterbi_Parallel_CPU\Viterbi_Parallel_CPU\Viterbi_Parallel_CPU.fsproj">
-      <Name>Viterbi_Parallel_CPU</Name>
+    <ProjectReference Include="..\..\Viterbi_Parallel_CPU\Viterbi_Parallel_CPU\Viterbi.Parallel.fsproj">
+      <Name>Viterbi.Parallel</Name>
       <Project>{749a58d2-2e37-403e-adfb-9f3bc50a1d7f}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Viterbi_Parallel_GPGPU\Viterbi_Parallel_GPGPU.fsproj">
-      <Name>Viterbi_Parallel_GPGPU</Name>
+    <ProjectReference Include="..\..\Viterbi_Parallel_GPGPU\Viterbi.GPGPU.fsproj">
+      <Name>Viterbi.GPGPU</Name>
       <Project>{45da7da3-d0ad-4d74-92a8-625f6cd3facb}</Project>
       <Private>True</Private>
     </ProjectReference>

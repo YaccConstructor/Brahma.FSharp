@@ -1,6 +1,7 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    Argu (3.1)
+    Argu (3.2)
+    FSharp.Charting (0.90.14)
     FSharp.Core (4.0.0.1) - redirects: force
     FSharp.Quotations.Evaluator (1.0.7)
     FSharpx.Collections (1.15.1)
@@ -21,10 +22,10 @@ NUGET
       FSharpVSPowerTools.Core (>= 2.3 < 2.4)
     FSharpVSPowerTools.Core (2.3)
       FSharp.Compiler.Service (>= 2.0.0.3)
-    Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
+    Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net35, net40, net40
       Microsoft.Bcl.Build (>= 1.0.14)
-    Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
-    Microsoft.Net.Http (2.2.29) - framework: net10, net11, net20, net30, net35, net40, net40-full
+    Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net35, net40, net40
+    Microsoft.Net.Http (2.2.29) - framework: net10, net11, net20, net35, net40, net40
       Microsoft.Bcl (>= 1.1.10)
       Microsoft.Bcl.Build (>= 1.0.14)
     Octokit (0.20)
