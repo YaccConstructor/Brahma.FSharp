@@ -46,8 +46,128 @@ type Translator() =
             commandQueue.Dispose()
             Assert.AreEqual(expected, r)
             provider.CloseAllBuffers()
-        kernelPrepareF,check
+        kernelPrepareF, check
 
+    let returnResult command =
+        let kernel, kernelPrepareF, kernelRunF = provider.Compile command    
+        let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head)            
+        let getresult (outArray: array<_>) =
+            let cq = commandQueue.Add(kernelRunF()).Finish()
+            let cq2 = commandQueue.Add(outArray.ToHost provider).Finish()
+            commandQueue.Dispose()
+            provider.CloseAllBuffers()
+            outArray
+        kernelPrepareF, getresult
+    
+    let mtrxToArr (mtrx : 't [][]) = 
+        Array.concat (Array.toSeq(mtrx))
+
+    let matrixToArray (m: array<array<_>>) = 
+        let lines = m.Length
+        let cols = m.[0].Length 
+        let arr = Array.zeroCreate (lines * cols)
+        let s = seq {for i in 0..lines - 1 -> m.[i]}
+        let arr = Array.concat s
+        arr 
+    
+    let arrayToMatrix (arr: array<_>) lines cols = 
+        let matrix = Array.zeroCreate (lines)
+        for i in 0..lines - 1 do
+            matrix.[i] <- (Array.sub arr (i * cols) cols)
+        matrix
+    
+    let sumMatr (m1: array<array<_>>) (m2: array<array<_>>) = 
+        let lines = m1.Length
+        let cols = m1.[0].Length 
+        let command = 
+            <@ 
+                 fun (rng: _1D) (m1: array<_>) (m2: array<_>) (res: array<_>) ->                    
+                    let r = rng.GlobalID0
+                    res.[r] <- m1.[r] + m2.[r]
+            @>
+        let res = Array.zeroCreate (lines * cols)
+        let rng = new _1D(lines * cols, 1)
+        let run, getresult = returnResult command
+        run rng (matrixToArray m1) (matrixToArray m2) res
+        arrayToMatrix (getresult res) lines cols
+
+    let sumEl (m: array<array<_>>) = 
+        let lines = m.Length
+        let cols = m.[0].Length 
+        let command = 
+            <@ fun (rng:_1D) (m: array<_>) (res: array<_>) ->                    
+                    let r = rng.GlobalID0
+                    res.[0] <!+ m.[r]
+            @>
+        let res = Array.zeroCreate 1
+        let rng = new _1D(lines * cols, 1)
+        let run, getresult = returnResult command
+        run rng (matrixToArray m) res
+        getresult res
+
+    let matrSum (m1 : array<array<_>>) (m2 : array<array<_>>) =
+        let command = 
+            <@ 
+                fun (range : _1D) (m1 : array<_>) (m2 : array<_>) (buf : array<_>) ->
+                    let x = range.GlobalID0
+                    buf.[x] <- m1.[x] + m2.[x]                                         
+            @>
+        
+        let run, get = returnResult command
+        let buf = Array.zeroCreate (m1.Length * m1.[0].Length)
+        let d = new _1D(m1.Length * m1.[0].Length, 1)
+        run d (Array.concat m1) (Array.concat m2) buf
+        get buf
+
+    let elemSum (m : array<array<_>> )=
+        let command = 
+            <@ 
+                fun (range : _1D) (m : array<_>) (buf : array<_>) ->
+                    let x = range.GlobalID0
+                    buf.[0] <!+ m.[x]                                        
+            @>
+        
+        let run, get = returnResult command
+        let buf = Array.zeroCreate 1
+        let d = new _1D(m.Length * m.[0].Length, 1)
+        run d (Array.concat m) buf
+        get buf
+    
+    [<Test>]
+    member this.``MtrxSum``() = 
+        let command = 
+            <@ 
+                fun (range : _1D) (mtrx1 : array<_>) (mtrx2 : array<_>) (res : array<_>) ->                    
+                    let i = range.GlobalID0
+                    res.[i] <- mtrx1.[i] + mtrx2.[i]
+            @>
+        let run, check = checkResult command
+        let mtrx1 = [|[|2;3;4|];[|5;7;8|];[|2;6;9|];[|6;7;8|]|]
+        let mtrx2 = [|[|1;3;4|];[|5;6;8|];[|2;3;9|];[|0;7;8|]|]
+        let rows = mtrx1.Length
+        let cols = mtrx1.[0].Length
+        let range = new _1D(rows * cols, 1)
+        let res = Array.zeroCreate (rows * cols)
+        run range (mtrxToArr mtrx1) (mtrxToArr mtrx2) res
+        check res (mtrxToArr [|[|3;6;8|];[|10;13;16|];[|4;9;18|];[|6;14;16|]|])
+              
+    [<Test>]  
+    member this.``MtrxElemSum``() = 
+        let command = 
+            <@
+                fun (range: _1D) (mtrx : array<_>) (res : array<_>) ->
+                let i = range.GlobalID0
+                res.[0] <!+  mtrx.[i]
+            @>
+        let run, check = checkResult command
+        let mtrx = [|[|2;3;4|];[|5;7;8|];[|2;6;9|];[|6;7;8|]|]
+        let rows = mtrx.Length
+        let cols = mtrx.[0].Length
+        let range = new _1D(rows * cols, 1)
+        let res = Array.zeroCreate 1
+        run range (mtrxToArr mtrx) res
+        check res [|67|]
+          
     [<Test>]
     member this.``Array item set``() = 
         let command = 
@@ -300,7 +420,7 @@ type Translator() =
         run _1d float32Arr        
         check float32Arr [|0.0f;1.0f;4.0f;9.0f|]
 
-    [<Ignore>]
+    [<Ignore "not working properly" >]
     [<Test>]
     member this.``Math sin``() = 
         let command = 
@@ -1235,6 +1355,66 @@ type Translator() =
         let run,check = checkResult command
         run _1d intInArr        
         check intInArr [|2;3;6;7|]
+
+    [<Test>]
+    member this.``MatrixSum``() = 
+        let m1 = [|[|1; 2; 3|]; [|4; 5; 6|]; [|7; 8; 9|]|]
+        let m2 = [|[|9; 8; 7|]; [|6; 5; 4|]; [|3; 2; 1|]|]
+        Assert.AreEqual (matrSum m1 m2, Array.concat [|[|10; 10; 10|]; [|10; 10; 10|]; [|10; 10; 10|]|])
+
+    [<Test>]
+    member this.``MatrixSumPairs``() = 
+        let m1 = [|[|1; 2; 3|]; [|4; 5; 6|]; [|7; 8; 9|]|]
+        let m2 = [|[|9; 8; 7|]; [|6; 5; 4|]; [|3; 2; 1|]|]
+        let m3 = [|[|2; 4; 6|]; [|8; 10; 12|]; [|14; 16; 18|]|]
+        let m4 = [|[|18; 16; 14|]; [|12; 10; 8|]; [|6; 4; 2|]|]
+        let m5 = [|[|1; 2|]; [|3; 4|]|]
+        let m6 = [|[|4; 3|]; [|2; 1|]|]
+        let pairsArr = [|(m1, m2); (m3, m4); (m5, m6)|]
+        let res = Array.map(fun (x, y) -> matrSum x y) pairsArr
+        Assert.AreEqual (res, [|[|10; 10; 10; 10; 10; 10; 10; 10; 10|]; [|20; 20; 20; 20; 20; 20; 20; 20; 20|]; [|5; 5; 5; 5|]|])
+
+
+    [<Test>]
+    member this.``ElemSum``() = 
+        let m = [|[|1; 2; 3|]; [|4; 5; 6|]; [|7; 8; 9|]|]
+        Assert.AreEqual (elemSum m, [|45|])
+
+    [<Test>]
+    member this.``ElemSumArrays``() = 
+        let m1 = [|[|1; 2; 3|]; [|4; 5; 6|]; [|7; 8; 9|]|]
+        let m2 = [|[|2; 4; 6|]; [|8; 10; 12|]; [|14; 16; 18|]|]
+        let m3 = [|[|1; 2|]; [|3; 4|]|]
+        let arrArr = [|m1; m2; m3|]
+        let res = Array.map(fun x -> elemSum x) arrArr
+        Assert.AreEqual (res, [|[|45|]; [|90|]; [|10|]|])
+
+    [<Test>]
+    member this.``matrixSum``() =
+        let m1 = [|[|1; 2|]; [|3; 4|]|]
+        let m2 = [|[|1; 2|]; [|3; 4|]|]
+        Assert.AreEqual (sumMatr m1 m2, [|[|2; 4|]; [|6; 8|]|])
+
+    [<Test>]
+    member this.``matrixSum 2``() =
+        let m1 = [|[|1; 2|]; [|3; 4|]|]
+        let m2 = [|[|1; 2|]; [|3; 4|]|]
+        let m3 = [|[|1; 2|]; [|3; 4|]|]
+        let m4 = [|[|1; 2|]; [|3; 4|]|]
+        let matrixArr = [|(m1, m2); (m3, m4)|]
+        let sumArr = Array.map (fun (m1, m2) -> sumMatr m1 m2) matrixArr 
+        Assert.AreEqual (sumArr, [|[|[|2; 4|]; [|6; 8|]|]; [|[|2; 4|]; [|6; 8|]|]|])
+                
+    [<Test>]
+    member this.``matrixElSum``() =
+        let m = [|[|1; 2; 3|]; [|1; 1; 1|]; [|4; 5; 3|]|]
+        Assert.AreEqual (sumEl m, [|21|])
+
+    [<Test>]
+    member this.``matrixElSum 2``() =
+        let matrixArr = [|[|[|1; 2|]; [|3; 4|]|]; [|[|5; 6|]; [|7; 8|]|]; [|[|9; 10|]; [|11; 12|]|]|]
+        let sumArr = Array.map sumEl matrixArr
+        Assert.AreEqual (sumArr, [|[|10|]; [|26|]; [|42|]|])
 
 let x = 
     let d = ref 0

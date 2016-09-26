@@ -1,11 +1,13 @@
 source https://nuget.org/api/v2
 
 nuget Argu
-nuget FSharp.Core redirects: force
+nuget FSharp.Charting
+nuget FSharp.Core 4.0.0.1
 nuget FSharp.Quotations.Evaluator
 nuget FSharpx.Collections
 nuget NuGet.CommandLine
-nuget NUnit 2.6.3
+nuget NUnit 2.6.4
+nuget nunit.framework
 nuget OpenCL.Net 2.2.9.0
 nuget YC.PrettyPrinter
 
