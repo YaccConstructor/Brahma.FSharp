@@ -177,7 +177,7 @@ type Master<'d,'r,'fr>(workers:array<Worker<'d,'r>>, fill: 'd -> Option<'d>, buf
                                 ch.Reply()
                                 return ()
                             | x ->
-                                printfn "unexpected message for Worker: %A" x
+                                printfn "unexpected message for Master: %A" x
                                 return! loop n 
                         else return! loop n}
             loop 0)
