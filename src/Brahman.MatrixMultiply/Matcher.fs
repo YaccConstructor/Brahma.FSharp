@@ -1,4 +1,4 @@
-﻿module Brahman.Substrings.Matcher
+﻿module Brahman.MatrixMultiply.Matcher
 
 open Brahma.Helpers
 open Brahma.OpenCL
@@ -9,6 +9,7 @@ open Brahma.FSharp.OpenCL.Extensions
 open Brahma.FSharp.OpenCL.Translator.Common
 open System.Threading.Tasks
 open Microsoft.FSharp.Collections
+open Brahman.MatrixMultiply
 
 type Config =
     {
@@ -42,7 +43,7 @@ type FindRes =
     new (data,templates,chunkSize) = {Data = data; Templates = templates; ChunkSize = chunkSize }
 
 //GPGPU provider
-let platformName = "NVIDIA*"
+let platformName = "*"
 let deviceType = OpenCL.Net.DeviceType.Default   
 
 // Main
@@ -146,7 +147,8 @@ type Matcher(?maxHostMem) =
 
     let chankSize = ref 0
 
-    let rk readFun templateArr = 
+
+    let mm readFun m n k =
         let counter = ref 0
         readingTimer.Start()
         
@@ -156,13 +158,8 @@ type Matcher(?maxHostMem) =
         let  index,totalIndex,current = ref 0, ref 0, ref 0L
         let isLastChunk = ref false
         
-
-        label <- RabinKarp.label
-        
-        let templates = prepareTemplates templateArr
-        
-        let prefix, next, leaf, _ = Helpers.buildSyntaxTree templates.number (int maxTemplateLength) templates.sizes templates.content        
-        let templateHashes = Helpers.computeTemplateHashes templates.number templates.content.Length templates.sizes templates.content                
+                
+                    
 
         totalResult.Clear()
 
@@ -170,54 +167,44 @@ type Matcher(?maxHostMem) =
 
         let bufs = new ResizeArray<_>()        
 
-        let postprocess = fun (result,c) ->
-            countingBound := !chankSize
-            matchBound := !chankSize
-            incr index
-            incr totalIndex
-            current := !current + (int64) !chankSize
-            counter := 
-                !counter 
-                + countMatchesDetailed (!totalIndex-1) result maxTemplateLength countingBound !matchBound templates.sizes prefix matches c
-            
-            if !index = 50 then
-                printfn "I am %A and I've already read %A bytes!" label !current
-                index := 0
+        let postprocess m n (data : array<_>) =
+            printfn "Success"
+            for i in 0 .. m-1 do
+                for j in 0 .. n-1 do
+                    data.[n*i + j] |> printf "%A\t"
+                printf "\n"
 
         let createWorkerFun (wConfig:Agents.WorkerConfig) =
             
-            let c = [|0|]            
-            let config = configure templateArr wConfig.GPUProvider
+            //let config = configure templateArr wConfig.GPUProvider
+            let bufLength = 1000000           
 
-            let l = (config.bufLength + (config.chunkSize-1))/config.chunkSize 
-            let d = new _1D(l,config.localWorkSize)
-
-            let result = Array.zeroCreate config.bufLength
-            let input = Array.zeroCreate config.bufLength 
-
-            chankSize := config.bufLength
+            let result = Array.zeroCreate bufLength
+            let input = Array.zeroCreate bufLength 
 
             bufs.Add input
             for _ in 0 .. int wConfig.AdditionalBuffsNum do
-                bufs.Add <| Array.zeroCreate config.bufLength
+                bufs.Add <| Array.zeroCreate bufLength
                         
-            let kernel, kernelPrepare, kernelRun = wConfig.GPUProvider.Compile(query=RabinKarp.command, translatorOptions=[BoolAsBit])                
+            let d = new _2D(m, k)
+
+            let kernel, kernelPrepare, kernelRun = wConfig.GPUProvider.Compile(query=Brahman.MatrixMultiply.NaiveMatrixMultiply.command1, translatorOptions=[BoolAsBit])                
             kernelPrepare
-                d config.bufLength config.chunkSize templates.number templates.sizes templateHashes maxTemplateLength input templates.content result c                
+                d input m n k result                
 
             let f = fun data ->
-                ignore <| wConfig.GpuCommandQueue.Add(c.ToGpu(wConfig.GPUProvider, [|0|]))
                 ignore <| wConfig.GpuCommandQueue.Add(input.ToGpu(wConfig.GPUProvider, data))
                 ignore <| wConfig.GpuCommandQueue.Add(kernelRun())
-                ignore <| wConfig.GpuCommandQueue.Add(result.ToHost wConfig.GPUProvider).Finish()                
-                ignore <| wConfig.GpuCommandQueue.Add(c.ToHost wConfig.GPUProvider).Finish()
-                result,c.[0]
+                ignore <| wConfig.GpuCommandQueue.Add(result.ToHost wConfig.GPUProvider).Finish()    
+                result
                 
             f   
         
         let workers () =             
             Array.init 2 
                 (fun i ->
+                    let mutable err = new OpenCL.Net.ErrorCode()
+                    let tmp = OpenCL.Net.Cl.GetPlatformIDs(ref err)
                     let provider =
                         try  ComputeProvider.Create(platformName, deviceType)
                         with 
@@ -230,40 +217,18 @@ type Matcher(?maxHostMem) =
 
         let start = System.DateTime.Now
         let ws = workers ()
-        let master = new Agents.Master<_,_,_>(ws, readFun, bufs, Some postprocess)
+        let master = new Agents.Master<_,_,_>(ws, readFun, bufs, Some (postprocess m k))
         while not <| master.IsDataEnd() do ()        
         master.Die()
         printfn "Total time = %A " (System.DateTime.Now - start)
-        providers |> ResizeArray.iter finalize         
-        
-        new FindRes(totalResult.ToArray(), sorted templates, !chankSize )
+        providers |> ResizeArray.iter finalize  
+
+        [||]
 
     new () = Matcher (256UL * 1024UL * 1024UL)
 
-    member this.RabinKarp (readFun, templateArr) = 
-        rk readFun templateArr
-
-    member this.RabinKarp (hdId, templateArr) =         
-        let handle = RawIO.CreateFileW hdId        
-        let res = rk (RawIO.ReadHD handle) templateArr
-        RawIO.CloseHandle(handle)
-        |> ignore
+    member this.Multiply (readFun, m, n, k) =
+        let res = mm readFun m n k
         res
-
-    member this.RabinKarp (inSeq, templateArr) = 
-        let readF = 
-            let next = Helpers.chunk 32 inSeq
-            let finish = ref false
-            fun buf ->
-                if !finish
-                then None
-                else
-                    let r = next buf
-                    match r with
-                    | None -> ()
-                    | Some x -> finish := true
-                    Some buf
-
-        rk readF templateArr
 
     member this.InBufSize with get () = !chankSize
