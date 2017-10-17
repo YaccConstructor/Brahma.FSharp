@@ -2,7 +2,7 @@
 namespace System
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("Brahma.Agents.Hopac")>]
+[<assembly: AssemblyTitleAttribute("ArrayGPU")>]
 [<assembly: AssemblyProductAttribute("Brahma.FSharp")>]
 [<assembly: AssemblyDescriptionAttribute("F# quotation to OpenCL translator.")>]
 [<assembly: AssemblyVersionAttribute("1.1.3")>]
@@ -10,7 +10,7 @@ open System.Reflection
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] AssemblyTitle = "Brahma.Agents.Hopac"
+    let [<Literal>] AssemblyTitle = "ArrayGPU"
     let [<Literal>] AssemblyProduct = "Brahma.FSharp"
     let [<Literal>] AssemblyDescription = "F# quotation to OpenCL translator."
     let [<Literal>] AssemblyVersion = "1.1.3"
