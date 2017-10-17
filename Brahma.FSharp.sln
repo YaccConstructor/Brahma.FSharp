@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{63297B98-5CED-492C-A5B7-A5B4F73CF142}"
 EndProject
@@ -55,6 +55,15 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Brahma.FSharp.OpenCL.OpenCLParser", "src\Brahma.FSharp.OpenCL.OpenCLParser\Brahma.FSharp.OpenCL.OpenCLParser.fsproj", "{A93E672F-931F-415D-84A9-E7CA230F5CE8}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Brahma.Agents.Hopac", "src\Brahma.Agents.Hopac\Brahma.Agents.Hopac.fsproj", "{AF24B2BA-6E6A-4D97-8EDA-B030D37C79E9}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ArrayGPU", "src\ArrayFunc\ArrayGPU\ArrayGPU.fsproj", "{D358A3C3-982C-46E8-96C2-E9D19D69E313}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BrahmaArrayBuilder", "BrahmaArrayBuilder\BrahmaArrayBuilder.fsproj", "{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BrahmaBuilder", "BrahmaBuilder", "{520E0D42-ECB6-4485-A246-4CD103684440}"
+	ProjectSection(SolutionItems) = preProject
+		paket.references = paket.references
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -306,6 +315,30 @@ Global
 		{AF24B2BA-6E6A-4D97-8EDA-B030D37C79E9}.Release|x64.Build.0 = Release|Any CPU
 		{AF24B2BA-6E6A-4D97-8EDA-B030D37C79E9}.Release|x86.ActiveCfg = Release|Any CPU
 		{AF24B2BA-6E6A-4D97-8EDA-B030D37C79E9}.Release|x86.Build.0 = Release|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Debug|x64.Build.0 = Debug|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Debug|x86.Build.0 = Debug|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Release|x64.ActiveCfg = Release|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Release|x64.Build.0 = Release|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Release|x86.ActiveCfg = Release|Any CPU
+		{D358A3C3-982C-46E8-96C2-E9D19D69E313}.Release|x86.Build.0 = Release|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Debug|x64.Build.0 = Debug|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Debug|x86.Build.0 = Debug|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Release|x64.ActiveCfg = Release|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Release|x64.Build.0 = Release|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Release|x86.ActiveCfg = Release|Any CPU
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -333,5 +366,7 @@ Global
 		{E83DF1BA-5B55-4770-AC08-BB1C9D5856B8} = {ED8079DD-2B06-4030-9F0F-DC548F98E1C4}
 		{A93E672F-931F-415D-84A9-E7CA230F5CE8} = {25E14FB9-7440-42DF-8166-7CD7A9ECDBE1}
 		{AF24B2BA-6E6A-4D97-8EDA-B030D37C79E9} = {75EE1B05-083A-41B6-8DF4-745FD8EEAC1C}
+		{7B66E0D4-CEF7-4137-B0DD-58E5E1D6AADF} = {520E0D42-ECB6-4485-A246-4CD103684440}
+		{520E0D42-ECB6-4485-A246-4CD103684440} = {25E14FB9-7440-42DF-8166-7CD7A9ECDBE1}
 	EndGlobalSection
 EndGlobal
