@@ -71,8 +71,10 @@ module AtomicProcessor =
 
             let rec traverse expr =
                 match expr with
-                | Patterns.Let (var, (DerivedPatterns.SpecificCall <@ local @> _), _)
-                | Patterns.Let (var, (DerivedPatterns.SpecificCall <@ localArray @> _), _) -> vars.Add(var, LocalQ)
+                | Patterns.Let (var, (DerivedPatterns.SpecificCall <@ local @> _), body)
+                | Patterns.Let (var, (DerivedPatterns.SpecificCall <@ localArray @> _), body) ->
+                    vars.Add(var, LocalQ)
+                    traverse body
 
                 | ExprShape.ShapeVar _ -> ()
                 | ExprShape.ShapeLambda (_, lambda) -> traverse lambda

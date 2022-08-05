@@ -997,6 +997,27 @@ let specificTests (translator: FSQuotationToOpenCLTranslator) = [
             @>
 
         checkCode (command 256) "MergeKernel.gen" "MergeKernel.cl"
+
+    testCase "Multiple local values in atomic operations" <|  fun () ->
+        let kernel =
+            <@
+                fun (ndRange: Range1D) (v: int) ->
+                    let mutable firstMaxIndex = local ()
+                    let mutable secondMaxIndex = local ()
+                    let mutable value = local ()
+
+                    if ndRange.LocalID0 = 0 then
+                        firstMaxIndex <- 0
+                        secondMaxIndex <- 0
+                        value <- v
+
+                    barrierLocal ()
+
+                    atomic (max) firstMaxIndex value |> ignore
+                    atomic (max) secondMaxIndex value |> ignore
+            @>
+
+        openclTranslate translator kernel |> ignore
 ]
 
 let commonApiTests translator = [

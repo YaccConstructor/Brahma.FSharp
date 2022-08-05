@@ -392,5 +392,5 @@ let tests translator =
     [
         testList "Parameter lifting test" lambdaLiftingTests
         testList "Var defs to lambda test" varDefsToLambdaTest
-        testList "transformer quotation system tests" <| quotationTransformerTest translator
+        testList "Transformer quotation system tests" <| quotationTransformerTest translator
     ]
