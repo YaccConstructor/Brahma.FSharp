@@ -140,7 +140,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         |> List.find (fun method -> method :? KernelFunc)
         |> fun kernel -> kernel.FunExpr
 
-    member val Marshaler = CustomMarshaler() with get
+    member val Marshaler = CustomMarshaller() with get
 
     member this.TranslatorOptions = translatorOptions
 

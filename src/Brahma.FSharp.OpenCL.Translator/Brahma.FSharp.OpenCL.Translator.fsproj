@@ -35,7 +35,7 @@
     <Compile Include="Type.fs" />
     <Compile Include="Body.fs" />
     <Compile Include="Methods.fs" />
-    <Compile Include="CustomMarshaler.fs" />
+    <Compile Include="CustomMarshaller.fs" />
     <Compile Include="Translator.fs" />
   </ItemGroup>
   <ItemGroup>

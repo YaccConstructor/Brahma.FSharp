@@ -16,7 +16,7 @@ type StructurePacking =
         Members: {| Pack: StructurePacking; Offsets: int|} list
     }
 
-type CustomMarshaler() =
+type CustomMarshaller() =
     let typePacking = ConcurrentDictionary<Type, StructurePacking>()
 
     let typeOffsets = ConcurrentDictionary<Type, int[]>()
@@ -40,15 +40,15 @@ type CustomMarshaler() =
             ]
         )
 
-    let (|TupleType|RecordType|UnionType|UserDefinedStuctureType|PrimitiveType|) (type': Type) =
+    let (|TupleType|RecordType|UnionType|UserDefinedStructureType|PrimitiveType|) (type': Type) =
         match type' with
         | _ when FSharpType.IsTuple type' -> TupleType
         | _ when FSharpType.IsRecord type' -> RecordType
         | _ when FSharpType.IsUnion type' -> UnionType
-        | _ when Utils.hasAttribute<StructAttribute> type' -> UserDefinedStuctureType
+        | _ when Utils.hasAttribute<StructAttribute> type' -> UserDefinedStructureType
         | _ -> PrimitiveType
 
-    let (|Tuple|Record|Union|UserDefinedStucture|Primitive|) (structure: obj) =
+    let (|Tuple|Record|Union|UserDefinedStructure|Primitive|) (structure: obj) =
         // because None is null
         if isNull structure then
             Union
@@ -57,7 +57,7 @@ type CustomMarshaler() =
             | TupleType -> Tuple
             | RecordType -> Record
             | UnionType -> Union
-            | UserDefinedStuctureType -> UserDefinedStucture
+            | UserDefinedStructureType -> UserDefinedStructure
             | _ -> Primitive
 
     // TODO issues with multithreading
@@ -133,7 +133,7 @@ type CustomMarshaler() =
                                 |> Array.map this.GetTypePacking
                                 |> Array.toList
 
-                            let unionAligment =
+                            let unionAlignment =
                                 packingList
                                 |> List.map (fun pack -> pack.Alignment)
                                 |> List.max
@@ -143,7 +143,7 @@ type CustomMarshaler() =
                                 |> List.map (fun pack -> pack.Size)
                                 |> List.max
 
-                            { Size = unionSize; Alignment = unionAligment; Members = [] }
+                            { Size = unionSize; Alignment = unionAlignment; Members = [] }
 
                     let elems = [tag; unionPacking]
 
@@ -154,7 +154,7 @@ type CustomMarshaler() =
 
                     { Size = size; Alignment = alignment; Members = members }
 
-                | UserDefinedStuctureType ->
+                | UserDefinedStructureType ->
                     let elems =
                         type'.GetFields()
                         |> Array.map (fun fi -> fi.FieldType)
@@ -170,8 +170,8 @@ type CustomMarshaler() =
 
                 | PrimitiveType ->
                     let size = Marshal.SizeOf (if type' = typeof<bool> then typeof<BoolHostAlias> else type')
-                    let aligment = size
-                    { Size = size; Alignment = aligment; Members = [] }
+                    let alignment = size
+                    { Size = size; Alignment = alignment; Members = [] }
 
             go type'
 
@@ -277,7 +277,7 @@ type CustomMarshaler() =
 
                     i <- i + 1
 
-                | UserDefinedStucture ->
+                | UserDefinedStructure ->
                     str.GetType().GetFields()
                     |> Array.map (fun fi -> fi.GetValue(str))
                     |> Array.iter go
@@ -342,7 +342,7 @@ type CustomMarshaler() =
                     i <- i + 1
                     union
 
-                | UserDefinedStuctureType ->
+                | UserDefinedStructureType ->
                     let inst = Activator.CreateInstance(type'')
                     type''.GetFields()
                     |> Array.map (fun fi -> fi, go fi.FieldType)
