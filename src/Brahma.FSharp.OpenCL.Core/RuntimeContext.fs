@@ -11,7 +11,7 @@ type RuntimeOptions =
             WorkgroupSize = 256
         }
 
-/// Provides a context to run OpenCL cumputation.
+/// Provides a context to run OpenCL computation.
 type RuntimeContext(clContext: ClContext) =
     let mutable runtimeOptions = RuntimeOptions.Default
 

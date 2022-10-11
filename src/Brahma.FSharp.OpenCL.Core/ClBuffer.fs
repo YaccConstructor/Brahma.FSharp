@@ -72,7 +72,7 @@ type ClBuffer<'a>
         | Size _ -> ClMemFlags.DefaultIfNoData
         |> defaultArg memFlags
 
-    let marshaler = clContext.Translator.Marshaler
+    let marshaler = clContext.Translator.Marshaller
 
     let intPtrSize = IntPtr(Marshal.SizeOf typedefof<IntPtr>)
 

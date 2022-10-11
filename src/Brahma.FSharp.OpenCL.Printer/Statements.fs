@@ -148,7 +148,7 @@ module Statements =
             | :? Return<'lang> as r -> printReturn r
             //| :? Variable<'lang> as v -> printVar v
             | :? Expression<'lang> as e -> Expressions.print e
-            | _ -> failwithf "Printer. Unsupported statement: %O" stmt
+            | _ -> failwithf $"Printer. Unsupported statement: {stmt}"
 
         if isToplevel then
             res

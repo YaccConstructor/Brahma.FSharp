@@ -38,7 +38,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
             member this.Eval (crate: ToHost<'a>) =
                 let eventID = ref Unchecked.defaultof<Event>
                 let clMem = crate.Source.Memory
-                let marshaler = translator.Marshaler
+                let marshaller = translator.Marshaller
 
                 let finishRead error =
                     if error <> ErrorCode.Success then
@@ -46,7 +46,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
                     finish queue
 
-                if marshaler.IsBlittable typeof<'a> then
+                if marshaller.IsBlittable typeof<'a> then
                     Cl.EnqueueReadBuffer(
                         queue,
                         clMem,
@@ -59,7 +59,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                         eventID
                     ) |> finishRead
                 else
-                    let size = crate.Destination.Length * marshaler.GetTypePacking(typeof<'a>).Size
+                    let size = crate.Destination.Length * marshaller.GetTypePacking(typeof<'a>).Size
                     let hostMem = Marshal.AllocHGlobal size
 
                     Cl.EnqueueReadBuffer(
@@ -74,7 +74,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                         eventID
                     ) |> finishRead
 
-                    marshaler.ReadFromUnmanaged(hostMem, crate.Destination)
+                    marshaller.ReadFromUnmanaged(hostMem, crate.Destination)
                     Marshal.FreeHGlobal(hostMem)
 
                 match crate.ReplyChannel with
