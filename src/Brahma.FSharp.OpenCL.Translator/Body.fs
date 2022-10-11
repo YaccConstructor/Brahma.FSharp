@@ -378,7 +378,7 @@ module rec Body =
         | Some varName -> return Variable varName
         | None ->
             return raise <| InvalidKernelException $"Seems, that you try to use variable with name %A{var.Name}, that declared out of quotation. \
-                    Please, pass it as quoted function's parametaer."
+                    Please, pass it as quoted function's parameter."
     }
 
     let translateValue (value: obj) (sType: System.Type) =
@@ -673,8 +673,8 @@ module rec Body =
         }
 
         match expr with
-        | Patterns.AddressOf expr -> return raise <| InvalidKernelException $"AdressOf is not suported: {expr}"
-        | Patterns.AddressSet expr -> return raise <| InvalidKernelException $"AdressSet is not suported: {expr}"
+        | Patterns.AddressOf expr -> return raise <| InvalidKernelException $"AddressOf is not supported: {expr}"
+        | Patterns.AddressSet expr -> return raise <| InvalidKernelException $"AddressSet is not supported: {expr}"
 
         | Patterns.Application (expr1, expr2) ->
             let! (e, applying) = translateApplication expr1 expr2
@@ -713,33 +713,33 @@ module rec Body =
             return Const(type', value) :> Node<_>
 
         | Patterns.Call (exprOpt, mInfo, args) -> return! translateCall exprOpt mInfo args >>= toNode
-        | Patterns.Coerce (expr, sType) -> return raise <| InvalidKernelException $"Coerce is not suported: {expr}"
-        | Patterns.DefaultValue sType -> return raise <| InvalidKernelException $"DefaulValue is not suported: {expr}"
+        | Patterns.Coerce (expr, sType) -> return raise <| InvalidKernelException $"Coerce is not supported: {expr}"
+        | Patterns.DefaultValue sType -> return raise <| InvalidKernelException $"DefaultValue is not supported: {expr}"
 
         | Patterns.FieldGet (exprOpt, fldInfo) ->
             match exprOpt with
             | Some expr -> return! translateStructFieldGet expr fldInfo.Name >>= toNode
-            | None -> return raise <| InvalidKernelException $"FieldGet for empty host is not suported. Field: %A{fldInfo.Name}"
+            | None -> return raise <| InvalidKernelException $"FieldGet for empty host is not supported. Field: %A{fldInfo.Name}"
 
         | Patterns.FieldSet (exprOpt, fldInfo, expr) ->
             match exprOpt with
             | Some e -> return! translateFieldSet e fldInfo.Name expr >>= toNode
-            | None -> return raise <| InvalidKernelException $"Fileld set with empty host is not supported. Field: %A{fldInfo}"
+            | None -> return raise <| InvalidKernelException $"Field set with empty host is not supported. Field: %A{fldInfo}"
 
         | ForLoopWithStep (loopVar, (start, step, finish), loopBody) -> return! translateForLoop loopVar start finish (Some step) loopBody >>= toNode
         | ForLoop (loopVar, (start, finish), loopBody) -> return! translateForLoop loopVar start finish None loopBody >>= toNode
         | Patterns.ForIntegerRangeLoop (loopVar, start, finish, loopBody) ->  return! translateForLoop loopVar start finish None loopBody >>= toNode
         | Patterns.IfThenElse (cond, thenExpr, elseExpr) -> return! translateIf cond thenExpr elseExpr >>= toNode
 
-        | Patterns.Lambda (var, _expr) ->  return raise <| InvalidKernelException $"Lambda is not suported: %A{expr}"
+        | Patterns.Lambda (var, _expr) ->  return raise <| InvalidKernelException $"Lambda is not supported: %A{expr}"
         | Patterns.Let (var, expr, inExpr) ->
             match var.Name with
             | "___providedCallInfo" -> return! translateProvidedCall expr
             | _ -> return! translateLet var expr inExpr
 
-        | Patterns.LetRecursive (bindings, expr) -> return raise <| InvalidKernelException $"LetRecursive is not suported: {expr}"
-        | Patterns.NewArray (sType, exprs) -> return raise <| InvalidKernelException $"NewArray is not suported: {expr}"
-        | Patterns.NewDelegate (sType, vars, expr) -> return raise <| InvalidKernelException $"NewDelegate is not suported: {expr}"
+        | Patterns.LetRecursive (bindings, expr) -> return raise <| InvalidKernelException $"LetRecursive is not supported: {expr}"
+        | Patterns.NewArray (sType, exprs) -> return raise <| InvalidKernelException $"NewArray is not supported: {expr}"
+        | Patterns.NewDelegate (sType, vars, expr) -> return raise <| InvalidKernelException $"NewDelegate is not supported: {expr}"
 
         | Patterns.NewObject (constrInfo, exprs) ->
             let! context = State.get
@@ -784,10 +784,10 @@ module rec Body =
         | Patterns.PropertyGet (exprOpt, propInfo, exprs) -> return! translatePropGet exprOpt propInfo exprs >>= toNode
         | Patterns.PropertySet (exprOpt, propInfo, exprs, expr) -> return! translatePropSet exprOpt propInfo exprs expr >>= toNode
         | Patterns.Sequential (expr1, expr2) -> return! translateSeq expr1 expr2 >>= toNode
-        | Patterns.TryFinally (tryExpr, finallyExpr) -> return raise <| InvalidKernelException $"TryFinally is not suported: {expr}"
-        | Patterns.TryWith (expr1, var1, expr2, var2, expr3) -> return raise <| InvalidKernelException $"TryWith is not suported: {expr}"
+        | Patterns.TryFinally (tryExpr, finallyExpr) -> return raise <| InvalidKernelException $"TryFinally is not supported: {expr}"
+        | Patterns.TryWith (expr1, var1, expr2, var2, expr3) -> return raise <| InvalidKernelException $"TryWith is not supported: {expr}"
         | Patterns.TupleGet (expr, i) -> return! translateStructFieldGet expr $"_{i + 1}" >>= toNode
-        | Patterns.TypeTest (expr, sType) -> return raise <| InvalidKernelException $"TypeTest is not suported: {expr}"
+        | Patterns.TypeTest (expr, sType) -> return raise <| InvalidKernelException $"TypeTest is not supported: {expr}"
 
         | Patterns.UnionCaseTest (expr, unionCaseInfo) ->
             let! unionInfo = Type.translate unionCaseInfo.DeclaringType
@@ -818,5 +818,5 @@ module rec Body =
         | Patterns.Var var -> return! translateVar var >>= toNode
         | Patterns.VarSet (var, expr) -> return! translateVarSet var expr >>= toNode
         | Patterns.WhileLoop (condExpr, bodyExpr) -> return! translateWhileLoop condExpr bodyExpr >>= toNode
-        | _ -> return raise <| InvalidKernelException $"Folowing expression inside kernel is not supported:\n{expr}"
+        | _ -> return raise <| InvalidKernelException $"Following expression inside kernel is not supported:\n{expr}"
     }
