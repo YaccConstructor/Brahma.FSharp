@@ -5,7 +5,7 @@
     <PackageId>Brahma.FSharp</PackageId>
     <AssemblyName>Brahma.FSharp.OpenCL.Core</AssemblyName>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>Brahma.FSharp.OpenCL.Core</Title>
     <Description>Core components of Brahma.FSharp.</Description>

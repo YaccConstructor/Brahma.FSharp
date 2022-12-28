@@ -229,6 +229,7 @@ type CustomMarshaller() =
             blittableTypes.TryAdd(type', isBlittable) |> ignore
             isBlittable
         else
+            (*  /// Magic. Why should it works?
             try
                 let instance = FormatterServices.GetUninitializedObject(type');
                 GCHandle.Alloc(instance, GCHandleType.Pinned).Free();
@@ -236,7 +237,7 @@ type CustomMarshaller() =
                 // TODO remove code repetition
                 blittableTypes.TryAdd(type', isBlittable) |> ignore
                 isBlittable
-            with _ ->
+            with _ ->*)
                 isBlittable <- false
                 blittableTypes.TryAdd(type', isBlittable) |> ignore
                 isBlittable

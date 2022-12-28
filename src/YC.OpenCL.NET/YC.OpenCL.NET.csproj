@@ -5,7 +5,7 @@
     <Description>Low level .NET wrapper for OpenCL.</Description>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>OpenCL.NET</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
