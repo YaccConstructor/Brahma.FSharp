@@ -268,25 +268,33 @@ module GenerateDocs =
 
     let renderDocs (cfg : Configuration) =
         copyAssets cfg
-        let generateDocs =
-            async {
+        let generateDocs () =
+            //async {
                 try
-                    return generateDocs (docsFileGlob cfg.DocsSourceDirectory.FullName) cfg
+                    //return generateDocs (docsFileGlob cfg.DocsSourceDirectory.FullName) cfg
+                    generateDocs (docsFileGlob cfg.DocsSourceDirectory.FullName) cfg
                 with e ->
                     eprintfn "generateDocs failure %A" e
-                    return raise e
-            }
+                    //return raise e
+                    raise e
+            //}
 
-        let generateAPI =
-            async {
-                return generateAPI cfg
-            }
+        let generateAPI () =
+            //async {
+                //return generateAPI cfg
+                generateAPI cfg
+            //}
 
         dotnetPublish cfg
-        Async.Parallel [generateDocs; generateAPI]
-        |> Async.RunSynchronously
-        |> Array.toList
-        |> List.collect id
+        //Async.Parallel [generateDocs; generateAPI]
+        //|> Async.RunSynchronously
+//        printfn "~~~~~~~%A" (generateAPI())
+        //(generateDocs @ generateAPI)
+        let l1 = generateDocs ()
+        let l2 = generateAPI ()
+        //|> Array.toList
+        //|> List.collect id
+        l1 @ l2
 
     let buildDocs (cfg : Configuration) =
         renderDocs cfg
