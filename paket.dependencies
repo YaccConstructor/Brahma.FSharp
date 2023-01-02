@@ -51,13 +51,13 @@ group Docs
   source https://api.nuget.org/v3/index.json
   framework: net7.0
   nuget Argu
-  nuget FSharp.Compiler.Service //34.1.0
+  nuget FSharp.Compiler.Service 34.1.0
   nuget FSharp.Core // ~> 4.6
   nuget Fake.IO.FileSystem 6.0.0-beta001 //5.20.4-alpha.1642
   nuget FAKE.Core.Environment 6.0.0-beta001 //5.20.4-alpha.1642
   nuget Fake.DotNet.Cli 6.0.0-beta001 //5.20.4-alpha.1642
   nuget FSharp.Formatting 4.0.0-rc1
-  nuget FSharp.Literate //4.0.0-rc1
+  nuget FSharp.Literate 4.0.0-rc1
   nuget Fable.React
 
 //group Analyzers

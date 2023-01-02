@@ -8,6 +8,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>OpenCL.NET</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
