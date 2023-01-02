@@ -121,6 +121,7 @@ module GenerateDocs =
         let parse (fileName : string) source =
             let doc =
                 let fsiArgs =
+                    printfn "!!!!%A" cfg.PublishPath.FullName
                     [|
                         yield "--noframework" // error FS1222: When mscorlib.dll or FSharp.Core.dll is explicitly referenced the --noframework option must also be passed
                         yield sprintf "-I:\"%s\"" cfg.PublishPath.FullName
@@ -262,7 +263,7 @@ module GenerateDocs =
             [ indexDoc ] @ moduleDocs @ typeDocs
         cfg.ProjectFilesGlob
         |> Seq.toArray
-        |> Array.Parallel.collect(generate >> List.toArray)
+        |> Array.collect(generate >> List.toArray)
         |> Array.toList
 
     let renderDocs (cfg : Configuration) =
