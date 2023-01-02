@@ -1,4 +1,4 @@
-﻿open System
+open System
 open Fake.IO.FileSystemOperators
 open Fake.IO
 open Fake.Core

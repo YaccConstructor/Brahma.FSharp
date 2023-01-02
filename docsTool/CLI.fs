@@ -2,6 +2,7 @@ namespace DocsTool
 
 module CLIArgs =
     open Argu
+    open Fake.IO.Globbing.Operators
 
     type WatchArgs =
         | ProjectGlob of string
