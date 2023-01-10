@@ -8,7 +8,7 @@
 **Brahma.FSharp** provides a way to utilize GPGPU in your F# programs. It is based on F# quotations to OpenCL translation.
 
 ## Features
-* Utilization of OpenCL for communication with GPU. So, you can work not only with NVIDIA devices but with any device which supports OpenCL (e.g. with AMD ot Intel devices).
+* Utilization of OpenCL for communication with GPU. So, you can work not only with NVIDIA devices but with any device which supports OpenCL (e.g. with AMD or Intel devices).
 * Not only primitive types, but also discriminated unions, structs, records are supported.
 * Pattern matching, mutable and immutable bindings, nested bindings are supported.
 * Custom atomics.
@@ -55,11 +55,9 @@ opencl {
 Contributions, issues and feature requests are welcome.
 Feel free to check [issues](https://github.com/YaccConstructor/Brahma.FSharp/issues) page if you want to contribute.
 
-[//]: # (We use [MiniScaffold]&#40;https://github.com/TheAngryByrd/MiniScaffold&#41; template for this library.)
-
 ### Build
 Make sure the following **requirements** are installed on your system:
-- [dotnet SDK](https://dotnet.microsoft.com/en-us/download/dotnet/5.0) 5.0 or higher
+- [dotnet SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) 7.0 or higher
 - OpenCL-compatible device and respective OpenCL driver
 
 To build and run all tests:
