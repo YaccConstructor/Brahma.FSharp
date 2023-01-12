@@ -84,6 +84,13 @@ type ClDevice(device: OpenCL.Net.Device) =
             fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkItemSizes, e).CastToArray<int>(3)
             |> throwOnError
 
+        member val LocalMemSize =
+            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.LocalMemSize, e).CastTo<int>() * 1<Byte>
+            |> throwOnError
+        member val GlobalMemSize =
+            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.GlobalMemSize, e).CastTo<int64>() * 1L<Byte>
+            |> throwOnError
+
         member val DeviceExtensions =
             fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.Extensions, e).ToString()
             |> throwOnError
@@ -105,6 +112,11 @@ type ClDevice(device: OpenCL.Net.Device) =
 
     /// Maximum number of work-items that can be specified in each dimension of the work-group. The minimum value is (1, 1, 1).
     member this.MaxWorkItemSizes = (this :> IDevice).MaxWorkItemSizes
+
+    /// Size of local memory arena in bytes. The minimum value is 16 KB.
+    member this.LocalMemSize = (this :> IDevice).LocalMemSize
+    /// Size of global device memory in bytes.
+    member this.GlobalMemSize = (this :> IDevice).GlobalMemSize
 
     /// Returns a space separated list of extension names.
     member this.DeviceExtensions = (this :> IDevice).DeviceExtensions

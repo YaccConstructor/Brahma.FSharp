@@ -161,6 +161,8 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
                 member this.MaxWorkItemDimensions = 0
                 member this.MaxWorkItemSizes = [| 0 |]
                 member this.DeviceExtensions = ""
+                member this.LocalMemSize = 0<Byte>
+                member this.GlobalMemSize = 0L<Byte>
             }
 
         FSQuotationToOpenCLTranslator(device)

@@ -14,6 +14,8 @@ type DeviceType =
     | GPU
     | Default
 
+type [<Measure>] Byte
+
 type IDevice =
     abstract Name: string
     abstract Platform: Platform
@@ -22,5 +24,8 @@ type IDevice =
     abstract MaxWorkGroupSize: int
     abstract MaxWorkItemDimensions: int
     abstract MaxWorkItemSizes: int[]
+
+    abstract LocalMemSize: int<Byte>
+    abstract GlobalMemSize: int64<Byte>
 
     abstract DeviceExtensions: string
