@@ -1,0 +1,27 @@
+name: Release Docs
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+
+  linux-build:
+    name: Linux Release Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: ReleaseDocks
+        run: |
+          chmod +x ./build.sh
+          ./build.sh ReleaseDocs
+        env:
+          GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
+          FAKE_DETAILED_ERRORS: true
+          CI: true
