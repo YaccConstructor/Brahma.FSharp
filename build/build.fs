@@ -76,7 +76,7 @@ let mutable latestEntry =
     if Seq.isEmpty changelog.Entries
     then Changelog.ChangelogEntry.New("0.0.1", "0.0.1-alpha.1", Some DateTime.Today, None, [], false)
     else changelog.LatestEntry
-let mutable linkReferenceForLatestEntry = ""
+
 let mutable changelogBackupFilename = ""
 
 let publishUrl = "https://www.nuget.org"
@@ -161,7 +161,8 @@ module Changelog =
                 | None -> sprintf "%s/releases/tag/%s" gitHubRepoUrl (tagFromVersionNumber newVersion.AsString)
             sprintf "[%s]: %s" newVersion.AsString linkTarget
 
-    let mkReleaseNotes (linkReference : string) (latestEntry : Changelog.ChangelogEntry) =
+    let mkReleaseNotes (latestEntry : Changelog.ChangelogEntry) =
+        let linkReference = mkLinkReference latestEntry.SemVer changelog
         if String.isNullOrEmpty linkReference then latestEntry.ToString()
         else
             // Add link reference target to description before building release notes, since in main changelog file it's at the bottom of the file
@@ -273,6 +274,10 @@ let allReleaseChecks () =
     isReleaseBranchCheck ()
     Changelog.isChangelogEmpty ()
 
+let allPublishChecks () =
+    isOnCI ()
+    Changelog.isChangelogEmpty ()
+
 //-----------------------------------------------------------------------------
 // Target Implementations
 //-----------------------------------------------------------------------------
@@ -330,9 +335,8 @@ let updateChangelog ctx =
     )
     let versionTuple version = (version.Major, version.Minor, version.Patch)
     let prereleaseEntries = changelog.Entries |> List.filter (fun entry -> entry.SemVer.PreRelease.IsSome && versionTuple entry.SemVer = versionTuple newVersion)
-    let prereleaseChanges = prereleaseEntries |> List.collect (fun entry -> entry.Changes |> List.filter (not << Changelog.isEmptyChange))
+    let prereleaseChanges = prereleaseEntries |> List.collect (fun entry -> entry.Changes |> List.filter (not << Changelog.isEmptyChange)) |> List.distinct
     let assemblyVersion, nugetVersion = Changelog.parseVersions newVersion.AsString
-    linkReferenceForLatestEntry <- Changelog.mkLinkReference newVersion changelog
     let newEntry = Changelog.ChangelogEntry.New(assemblyVersion.Value, nugetVersion.Value, Some System.DateTime.Today, description, unreleasedChanges @ prereleaseChanges, false)
     let newChangelog = Changelog.Changelog.New(changelog.Header, changelog.Description, None, newEntry :: changelog.Entries)
     latestEntry <- newEntry
@@ -346,7 +350,7 @@ let updateChangelog ctx =
     |> Changelog.save changelogFilename
 
     // Now update the link references at the end of the file
-    linkReferenceForLatestEntry <- Changelog.mkLinkReference newVersion changelog
+    let linkReferenceForLatestEntry = Changelog.mkLinkReference newVersion changelog
     let linkReferenceForUnreleased = sprintf "[Unreleased]: %s/compare/%s...%s" gitHubRepoUrl (tagFromVersionNumber newVersion.AsString) "HEAD"
     let tailLines = File.read changelogFilename |> List.ofSeq |> List.rev
 
@@ -521,7 +525,7 @@ let generateAssemblyInfo _ =
 
 let dotnetPack ctx =
     // Get release notes with properly-linked version number
-    let releaseNotes = latestEntry |> Changelog.mkReleaseNotes linkReferenceForLatestEntry
+    let releaseNotes = latestEntry |> Changelog.mkReleaseNotes
     let args =
         [
             sprintf "/p:PackageVersion=%s" latestEntry.NuGetVersion
@@ -543,7 +547,7 @@ let sourceLinkTest _ =
     )
 
 let publishToNuget _ =
-    allReleaseChecks ()
+    allPublishChecks ()
     Paket.push(fun c ->
         { c with
             ToolType = ToolType.CreateLocalTool()
@@ -577,7 +581,7 @@ let gitRelease _ =
     Git.Branches.pushTag "" "origin" tag
 
 let githubRelease _ =
-    allReleaseChecks ()
+    allPublishChecks ()
     let token =
         match githubToken with
         | Some s -> s
@@ -585,7 +589,7 @@ let githubRelease _ =
 
     let files = !! distGlob
     // Get release notes with properly-linked version number
-    let releaseNotes = latestEntry |> Changelog.mkReleaseNotes linkReferenceForLatestEntry
+    let releaseNotes = latestEntry |> Changelog.mkReleaseNotes
 
     GitHub.createClientWithToken token
     |> GitHub.draftNewRelease gitOwner gitRepoName (tagFromVersionNumber latestEntry.NuGetVersion) (latestEntry.SemVer.PreRelease <> None) (releaseNotes |> Seq.singleton)
@@ -681,6 +685,7 @@ let initTargets () =
     Target.create "FormatCode" formatCode
     Target.create "CheckFormatCode" checkFormatCode
     Target.create "Release" ignore
+    Target.create "Publish" ignore
     Target.create "BuildDocs" buildDocs
     Target.create "WatchDocs" watchDocs
     Target.create "ReleaseDocs" releaseDocs
@@ -712,6 +717,9 @@ let initTargets () =
     "DotnetPack" ?=>! "BuildDocs"
     "GenerateCoverageReport" ?=>! "ReleaseDocs"
 
+    "UpdateChangelog"
+        ==> "GitRelease"
+        ==>! "Release"
 
     "DotnetRestore"
         //==> "CheckFormatCode"
@@ -722,9 +730,8 @@ let initTargets () =
         ==> "DotnetPack"
         //==> "SourceLinkTest"
         ==> "PublishToNuGet"
-        ==> "GitRelease"
         ==> "GitHubRelease"
-        ==>! "Release"
+        ==>! "Publish"
 
     "DotnetRestore"
         ==>! "WatchTests"
