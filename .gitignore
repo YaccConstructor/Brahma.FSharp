@@ -280,3 +280,7 @@ docs/coverage/
 tests/Brahma.FSharp.Tests/Generated
 
 Data/
+
+*.xz
+
+PureOpenCL/
