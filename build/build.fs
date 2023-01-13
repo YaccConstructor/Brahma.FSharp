@@ -126,6 +126,10 @@ let rec retryIfInCI times fn =
             fn()
     | _ -> fn()
 
+let isOnCI () =
+    if not isCI.Value then
+        failwith "Not on CI. If you want to publish, please use CI."
+
 let isReleaseBranchCheck () =
     if Git.Information.getBranchName "" <> releaseBranch then failwithf "Not on %s.  If you want to release please switch to this branch." releaseBranch
 
