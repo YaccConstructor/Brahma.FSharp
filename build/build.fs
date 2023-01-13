@@ -113,18 +113,20 @@ let failOnBadExitAndPrint (p : ProcessResult) =
         p.Errors |> Seq.iter Trace.traceError
         failwithf "failed with exitcode %d" p.ExitCode
 
+let isCI = lazy environVarAsBoolOrDefault "CI" false
+
 // CI Servers can have bizzare failures that have nothing to do with your code
 let rec retryIfInCI times fn =
-    match Environment.environVarOrNone "CI" with
-    | Some _ ->
+    if isCI.Value then
         if times > 1 then
             try
-                fn()
-            with
-            | _ -> retryIfInCI (times - 1) fn
+                fn ()
+            with _ ->
+                retryIfInCI (times - 1) fn
         else
-            fn()
-    | _ -> fn()
+            fn ()
+    else
+        fn ()
 
 let isOnCI () =
     if not isCI.Value then
