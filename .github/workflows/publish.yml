@@ -25,4 +25,3 @@ jobs:
         run:  |
           chmod +x ./build.sh
           ./build.sh Publish
-          ./build.sh ReleaseDocs
