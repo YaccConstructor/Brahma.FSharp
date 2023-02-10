@@ -97,7 +97,7 @@ let nugetToken = Environment.environVarOrNone "NUGET_TOKEN"
 let isRelease (targets : Target list) =
     targets
     |> Seq.map(fun t -> t.Name)
-    |> Seq.exists ((=)"Release")
+    |> Seq.exists (fun name -> name = "Release" || name = "Publish")
 
 let invokeAsync f = async { f () }
 
