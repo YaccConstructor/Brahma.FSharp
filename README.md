@@ -73,6 +73,12 @@ build.cmd
 ```
 To find more options look at [MiniScaffold](https://github.com/TheAngryByrd/MiniScaffold). We use it in our project.
 
+### Relese
+The release process is automated: NuGet packages publishing process is triggered by tag pushing to any branch.
+To release new vesion one should
+1. [Add relese notes to CHANGELOG](https://github.com/TheAngryByrd/MiniScaffold/blob/master/Content/Library/README.md#releasing)
+2. Run ```./build.sh Release``` (on local machine)
+
 ## License
 This project licensed under EPL-1.0 License. License text can be found in the [license file](https://github.com/YaccConstructor/Brahma.FSharp/blob/master/LICENSE.md).
  
