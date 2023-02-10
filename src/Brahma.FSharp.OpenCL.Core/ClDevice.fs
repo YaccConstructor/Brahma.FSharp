@@ -92,7 +92,72 @@ type ClDevice(device: OpenCL.Net.Device) =
             |> throwOnError
 
         member val DeviceExtensions =
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.Extensions, e).ToString()
+            let toDeviceExtension (s:string) =
+                match s.ToLowerInvariant().Trim() with
+                | "cl_intel_accelerator" -> CL_INTEL_ACCELERATOR
+                | "cl_intel_advanced_motion_estimation" -> CL_INTEL_ADVANCED_MOTION_ESTIMATION
+                | "cl_intel_command_queue_families" -> CL_INTEL_COMMAND_QUEUE_FAMILIES
+                | "cl_intel_device_attribute_query" -> CL_INTEL_DEVICE_ATTRIBUTE_QUERY
+                | "cl_intel_device_side_avc_motion_estimation" -> CL_INTEL_DEVICE_SIDE_AVC_MOTION_ESTIMATION
+                | "cl_intel_driver_diagnostics" -> CL_INTEL_DRIVER_DIAGNOSTICS
+                | "cl_intel_media_block_io" -> CL_INTEL_MEDIA_BLOCK_IO
+                | "cl_intel_mem_force_host_memory" -> CL_INTEL_MEM_FORCE_HOST_MEMORY
+                | "cl_intel_motion_estimation" -> CL_INTEL_MOTION_ESTIMATION
+                | "cl_intel_packed_yuv" -> CL_INTEL_PACKED_YUV
+                | "cl_intel_planar_yuv" -> CL_INTEL_PLANAR_YUV
+                | "cl_intel_required_subgroup_size" -> CL_INTEL_REQUIRED_SUBGROUP_SIZE
+                | "cl_intel_sharing_format_query" -> CL_INTEL_SHARING_FORMAT_QUERY
+                | "cl_intel_spirv_device_side_avc_motion_estimation" -> CL_INTEL_SPIRV_DEVICE_SIDE_AVC_MOTION_ESTIMATION
+                | "cl_intel_spirv_media_block_io" -> CL_INTEL_SPIRV_MEDIA_BLOCK_IO
+                | "cl_intel_spirv_subgroups" -> CL_INTEL_SPIRV_SUBGROUPS
+                | "cl_intel_split_work_group_barrier" -> CL_INTEL_SPLIT_WORK_GROUP_BARRIER
+                | "cl_intel_subgroups" -> CL_INTEL_SUBGROUPS
+                | "cl_intel_subgroups_char" -> CL_INTEL_SUBGROUPS_CHAR
+                | "cl_intel_subgroups_long" -> CL_INTEL_SUBGROUPS_LONG
+                | "cl_intel_subgroups_short" -> CL_INTEL_SUBGROUPS_SHORT
+                | "cl_intel_unified_shared_memory" -> CL_INTEL_UNIFIED_SHARED_MEMORY
+                | "cl_intel_va_api_media_sharing" -> CL_INTEL_VA_API_MEDIA_SHARING
+                | "cl_khr_3d_image_writes" -> CL_KHR_3D_IMAGE_WRITES
+                | "cl_khr_byte_addressable_store" -> CL_KHR_BYTE_ADDRESSABLE_STORE
+                | "cl_khr_create_command_queue" -> CL_KHR_CREATE_COMMAND_QUEUE
+                | "cl_khr_depth_images" -> CL_KHR_DEPTH_IMAGES
+                | "cl_khr_device_uuid" -> CL_KHR_DEVICE_UUID
+                | "cl_khr_fp16" -> CL_KHR_FP16
+                | "cl_khr_fp64" -> CL_KHR_FP64
+                | "cl_khr_global_int32_base_atomics" -> CL_KHR_GLOBAL_INT32_BASE_ATOMICS
+                | "cl_khr_global_int32_extended_atomics" -> CL_KHR_GLOBAL_INT32_EXTENDED_ATOMICS
+                | "cl_khr_gl_sharing" -> CL_KHR_GL_SHARING
+                | "cl_khr_icd" -> CL_KHR_ICD
+                | "cl_khr_il_program" -> CL_KHR_IL_PROGRAM
+                | "cl_khr_image2d_from_buffer" -> CL_KHR_IMAGE2D_FROM_BUFFER
+                | "cl_khr_int64_base_atomics" -> CL_KHR_INT64_BASE_ATOMICS
+                | "cl_khr_int64_extended_atomics" -> CL_KHR_INT64_EXTENDED_ATOMICS
+                | "cl_khr_local_int32_base_atomics" -> CL_KHR_LOCAL_INT32_BASE_ATOMICS
+                | "cl_khr_local_int32_extended_atomics" -> CL_KHR_LOCAL_INT32_EXTENDED_ATOMICS
+                | "cl_khr_mipmap_image" -> CL_KHR_MIPMAP_IMAGE
+                | "cl_khr_mipmap_image_writes" -> CL_KHR_MIPMAP_IMAGE_WRITES
+                | "cl_khr_pci_bus_info" -> CL_KHR_PCI_BUS_INFO
+                | "cl_khr_priority_hints" -> CL_KHR_PRIORITY_HINTS
+                | "cl_khr_spir" -> CL_KHR_SPIR
+                | "cl_khr_spirv_no_integer_wrap_decoration" -> CL_KHR_SPIRV_NO_INTEGER_WRAP_DECORATION
+                | "cl_khr_subgroups" -> CL_KHR_SUBGROUPS
+                | "cl_khr_subgroup_ballot" -> CL_KHR_SUBGROUP_BALLOT
+                | "cl_khr_subgroup_clustered_reduce" -> CL_KHR_SUBGROUP_CLUSTERED_REDUCE
+                | "cl_khr_subgroup_extended_types" -> CL_KHR_SUBGROUP_EXTENDED_TYPES
+                | "cl_khr_subgroup_non_uniform_arithmetic" -> CL_KHR_SUBGROUP_NON_UNIFORM_ARITHMETIC
+                | "cl_khr_subgroup_non_uniform_vote" -> CL_KHR_SUBGROUP_NON_UNIFORM_VOTE
+                | "cl_khr_subgroup_shuffle" -> CL_KHR_SUBGROUP_SHUFFLE
+                | "cl_khr_subgroup_shuffle_relative" -> CL_KHR_SUBGROUP_SHUFFLE_RELATIVE
+                | "cl_khr_suggested_local_work_size" -> CL_KHR_SUGGESTED_LOCAL_WORK_SIZE
+                | "cl_khr_throttle_hints" -> CL_KHR_THROTTLE_HINTS
+                | "cl_nv_compiler_options" -> CL_NV_COMPILER_OPTIONS
+                | "cl_nv_copy_opts" -> CL_NV_COPY_OPTS
+                | "cl_nv_create_buffer" -> CL_NV_CREATE_BUFFER
+                | "cl_nv_device_attribute_query" -> CL_NV_DEVICE_ATTRIBUTE_QUERY
+                | "cl_nv_pragma_unroll" -> CL_NV_PRAGMA_UNROLL
+                | x -> OTHER x
+
+            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.Extensions, e).ToString().Trim().Split ' ' |> Array.map toDeviceExtension
             |> throwOnError
 
     /// Device name string.
@@ -118,7 +183,7 @@ type ClDevice(device: OpenCL.Net.Device) =
     /// Size of global device memory in bytes.
     member this.GlobalMemSize = (this :> IDevice).GlobalMemSize
 
-    /// Returns a space separated list of extension names.
+    /// Returns a list of extensions. OTHER contains a string value of extension name if it is not represented as a separated case.
     member this.DeviceExtensions = (this :> IDevice).DeviceExtensions
 
     override this.ToString() =
