@@ -7,7 +7,7 @@ open Brahma.FSharp.OpenCL.Translator
 
 module Utils =
     let rec getFunctionArgTypes (funType: System.Type) =
-        let (argType, retType) = FSharpType.GetFunctionElements(funType)
+        let argType, retType = FSharpType.GetFunctionElements(funType)
         match retType with
         | _ when FSharpType.IsFunction retType ->
             argType :: getFunctionArgTypes retType
@@ -19,23 +19,20 @@ module Utils =
     let makeLambdaType types =
         List.reduceBack (fun domain range -> FSharpType.MakeFunctionType(domain, range)) types
 
-    let rec makeLambdaExpr (args: Var list) (body: Expr) =
-        let mkLambda var expr = Expr.Lambda(var, expr)
-        List.foldBack mkLambda args body
+    let makeLambdaExpr (args: Var list) (body: Expr) =
+        List.foldBack (fun var expr -> Expr.Lambda(var, expr)) args body
 
-    let rec makeApplicationExpr (head: Expr) (exprs: Expr list) =
-        let mkApplication l r = Expr.Application(l, r)
-        List.fold mkApplication head exprs
+    let makeApplicationExpr (head: Expr) (expressions: Expr list) =
+        List.fold (fun l r -> Expr.Application(l, r)) head expressions
 
-    let rec extractLambdaArguments (expr: Expr) =
-        match expr with
+    // TODO tail recursion
+    let rec extractLambdaArguments = function
         | Patterns.Lambda (var, body) ->
             let vars, body' = extractLambdaArguments body
             var :: vars, body'
-        | _ -> [], expr
+        | expr -> [], expr
 
-    let rec collectLambdaArguments (expr: Expr) : List<Var> =
-        match expr with
+    let rec collectLambdaArguments = function
         | ExprShape.ShapeLambda (var, body) ->
             var :: collectLambdaArguments body
         | _ -> []
@@ -76,13 +73,11 @@ module Utils =
         | Patterns.Let (variable, DerivedPatterns.SpecificCall <@ local @> (_, _, _), cont)
         | Patterns.Let (variable, DerivedPatterns.SpecificCall <@ localArray @> (_, _, _), cont) ->
             variable :: collectLocalVars cont
-
-        | ExprShape.ShapeVar var -> []
-        | ExprShape.ShapeLambda (var, lambda) ->
+        | ExprShape.ShapeVar _ -> []
+        | ExprShape.ShapeLambda (_, lambda) ->
             collectLocalVars lambda
-        | ExprShape.ShapeCombination (_, exprs) ->
-            exprs
-            |> List.collect collectLocalVars
+        | ExprShape.ShapeCombination (_, expressions) ->
+            List.collect collectLocalVars expressions
 
     let isTypeOf<'tp> (var: Var) =
         var.Type = typeof<'tp>
