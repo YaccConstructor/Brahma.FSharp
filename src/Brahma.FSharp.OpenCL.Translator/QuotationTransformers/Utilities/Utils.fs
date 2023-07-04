@@ -40,24 +40,9 @@ module Utils =
     // Это из замыкания переменные?
     /// Collect free variables of expression that satisfies predicate.
     let rec collectFreeVarsWithPredicate (predicate: Var -> bool) (expr: Expr) : Set<Var> =
-        match expr with
-        | Patterns.Let (var, expr, inExpr) ->
-            Set.union
-            <| collectFreeVarsWithPredicate predicate expr
-            <| Set.remove var (collectFreeVarsWithPredicate predicate inExpr)
-
-        | ExprShape.ShapeVar var ->
-            if predicate var then Set.singleton var else Set.empty
-
-        | ExprShape.ShapeLambda (var, expr) ->
-            expr
-            |> collectFreeVarsWithPredicate predicate
-            |> Set.remove var
-
-        | ExprShape.ShapeCombination (_, exprs) ->
-            exprs
-            |> List.map (collectFreeVarsWithPredicate predicate)
-            |> Set.unionMany
+        expr.GetFreeVars()
+        |> Seq.filter predicate
+        |> Set.ofSeq
 
     let isFunction (var: Var) =
         FSharpType.IsFunction var.Type
