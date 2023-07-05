@@ -27,4 +27,4 @@ module Utils =
                 .Trim()
                 .Replace("\r\n", "\n")
 
-        Expect.equal all1 all2 "Files should be equals as strings"
+        Expect.sequenceEqual all1 all2 "Files should be equals as strings"
