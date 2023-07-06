@@ -9,32 +9,26 @@ module MutableVarsToRefTransformer =
 
     let rec collectMutableVarsInClosure (expr: Expr) =
         match expr with
-        | Patterns.LetFunc (_, body, inExpr) ->
+        | Patterns.LetFunc(_, body, inExpr) ->
             let mutableFreeVars = body |> Utils.collectFreeVarsWithPredicate isMutableVar
-            Set.unionMany [
-                mutableFreeVars
-                collectMutableVarsInClosure body
-                collectMutableVarsInClosure inExpr
-            ]
-        | ExprShape.ShapeLambda (_, body) ->
-            collectMutableVarsInClosure body
-        | ExprShape.ShapeVar _ ->
-            Set.empty
-        | ExprShape.ShapeCombination(_, exprList) ->
-            exprList
-            |> List.map collectMutableVarsInClosure
-            |> Set.unionMany
+
+            Set.unionMany
+                [ mutableFreeVars
+                  collectMutableVarsInClosure body
+                  collectMutableVarsInClosure inExpr ]
+        | ExprShape.ShapeLambda(_, body) -> collectMutableVarsInClosure body
+        | ExprShape.ShapeVar _ -> Set.empty
+        | ExprShape.ShapeCombination(_, exprList) -> exprList |> List.map collectMutableVarsInClosure |> Set.unionMany
 
     let rec varsToRefsWithPredicateImpl (refMap: Map<Var, Expr>) (predicate: Var -> bool) (expr: Expr) =
         match expr with
-        | Patterns.LetVar (var, body, inExpr) ->
+        | Patterns.LetVar(var, body, inExpr) ->
             if predicate var then
                 let refName = var.Name + "Ref"
-                let refType = typedefof<ref<_>>.MakeGenericType(var.Type)
+                let refType = typedefof<ref<_>>.MakeGenericType (var.Type)
                 let refVar = Var(refName, refType, false)
 
-                let newRefMap =
-                    refMap.Add(var, Expr.Var refVar)
+                let newRefMap = refMap.Add(var, Expr.Var refVar)
 
                 Expr.Let(
                     var,
@@ -52,19 +46,19 @@ module MutableVarsToRefTransformer =
                     varsToRefsWithPredicateImpl refMap predicate inExpr
                 )
 
-        | Patterns.VarSet (var, valueExpr) ->
+        | Patterns.VarSet(var, valueExpr) ->
             match refMap.TryFind var with
             | Some refExpr ->
-                Utils.createReferenceSetCall refExpr <| varsToRefsWithPredicateImpl refMap predicate valueExpr
+                Utils.createReferenceSetCall refExpr
+                <| varsToRefsWithPredicateImpl refMap predicate valueExpr
             | None -> expr
 
         | ExprShape.ShapeVar var ->
             match refMap.TryFind var with
             | Some refExpr -> Utils.createDereferenceCall refExpr
             | None -> expr
-        | ExprShape.ShapeLambda (var, body) ->
-            Expr.Lambda (var, varsToRefsWithPredicateImpl refMap predicate body)
-        | ExprShape.ShapeCombination (shapeComboObject, exprList) ->
+        | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, varsToRefsWithPredicateImpl refMap predicate body)
+        | ExprShape.ShapeCombination(shapeComboObject, exprList) ->
             let exprList' = List.map (varsToRefsWithPredicateImpl refMap predicate) exprList
             ExprShape.RebuildShapeCombination(shapeComboObject, exprList')
 

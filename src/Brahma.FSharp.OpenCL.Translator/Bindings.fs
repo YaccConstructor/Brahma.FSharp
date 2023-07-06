@@ -4,13 +4,23 @@ open Brahma.FSharp.OpenCL.AST
 
 [<AutoOpen>]
 module Bindings =
-    let [<Literal>] Range1D_ = "range1d"
-    let [<Literal>] Range2D_ = "range2d"
-    let [<Literal>] Range3D_ = "range3d"
+    [<Literal>]
+    let Range1D_ = "range1d"
 
-    let [<Literal>] ClArray_ = "clarray"
-    let [<Literal>] ClCell_ = "clcell"
-    let [<Literal>] IBuffer_ = "ibuffer"
+    [<Literal>]
+    let Range2D_ = "range2d"
+
+    [<Literal>]
+    let Range3D_ = "range3d"
+
+    [<Literal>]
+    let ClArray_ = "clarray"
+
+    [<Literal>]
+    let ClCell_ = "clcell"
+
+    [<Literal>]
+    let IBuffer_ = "ibuffer"
 
     type BoolHostAlias = byte
     let BoolClAlias = UChar

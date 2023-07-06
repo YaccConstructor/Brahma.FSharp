@@ -1,15 +1,15 @@
 open Expecto
 
+open Brahma.FSharp.Tests
+
 [<Tests>]
 let allTests =
-    testList "All tests" [
-        testList "Translation tests" TranslationTests.tests
-        testList "Execution tests" ExecutionTests.tests
-    ]
+    testList
+        "All tests"
+        [ Translator.All.tests]
     |> testSequenced
 
+open System.IO
 
 [<EntryPoint>]
-let main argv =
-    allTests
-    |> runTestsWithCLIArgs [] argv
+let main argv = allTests |> runTestsWithCLIArgs [] argv

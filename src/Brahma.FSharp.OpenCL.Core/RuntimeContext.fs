@@ -2,14 +2,10 @@ namespace Brahma.FSharp
 
 type RuntimeOptions =
     {
-        // TODO if 2D or 3D
-        WorkgroupSize: int
-    }
+      // TODO if 2D or 3D
+      WorkgroupSize: int }
 
-    static member Default =
-        {
-            WorkgroupSize = 256
-        }
+    static member Default = { WorkgroupSize = 256 }
 
 /// Provides a context to run OpenCL computation.
 type RuntimeContext(clContext: ClContext) =
@@ -20,12 +16,12 @@ type RuntimeContext(clContext: ClContext) =
     new(clDevice: ClDevice) = RuntimeContext(ClContext(clDevice))
 
     member this.RuntimeOptions
-        with get() = runtimeOptions
-        and private set(value) = runtimeOptions <- value
+        with get () = runtimeOptions
+        and private set (value) = runtimeOptions <- value
 
     member this.CommandQueue
-        with get() = queue
-        and private set(value) = queue <- value
+        with get () = queue
+        and private set (value) = queue <- value
 
     member this.ClContext = clContext
 

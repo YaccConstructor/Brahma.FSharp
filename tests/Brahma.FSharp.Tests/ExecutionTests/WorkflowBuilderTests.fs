@@ -14,166 +14,216 @@ module Helpers =
             let! res = ClArray.alloc<'b> input.Length
 
             let code =
-                <@ fun (range: Range1D) (input: 'a clarray) (output: 'b clarray) ->
-                    let idx = range.GlobalID0
-                    output.[idx] <- (%f) input.[idx] @>
+                <@
+                    fun (range: Range1D) (input: 'a clarray) (output: 'b clarray) ->
+                        let idx = range.GlobalID0
+                        output.[idx] <- (%f) input.[idx]
+                @>
 
-            do! runCommand code <| fun x ->
-                x
-                <| Range1D input.Length
-                <| input
-                <| res
+            do! runCommand code <| fun x -> x <| Range1D input.Length <| input <| res
 
             return res
         }
 
-let bindTests context = [
-    testCase "Test 1" <| fun _ ->
-        let xs = [| 1; 2; 3; 4 |]
+let bindTests context =
+    [ testCase "Test 1"
+      <| fun _ ->
+          let xs =
+              [| 1
+                 2
+                 3
+                 4 |]
 
-        let workflow =
-            opencl {
-                use! xs' = ClArray.toDevice xs
-                use! ys = gpuMap <@ fun x -> x * x + 10 @> xs'
-                use! zs = gpuMap <@ fun x -> x + 1 @> ys
-                return! ClArray.toHost zs
-            }
+          let workflow =
+              opencl {
+                  use! xs' = ClArray.toDevice xs
+                  use! ys = gpuMap <@ fun x -> x * x + 10 @> xs'
+                  use! zs = gpuMap <@ fun x -> x + 1 @> ys
+                  return! ClArray.toHost zs
+              }
 
-        let output = ClTask.runSync context workflow
-        Expect.equal output [| 12; 15; 20; 27 |] eqMsg
+          let output = ClTask.runSync context workflow
 
-    testCase "'use!' should free resources after all" <| fun () ->
-        let log = ResizeArray()
+          Expect.equal
+              output
+              [| 12
+                 15
+                 20
+                 27 |]
+              eqMsg
 
-        opencl {
-            use! resource = opencl {
-                return
-                    { new System.IDisposable with
-                        member this.Dispose() = log.Add "disposed"
-                    }
-            }
+      testCase "'use!' should free resources after all"
+      <| fun () ->
+          let log = ResizeArray()
 
-            do! opencl { return log.Add "1" }
-            return! opencl { log.Add "2" }
-        }
-        |> ClTask.runSync context
+          opencl {
+              use! resource =
+                  opencl {
+                      return
+                          { new System.IDisposable with
+                              member this.Dispose() = log.Add "disposed" }
+                  }
 
-        "Last value should be 'disposed'"
-        |> Expect.isTrue (log.[log.Count - 1] = "disposed")
-]
+              do! opencl { return log.Add "1" }
+              return! opencl { log.Add "2" }
+          }
+          |> ClTask.runSync context
 
-let loopTests context = [
-    testCase "While. Test 1. Without evaluation" <| fun _ ->
-        let mutable log : int list = []
+          "Last value should be 'disposed'"
+          |> Expect.isTrue (log.[log.Count - 1] = "disposed") ]
 
-        let workflow =
-            opencl {
-                let mutable i = 0
-                log <- i :: log
+let loopTests context =
+    [ testCase "While. Test 1. Without evaluation"
+      <| fun _ ->
+          let mutable log: int list = []
 
-                while i < 10 do
-                    i <- i + 1
-                    log <- i :: log
-            }
+          let workflow =
+              opencl {
+                  let mutable i = 0
+                  log <- i :: log
 
-        Expect.equal log [] "Delay should prevent any computations before evaluation started"
-        ClTask.runSync context workflow
-        Expect.equal log [ 10 .. -1 .. 0 ] eqMsg
+                  while i < 10 do
+                      i <- i + 1
+                      log <- i :: log
+              }
 
-    testCase "While. Test 2. Simple evaluation" <| fun _ ->
-        let mutable xs = [| 1; 2; 3; 4; 5; 6; 7; 8 |]
-        let iters = 5
-        let expected = Array.map (fun x -> pown 2 iters * x) xs
+          Expect.equal log [] "Delay should prevent any computations before evaluation started"
+          ClTask.runSync context workflow
+          Expect.equal log [ 10..-1..0 ] eqMsg
 
-        // TODO change to use copyTo
-        let workflow =
-            opencl {
-                let f = <@ fun x -> x * 2 @>
+      testCase "While. Test 2. Simple evaluation"
+      <| fun _ ->
+          let mutable xs =
+              [| 1
+                 2
+                 3
+                 4
+                 5
+                 6
+                 7
+                 8 |]
 
-                let mutable i = 0
+          let iters = 5
+          let expected = Array.map (fun x -> pown 2 iters * x) xs
 
-                let! xs' = ClArray.toDevice xs
-                let mutable tmp = xs'
-                while i < iters do
-                    let! res = gpuMap f tmp
-                    do! ClArray.close tmp
-                    tmp <- res
-                    i <- i + 1
+          // TODO change to use copyTo
+          let workflow =
+              opencl {
+                  let f = <@ fun x -> x * 2 @>
 
-                let! res = ClArray.toHost tmp
-                do! ClArray.close tmp
+                  let mutable i = 0
 
-                return res
-            }
+                  let! xs' = ClArray.toDevice xs
+                  let mutable tmp = xs'
 
-        let output = ClTask.runSync context workflow
-        Expect.equal output expected eqMsg
+                  while i < iters do
+                      let! res = gpuMap f tmp
+                      do! ClArray.close tmp
+                      tmp <- res
+                      i <- i + 1
 
-    testCase "While. Test 3. Do inside body of while loop" <| fun _ ->
-        let gpuMapInplace f (xs: int clarray ref) =
-            opencl {
-                let! res = gpuMap f !xs
-                do! ClArray.close !xs
-                xs := res
-            }
+                  let! res = ClArray.toHost tmp
+                  do! ClArray.close tmp
 
-        let workflow =
-            opencl {
-                let! xs = ClArray.toDevice [| 1; 2; 3; 4 |]
-                let xs = ref xs
+                  return res
+              }
 
-                let mutable i = 0
+          let output = ClTask.runSync context workflow
+          Expect.equal output expected eqMsg
 
-                while i < 10 do
-                    do! gpuMapInplace <@ fun x -> x + 1 @> xs
-                    i <- i + 1
+      testCase "While. Test 3. Do inside body of while loop"
+      <| fun _ ->
+          let gpuMapInplace f (xs: int clarray ref) =
+              opencl {
+                  let! res = gpuMap f !xs
+                  do! ClArray.close !xs
+                  xs := res
+              }
 
-                return! ClArray.toHost !xs
-            }
+          let workflow =
+              opencl {
+                  let! xs =
+                      ClArray.toDevice
+                          [| 1
+                             2
+                             3
+                             4 |]
 
-        let output = ClTask.runSync context workflow
-        Expect.equal output [| 11; 12; 13; 14 |] eqMsg
+                  let xs = ref xs
 
-    testCase "For. Test 1. Without evaluation" <| fun _ ->
-        let log = List<int>()
+                  let mutable i = 0
 
-        let workflow =
-            opencl {
-                log.Add(0)
+                  while i < 10 do
+                      do! gpuMapInplace <@ fun x -> x + 1 @> xs
+                      i <- i + 1
 
-                for x in [ 1 .. 10 ] do
-                    log.Add(x)
-            }
+                  return! ClArray.toHost !xs
+              }
 
-        Expect.sequenceEqual log
-        <| List<int>()
-        <| "Delay should prevent any computations before evaluation started"
+          let output = ClTask.runSync context workflow
 
-        ClTask.runSync context workflow
-        Expect.sequenceEqual log (List<int>([ 0 .. 10 ])) eqMsg
+          Expect.equal
+              output
+              [| 11
+                 12
+                 13
+                 14 |]
+              eqMsg
 
-    testCase "For. Test 2. Simple evaluation" <| fun _ ->
-        let workflow =
-            opencl {
-                let xs = [| 1; 2; 3; 4 |]
-                let! xs' = ClArray.toDevice xs
-                let mutable tmp = xs'
+      testCase "For. Test 1. Without evaluation"
+      <| fun _ ->
+          let log = List<int>()
 
-                for y in [| 10; 20; 30 |] do
-                    let! res = gpuMap <@ fun x -> x + y @> tmp
-                    do! ClArray.close tmp
-                    tmp <- res
+          let workflow =
+              opencl {
+                  log.Add(0)
 
-                return! ClArray.toHost tmp
-            }
+                  for x in [ 1..10 ] do
+                      log.Add(x)
+              }
 
-        let output = ClTask.runSync context workflow
-        Expect.equal output [| 61; 62; 63; 64 |] eqMsg
-]
+          Expect.sequenceEqual log
+          <| List<int>()
+          <| "Delay should prevent any computations before evaluation started"
+
+          ClTask.runSync context workflow
+          Expect.sequenceEqual log (List<int>([ 0..10 ])) eqMsg
+
+      testCase "For. Test 2. Simple evaluation"
+      <| fun _ ->
+          let workflow =
+              opencl {
+                  let xs =
+                      [| 1
+                         2
+                         3
+                         4 |]
+
+                  let! xs' = ClArray.toDevice xs
+                  let mutable tmp = xs'
+
+                  for y in
+                      [| 10
+                         20
+                         30 |] do
+                      let! res = gpuMap <@ fun x -> x + y @> tmp
+                      do! ClArray.close tmp
+                      tmp <- res
+
+                  return! ClArray.toHost tmp
+              }
+
+          let output = ClTask.runSync context workflow
+
+          Expect.equal
+              output
+              [| 61
+                 62
+                 63
+                 64 |]
+              eqMsg ]
 
 let tests context =
-    [
-        testList "Simple bind tests" << bindTests
-        testList "Loop tests" << loopTests
-    ]
+    [ testList "Simple bind tests" << bindTests
+      testList "Loop tests" << loopTests ]
     |> List.map (fun testFixture -> testFixture context)

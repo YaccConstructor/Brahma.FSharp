@@ -26,24 +26,25 @@ module Helpers =
 
         Utils.filesAreEqual targetPath expectedPath
 
-let simpleTests context = [
-    let inline checkCode command outFile expected = checkCode context command outFile expected
-    testCase "Pointers to private values should be explicitly private" <| fun () ->
-        let command =
-            <@
-                fun (k: Range1D) (a: int clarray) ->
-                    let x (a: int) =
-                        a + 1
+let simpleTests context =
+    [ let inline checkCode command outFile expected =
+          checkCode context command outFile expected
 
-                    let mutable s = 1
-                    let mutable s = 2
-                    let s1 = x s
+      testCase "Pointers to private values should be explicitly private"
+      <| fun () ->
+          let command =
+              <@
+                  fun (k: Range1D) (a: int clarray) ->
+                      let x (a: int) = a + 1
 
-                    a.[0] <- s1
-            @>
+                      let mutable s = 1
+                      let mutable s = 2
+                      let s1 = x s
 
-        checkCode command "GenericSpace.gen" "GenericSpace.cl"
-]
+                      a.[0] <- s1
+              @>
+
+          checkCode command "GenericSpace.gen" "GenericSpace.cl" ]
 
 type SimpleUnion =
     | SimpleOne
@@ -68,102 +69,105 @@ let unionTests context =
         testCase name <| fun () -> checkCode context command outFile expectedFile
 
     let newUnionTestList =
-        [
-            testGen
-                testCase
-                "Test 1: TranslateTest.A"
-                "Union.Compile.Test1.gen"
-                "Union.Compile.Test1.cl"
-                <@ fun (range: Range1D) ->
-                    let x = A(5, 6.0)
-                    let mutable y = 5
-                    y <- 7 @>
+        [ testGen
+              testCase
+              "Test 1: TranslateTest.A"
+              "Union.Compile.Test1.gen"
+              "Union.Compile.Test1.cl"
+              <@
+                  fun (range: Range1D) ->
+                      let x = A(5, 6.0)
+                      let mutable y = 5
+                      y <- 7
+              @>
 
-            testGen
-                  testCase
-                  "Test 2: TranslateTest.B"
-                  "Union.Compile.Test2.gen"
-                  "Union.Compile.Test2.cl"
-                  <@ fun (range: Range1D) ->
+          testGen
+              testCase
+              "Test 2: TranslateTest.B"
+              "Union.Compile.Test2.gen"
+              "Union.Compile.Test2.cl"
+              <@
+                  fun (range: Range1D) ->
                       let x = B(5.0)
                       let mutable y = 5
-                      y <- 7 @>
+                      y <- 7
+              @>
 
-            testGen
-                  testCase
-                  "Test 3: TranslateTest.C"
-                  "Union.Compile.Test3.gen"
-                  "Union.Compile.Test3.cl"
-                  <@ fun (range: Range1D) ->
+          testGen
+              testCase
+              "Test 3: TranslateTest.C"
+              "Union.Compile.Test3.gen"
+              "Union.Compile.Test3.cl"
+              <@
+                  fun (range: Range1D) ->
                       let x = C
                       let mutable y = 5
-                      y <- 7 @>
+                      y <- 7
+              @>
 
-            testGen
-                  testCase
-                  "Test 4: OuterUnion.Outer"
-                  "Union.Compile.Test4.gen"
-                  "Union.Compile.Test4.cl"
-                  <@ fun (range: Range1D) ->
+          testGen
+              testCase
+              "Test 4: OuterUnion.Outer"
+              "Union.Compile.Test4.gen"
+              "Union.Compile.Test4.cl"
+              <@
+                  fun (range: Range1D) ->
                       let x = Inner SimpleOne
                       let mutable y = 5
-                      y <- 7 @>
+                      y <- 7
+              @>
 
-            testGen
-                  testCase
-                  "Test 5: OuterUnion.Inner"
-                  "Union.Compile.Test5.gen"
-                  "Union.Compile.Test5.cl"
-                  <@ fun (range: Range1D) ->
+          testGen
+              testCase
+              "Test 5: OuterUnion.Inner"
+              "Union.Compile.Test5.gen"
+              "Union.Compile.Test5.cl"
+              <@
+                  fun (range: Range1D) ->
                       let x = Inner(SimpleTwo 29)
                       let mutable y = 5
-                      y <- 7 @>
-        ]
+                      y <- 7
+              @> ]
 
     let testUnionCaseTestLists =
-        [
-            testGen
-                testCase
-                "Test 1: simple pattern matching"
-                "Union.Compile.Test6.gen"
-                "Union.Compile.Test6.cl"
-                <@ fun (range: Range1D) ->
-                    let t = Case1
-                    let mutable x = 5
+        [ testGen
+              testCase
+              "Test 1: simple pattern matching"
+              "Union.Compile.Test6.gen"
+              "Union.Compile.Test6.cl"
+              <@
+                  fun (range: Range1D) ->
+                      let t = Case1
+                      let mutable x = 5
 
-                    match t with
-                    | Case1 -> x <- 5
-                    | Case2 (_) -> x <- 6
-                    | Case3 (_) -> x <- 7 @>
-        ]
+                      match t with
+                      | Case1 -> x <- 5
+                      | Case2(_) -> x <- 6
+                      | Case3(_) -> x <- 7
+              @> ]
 
     let unionPropertyGetTestLists =
-        [
-            testGen
-                testCase
-                "Test 1: simple pattern matching bindings"
-                "Union.Compile.Test7.gen"
-                "Union.Compile.Test7.cl"
-                <@ fun (range: Range1D) ->
-                    let t = Case1
-                    let mutable m = 5
+        [ testGen
+              testCase
+              "Test 1: simple pattern matching bindings"
+              "Union.Compile.Test7.gen"
+              "Union.Compile.Test7.cl"
+              <@
+                  fun (range: Range1D) ->
+                      let t = Case1
+                      let mutable m = 5
 
-                    match t with
-                    | Case1 -> m <- 5
-                    | Case2 (x) -> m <- x
-                    | Case3 (y, z) -> m <- y + z @>
-        ]
+                      match t with
+                      | Case1 -> m <- 5
+                      | Case2(x) -> m <- x
+                      | Case3(y, z) -> m <- y + z
+              @> ]
 
-    [
-        testList "NewUnion" newUnionTestList
-        testList "TestUnionCase" testUnionCaseTestLists
-        testList "UnionPropertyGet" unionPropertyGetTestLists
-    ]
+    [ testList "NewUnion" newUnionTestList
+      testList "TestUnionCase" testUnionCaseTestLists
+      testList "UnionPropertyGet" unionPropertyGetTestLists ]
 
 let tests context =
-    [
-        testList "Simple tests" << simpleTests
-        testList "Union Compile tests" << unionTests
-    ]
+    [ testList "Simple tests" << simpleTests
+      testList "Union Compile tests" << unionTests ]
     |> List.map (fun testFixture -> testFixture context)
-

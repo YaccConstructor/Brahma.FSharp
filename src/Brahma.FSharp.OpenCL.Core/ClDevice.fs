@@ -10,13 +10,13 @@ type Cl = OpenCL.Net.Cl
 exception EmptyDevicesException of string
 
 module internal DeviceHelpers =
-    let convertToDeviceType(deviceType: DeviceType) =
+    let convertToDeviceType (deviceType: DeviceType) =
         match deviceType with
         | DeviceType.CPU -> ClDeviceType.Cpu
         | DeviceType.GPU -> ClDeviceType.Gpu
         | DeviceType.Default -> ClDeviceType.Default
 
-    let convertToPattern(platform: Platform) =
+    let convertToPattern (platform: Platform) =
         match platform with
         | Platform.Intel -> "Intel*"
         | Platform.Amd -> "AMD*"
@@ -29,6 +29,7 @@ type ClDevice(device: OpenCL.Net.Device) =
     let throwOnError f =
         let error = ref Unchecked.defaultof<ClErrorCode>
         let result = f error
+
         if error.Value <> ClErrorCode.Success then
             failwithf $"Program creation failed: %A{error}"
         else
@@ -37,14 +38,14 @@ type ClDevice(device: OpenCL.Net.Device) =
     let defaultOnError onError f =
         let error = ref Unchecked.defaultof<ClErrorCode>
         let result = f error
+
         if error.Value <> ClErrorCode.Success then
             onError
         else
             result
 
     let (|Contains|_|) (substring: string) (str: string) =
-        if str.Contains substring then Some Contains
-        else None
+        if str.Contains substring then Some Contains else None
 
     /// Gets internal representation of device specific to OpenCL.Net.
     member this.Device = device
@@ -72,27 +73,41 @@ type ClDevice(device: OpenCL.Net.Device) =
             |> defaultOnError DeviceType.Default
 
         member val MaxWorkGroupSize =
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkGroupSize, e).CastTo<int>()
+            fun e ->
+                Cl
+                    .GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkGroupSize, e)
+                    .CastTo<int>()
             |> throwOnError
 
         member val MaxWorkItemDimensions =
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkItemDimensions, e).CastTo<int>()
+            fun e ->
+                Cl
+                    .GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkItemDimensions, e)
+                    .CastTo<int>()
             |> throwOnError
 
         // TODO change length
         member val MaxWorkItemSizes =
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkItemSizes, e).CastToArray<int>(3)
+            fun e ->
+                Cl
+                    .GetDeviceInfo(device, OpenCL.Net.DeviceInfo.MaxWorkItemSizes, e)
+                    .CastToArray<int>(3)
             |> throwOnError
 
         member val LocalMemSize =
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.LocalMemSize, e).CastTo<int>() * 1<Byte>
+            fun e ->
+                Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.LocalMemSize, e).CastTo<int>()
+                * 1<Byte>
             |> throwOnError
+
         member val GlobalMemSize =
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.GlobalMemSize, e).CastTo<int64>() * 1L<Byte>
+            fun e ->
+                Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.GlobalMemSize, e).CastTo<int64>()
+                * 1L<Byte>
             |> throwOnError
 
         member val DeviceExtensions =
-            let toDeviceExtension (s:string) =
+            let toDeviceExtension (s: string) =
                 match s.ToLowerInvariant().Trim() with
                 | "cl_intel_accelerator" -> CL_INTEL_ACCELERATOR
                 | "cl_intel_advanced_motion_estimation" -> CL_INTEL_ADVANCED_MOTION_ESTIMATION
@@ -157,7 +172,13 @@ type ClDevice(device: OpenCL.Net.Device) =
                 | "cl_nv_pragma_unroll" -> CL_NV_PRAGMA_UNROLL
                 | x -> OTHER x
 
-            fun e -> Cl.GetDeviceInfo(device, OpenCL.Net.DeviceInfo.Extensions, e).ToString().Trim().Split ' ' |> Array.map toDeviceExtension
+            fun e ->
+                Cl
+                    .GetDeviceInfo(device, OpenCL.Net.DeviceInfo.Extensions, e)
+                    .ToString()
+                    .Trim()
+                    .Split ' '
+                |> Array.map toDeviceExtension
             |> throwOnError
 
     /// Device name string.
@@ -199,19 +220,21 @@ type ClDevice(device: OpenCL.Net.Device) =
         let wildcardToRegex (pattern: string) =
             "^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$"
 
-        let platformNameRegex = Regex(wildcardToRegex <| DeviceHelpers.convertToPattern platform, RegexOptions.IgnoreCase)
+        let platformNameRegex =
+            Regex(wildcardToRegex <| DeviceHelpers.convertToPattern platform, RegexOptions.IgnoreCase)
 
         let error = ref Unchecked.defaultof<ClErrorCode>
 
         Cl.GetPlatformIDs error
-        |> Seq.choose
-            (fun platform ->
-                let platformName = Cl.GetPlatformInfo(platform, OpenCL.Net.PlatformInfo.Name, error).ToString()
-                if platformNameRegex.Match(platformName).Success then
-                    Some <| Cl.GetDeviceIDs(platform, DeviceHelpers.convertToDeviceType deviceType, error)
-                else
-                    None
-            )
+        |> Seq.choose (fun platform ->
+            let platformName =
+                Cl.GetPlatformInfo(platform, OpenCL.Net.PlatformInfo.Name, error).ToString()
+
+            if platformNameRegex.Match(platformName).Success then
+                Some
+                <| Cl.GetDeviceIDs(platform, DeviceHelpers.convertToDeviceType deviceType, error)
+            else
+                None)
         |> Seq.concat
         |> Seq.map ClDevice
 
@@ -225,6 +248,6 @@ type ClDevice(device: OpenCL.Net.Device) =
 
         try
             Seq.head <| ClDevice.GetAvailableDevices(platform, deviceType)
-        with
-        | :? System.ArgumentException as ex ->
-            raise <| EmptyDevicesException $"No %A{deviceType} devices on platform %A{platform} were found"
+        with :? System.ArgumentException as ex ->
+            raise
+            <| EmptyDevicesException $"No %A{deviceType} devices on platform %A{platform} were found"

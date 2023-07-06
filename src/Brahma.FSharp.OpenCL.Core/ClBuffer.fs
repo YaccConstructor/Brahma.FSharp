@@ -32,39 +32,28 @@ type AllocationMode =
 
 /// Represents flags to specify allocation and usage information of OpenCL buffer.
 type ClMemFlags =
-    {
-        HostAccessMode: HostAccessMode
-        DeviceAccessMode: DeviceAccessMode
-        AllocationMode: AllocationMode
-    }
+    { HostAccessMode: HostAccessMode
+      DeviceAccessMode: DeviceAccessMode
+      AllocationMode: AllocationMode }
 
     /// Represents default flags in case of allocation with copying data.
     static member DefaultIfData =
-        {
-            HostAccessMode = HostAccessMode.ReadWrite
-            DeviceAccessMode = DeviceAccessMode.ReadWrite
-            AllocationMode = AllocationMode.AllocAndCopyHostPtr
-        }
+        { HostAccessMode = HostAccessMode.ReadWrite
+          DeviceAccessMode = DeviceAccessMode.ReadWrite
+          AllocationMode = AllocationMode.AllocAndCopyHostPtr }
 
     /// Represents default flags in case of allocation without copying data.
     static member DefaultIfNoData =
-        {
-            HostAccessMode = HostAccessMode.ReadWrite
-            DeviceAccessMode = DeviceAccessMode.ReadWrite
-            AllocationMode = AllocationMode.AllocHostPtr
-        }
+        { HostAccessMode = HostAccessMode.ReadWrite
+          DeviceAccessMode = DeviceAccessMode.ReadWrite
+          AllocationMode = AllocationMode.AllocHostPtr }
 
 type BufferInitParam<'a> =
     | Data of 'a[]
     | Size of int
 
 /// Represents an abstraction over OpenCL memory buffer.
-type ClBuffer<'a>
-    (
-        clContext: ClContext,
-        initParam: BufferInitParam<'a>,
-        ?memFlags: ClMemFlags
-    ) =
+type ClBuffer<'a>(clContext: ClContext, initParam: BufferInitParam<'a>, ?memFlags: ClMemFlags) =
 
     let memFlags =
         match initParam with
@@ -90,17 +79,18 @@ type ClBuffer<'a>
         | DeviceAccessMode.ReadOnly -> flags <- flags ||| MemFlags.ReadOnly
         | DeviceAccessMode.WriteOnly -> flags <- flags ||| MemFlags.WriteOnly
 
-        let ifDataFlags = [
-            AllocationMode.UseHostPtr
-            AllocationMode.CopyHostPtr
-            AllocationMode.AllocAndCopyHostPtr
-        ]
+        let ifDataFlags =
+            [ AllocationMode.UseHostPtr
+              AllocationMode.CopyHostPtr
+              AllocationMode.AllocAndCopyHostPtr ]
 
         match initParam with
-        | Size _  when ifDataFlags |> List.contains memFlags.AllocationMode ->
-            raise <| InvalidMemFlagsException $"One of following flags should be setted {ifDataFlags}"
+        | Size _ when ifDataFlags |> List.contains memFlags.AllocationMode ->
+            raise
+            <| InvalidMemFlagsException $"One of following flags should be setted {ifDataFlags}"
         | Data _ when ifDataFlags |> List.contains memFlags.AllocationMode |> not ->
-            raise <| InvalidMemFlagsException $"Neither of following flags should be setted {ifDataFlags}"
+            raise
+            <| InvalidMemFlagsException $"Neither of following flags should be setted {ifDataFlags}"
         | _ -> ()
 
         match memFlags.AllocationMode with
@@ -112,13 +102,15 @@ type ClBuffer<'a>
 
         flags
 
-    let mutable pinnedMemory : GCHandle option = None
+    let mutable pinnedMemory: GCHandle option = None
 
     let buffer =
         let error = ref Unchecked.defaultof<ErrorCode>
+
         let buf =
             if marshaler.IsBlittable typeof<'a> then
                 let elementSize = Marshal.SizeOf Unchecked.defaultof<'a>
+
                 let (size, data) =
                     match initParam with
                     | Data array ->
@@ -132,7 +124,10 @@ type ClBuffer<'a>
                 match initParam with
                 | Data array ->
                     let (size, data) = marshaler.WriteToUnmanaged(array)
-                    let buffer = Cl.CreateBuffer(clContext.Context, clMemoryFlags, IntPtr size, data, error)
+
+                    let buffer =
+                        Cl.CreateBuffer(clContext.Context, clMemoryFlags, IntPtr size, data, error)
+
                     Marshal.FreeHGlobal(data)
                     buffer
 
@@ -155,8 +150,7 @@ type ClBuffer<'a>
             | Data array -> array.Length
             | Size size -> size
 
-        member this.ElementSize =
-            marshaler.GetTypePacking(typeof<'a>).Size
+        member this.ElementSize = marshaler.GetTypePacking(typeof<'a>).Size
 
         member this.Free() =
             match pinnedMemory with
@@ -166,7 +160,7 @@ type ClBuffer<'a>
             buffer.Dispose()
 
         member this.Item
-            with get (idx: int) : 'a = FailIfOutsideKernel()
+            with get (idx: int): 'a = FailIfOutsideKernel()
             and set (idx: int) (value: 'a) = FailIfOutsideKernel()
 
     interface IDisposable with

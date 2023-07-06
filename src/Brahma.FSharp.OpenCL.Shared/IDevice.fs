@@ -14,7 +14,8 @@ type DeviceType =
     | GPU
     | Default
 
-type [<Measure>] Byte
+[<Measure>]
+type Byte
 
 type DeviceExtension =
     | CL_INTEL_ACCELERATOR

@@ -1,42 +1,41 @@
-module Brahma.FSharp.Tests.Translator.WorkSize.Tests
+module Brahma.FSharp.Tests.Translator.WorkSize
 
 open Brahma.FSharp
-open Expecto
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let basicWorkSizeTests translator = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
 
-    testCase "WorkSize of 1D" <| fun _ ->
-        let command =
-            <@
-                fun (range: Range1D) (buf: int clarray) ->
-                    let gSize = range.GlobalWorkSize
-                    let lSize = range.LocalWorkSize
-                    ()
-            @>
+let private basicWorkSizeTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-        checkCode command "WorkSize1D.gen" "WorkSize1D.cl"
+      <@
+          fun (range: Range1D) (buf: int clarray) ->
+              let gSize = range.GlobalWorkSize
+              let lSize = range.LocalWorkSize
+              ()
+      @>
+      |> createTest "WorkSize of 1D" "WorkSize1D.cl"
 
-    testCase "WorkSize of 2D" <| fun _ ->
-        let command =
-            <@
-                fun (range: Range2D) (buf: int clarray) ->
-                    let (gSizeX, gSizeY) = range.GlobalWorkSize
-                    let (lSizeX, lSizeY) = range.LocalWorkSize
-                    ()
-            @>
+      <@
+          fun (range: Range2D) (buf: int clarray) ->
+              let (gSizeX, gSizeY) = range.GlobalWorkSize
+              let (lSizeX, lSizeY) = range.LocalWorkSize
+              ()
+      @>
+      |> createTest "WorkSize of 2D" "WorkSize2D.cl"
 
-        checkCode command "WorkSize2D.gen" "WorkSize2D.cl"
 
-    testCase "WorkSize of 3D" <| fun _ ->
-        let command =
-           <@
-                fun (range: Range3D) (buf: int clarray) ->
-                    let (gSizeX, gSizeY, gSizeZ) = range.GlobalWorkSize
-                    let (lSizeX, lSizeY, lSizeZ) = range.LocalWorkSize
-                    ()
-            @>
+      <@
+          fun (range: Range3D) (buf: int clarray) ->
+              let (gSizeX, gSizeY, gSizeZ) = range.GlobalWorkSize
+              let (lSizeX, lSizeY, lSizeZ) = range.LocalWorkSize
+              ()
+      @>
+      |> createTest "WorkSize of 3D" "WorkSize3D.cl" ]
 
-        checkCode command "WorkSize3D.gen" "WorkSize3D.cl"
-]
+let tests translator =
+    basicWorkSizeTests translator
+    |> testList "BasicWorkSize"

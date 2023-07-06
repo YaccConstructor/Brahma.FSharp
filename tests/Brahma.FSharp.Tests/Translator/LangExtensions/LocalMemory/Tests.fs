@@ -1,36 +1,37 @@
-module Brahma.FSharp.Tests.Translator.LocalMemory.Tests
+module Brahma.FSharp.Tests.Translator.LocalMemory
 
-open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let localMemoryTests translator = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
 
-    testCase "Local int" <| fun _ ->
-        let command =
-            <@ fun (range: Range1D) ->
-                let mutable x = local ()
-                x <- 0
-            @>
+let private localMemoryTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-        checkCode command "LocalMemory.int.gen" "LocalMemory.int.cl"
+      <@
+          fun (range: Range1D) ->
+              let mutable x = local ()
+              x <- 0
+      @>
+      |> createTest "Local int" "LocalMemory.int.cl"
 
-    testCase "Local float" <| fun _ ->
-        let command =
-            <@ fun (range: Range1D) ->
-                let mutable x = local ()
-                x <- 0.0
-            @>
+      <@
+          fun (range: Range1D) ->
+              let mutable x = local ()
+              x <- 0.0
+      @>
+      |> createTest "Local float" "LocalMemory.float.cl"
 
-        checkCode command "LocalMemory.float.gen" "LocalMemory.float.cl"
+      <@
+          fun (range: Range1D) ->
+              let xs = localArray 5
+              xs.[range.LocalID0] <- range.LocalID0
+      @>
+      |> createTest "Local int array" "LocalMemory.int [].cl" ]
 
-    testCase "Local int array" <| fun _ ->
-        let command =
-            <@ fun (range: Range1D) ->
-                let xs = localArray 5
-                xs.[range.LocalID0] <- range.LocalID0
-            @>
-
-        checkCode command "LocalMemory.int [].gen" "LocalMemory.int [].cl"
-]
+let tests translator =
+    localMemoryTests translator
+    |> testList "LocalMemory"

@@ -9,8 +9,8 @@ open System.Runtime.Serialization
 type CLException =
     inherit Exception
 
-    new (error: ErrorCode) = { inherit Exception(error.ToString()) }
+    new(error: ErrorCode) = { inherit Exception(error.ToString()) }
 
-    new (error: ErrorCode, inner: Exception) = { inherit Exception(error.ToString(), inner) }
+    new(error: ErrorCode, inner: Exception) = { inherit Exception(error.ToString(), inner) }
 
-    new (info: SerializationInfo, context: StreamingContext) = { inherit Exception(info, context) }
+    new(info: SerializationInfo, context: StreamingContext) = { inherit Exception(info, context) }

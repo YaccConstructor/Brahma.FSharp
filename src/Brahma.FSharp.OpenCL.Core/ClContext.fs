@@ -9,7 +9,9 @@ type ClContext(clDevice: ClDevice, ?translator, ?compilerOptions: string) =
 
     let context =
         let error = ref Unchecked.defaultof<ErrorCode>
-        let ctx = Cl.CreateContext(null, 1u, [| clDevice.Device |], null, System.IntPtr.Zero, error)
+
+        let ctx =
+            Cl.CreateContext(null, 1u, [| clDevice.Device |], null, System.IntPtr.Zero, error)
 
         if error.Value <> ErrorCode.Success then
             raise <| Cl.Exception error.Value
@@ -31,11 +33,13 @@ type ClContext(clDevice: ClDevice, ?translator, ?compilerOptions: string) =
         let context = this
         let device = context.ClDevice.Device
         let deviceName = Cl.GetDeviceInfo(device, DeviceInfo.Name, &e).ToString()
+
         if deviceName.Length < 20 then
             $"%s{deviceName}"
         else
             let platform = Cl.GetDeviceInfo(device, DeviceInfo.Platform, &e).CastTo<Platform>()
             let platformName = Cl.GetPlatformInfo(platform, PlatformInfo.Name, &e).ToString()
+
             let deviceType =
                 match Cl.GetDeviceInfo(device, DeviceInfo.Type, &e).CastTo<DeviceType>() with
                 | DeviceType.Cpu -> "CPU"

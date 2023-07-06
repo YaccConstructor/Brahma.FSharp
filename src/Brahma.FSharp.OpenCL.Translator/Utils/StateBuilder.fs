@@ -3,50 +3,44 @@ namespace Brahma.FSharp.OpenCL.Translator
 type State<'state, 'result> = State of ('state -> 'result * 'state)
 
 module State =
-    let inline run state (State f) =
-        f state
+    let inline run state (State f) = f state
 
-    let exec state (State f) =
-        snd (f state)
+    let exec state (State f) = snd (f state)
 
-    let eval state (State f) =
-        fst (f state)
+    let eval state (State f) = fst (f state)
 
-    let inline return' x = State <| fun state ->
-        (x, state)
+    let inline return' x = State <| fun state -> (x, state)
 
-    let inline (>>=) x f = State <| fun state ->
-        let (y, state') = run state x
-        run state' (f y)
+    let inline (>>=) x f =
+        State
+        <| fun state ->
+            let (y, state') = run state x
+            run state' (f y)
 
-    let get = State (fun s -> s, s)
+    let get = State(fun s -> s, s)
 
-    let put newState = State <| fun _ ->
-        (), newState
+    let put newState = State <| fun _ -> (), newState
 
     // modify state
-    let modify f =
-        get >>= (f >> put)
+    let modify f = get >>= (f >> put)
 
     // apply f to state to produce value
-    let gets f =
-        get >>= (f >> return')
+    let gets f = get >>= (f >> return')
 
-    let map f s = State <| fun state ->
-        let (x, state) = run state s
-        f x, state
+    let map f s =
+        State
+        <| fun state ->
+            let (x, state) = run state s
+            f x, state
 
-    let using f x = State <| fun state ->
-        eval (f state) x, state
+    let using f x =
+        State <| fun state -> eval (f state) x, state
 
     let collect (list: State<'s, 'a> list) =
         list
         |> List.fold
-            (fun state elem ->
-                state >>= fun state ->
-                elem >>= fun elem ->
-                return' (elem :: state)
-            ) (return' List.empty)
+            (fun state elem -> state >>= fun state -> elem >>= fun elem -> return' (elem :: state))
+            (return' List.empty)
         |> fun args -> map List.rev args
 
 type StateBuilder<'state>() =
@@ -56,7 +50,8 @@ type StateBuilder<'state>() =
     member inline this.Zero() : State<'state, unit> = State.return' ()
 
     member inline this.Combine(x1: State<'state, _>, x2: State<'state, _>) =
-        State <| fun context ->
+        State
+        <| fun context ->
             let (_, context) = State.run context x1
             State.run context x2
 

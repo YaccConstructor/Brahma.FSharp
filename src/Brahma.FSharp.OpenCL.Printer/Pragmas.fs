@@ -22,19 +22,9 @@ module Pragmas =
     let print (clp: CLPragma<_>) =
         match clp.Type with
         | CLGlobalInt32BaseAtomics ->
-            [
-                "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable"
-                |> wordL
-            ]
+            [ "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable" |> wordL ]
             |> aboveListL
         | CLLocalInt32BaseAtomics ->
-            [
-                "#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable"
-                |> wordL
-            ]
+            [ "#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable" |> wordL ]
             |> aboveListL
-        | CLFP64 ->
-            [
-                "#pragma OPENCL EXTENSION cl_khr_fp64 : enable" |> wordL
-            ]
-            |> aboveListL
+        | CLFP64 -> [ "#pragma OPENCL EXTENSION cl_khr_fp64 : enable" |> wordL ] |> aboveListL

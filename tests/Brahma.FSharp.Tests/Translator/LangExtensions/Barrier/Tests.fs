@@ -1,21 +1,25 @@
-module Brahma.FSharp.Tests.Translator.Barrier.Tests
+module Brahma.FSharp.Tests.Translator.Barrier
 
-open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let barrierTests translator = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
 
-    testCase "Local barrier translation tests" <| fun () ->
-        let command = <@ fun (range: Range1D) -> barrierLocal () @>
-        checkCode command "Barrier.Local.gen" "Barrier.Local.cl"
+let private barrierTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-    testCase "Global barrier translation tests" <| fun () ->
-        let command = <@ fun (range: Range1D) -> barrierGlobal () @>
-        checkCode command "Barrier.Global.gen" "Barrier.Global.cl"
+      <@ fun (range: Range1D) -> barrierLocal () @>
+      |> createTest "Local barrier translation tests" "Barrier.Local.cl"
 
-    testCase "Full barrier translation tests" <| fun () ->
-        let command = <@ fun (range: Range1D) -> barrierFull () @>
-        checkCode command "Barrier.Full.gen" "Barrier.Full.cl"
-]
+      <@ fun (range: Range1D) -> barrierGlobal () @>
+      |> createTest "Global barrier translation tests" "Barrier.Global.cl"
+
+      <@ fun (range: Range1D) -> barrierFull () @>
+      |> createTest "Full barrier translation tests" "Barrier.Full.cl" ]
+
+let tests translator =
+    barrierTests translator
+    |> testList "Barrier"

@@ -1,151 +1,154 @@
 module Brahma.FSharp.Tests.Translator.Specific.MergePath
 
+open System.IO
 open Brahma.FSharp.Tests.Translator.Common
-open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.OpenCL.Translator
 
-let specificTests (translator: FSQuotationToOpenCLTranslator) = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "MergePath", "Expected")
 
-    testCase "Merge kernel" <| fun () ->
-        let command workGroupSize =
-            <@
-                fun (ndRange: Range1D)
-                    firstSide
-                    secondSide
-                    sumOfSides
-                    (firstRowsBuffer: ClArray<int>)
-                    (firstColumnsBuffer: ClArray<int>)
-                    (firstValuesBuffer: ClArray<int>)
-                    (secondRowsBuffer: ClArray<int>)
-                    (secondColumnsBuffer: ClArray<int>)
-                    (secondValuesBuffer: ClArray<int>)
-                    (allRowsBuffer: ClArray<int>)
-                    (allColumnsBuffer: ClArray<int>)
-                    (allValuesBuffer: ClArray<int>) ->
+let tests (translator: FSQuotationToOpenCLTranslator) =
+      let inline createTest name =
+          Helpers.createTest translator basePath name
 
-                    let i = ndRange.GlobalID0
+      let workGroupSize = 255
 
-                    let mutable beginIdxLocal = local ()
-                    let mutable endIdxLocal = local ()
-                    let localID = ndRange.LocalID0
+      <@
+          fun
+              (ndRange: Range1D)
+              firstSide
+              secondSide
+              sumOfSides
+              (firstRowsBuffer: ClArray<int>)
+              (firstColumnsBuffer: ClArray<int>)
+              (firstValuesBuffer: ClArray<int>)
+              (secondRowsBuffer: ClArray<int>)
+              (secondColumnsBuffer: ClArray<int>)
+              (secondValuesBuffer: ClArray<int>)
+              (allRowsBuffer: ClArray<int>)
+              (allColumnsBuffer: ClArray<int>)
+              (allValuesBuffer: ClArray<int>) ->
 
-                    if localID < 2 then
-                        let mutable x = localID * (workGroupSize - 1) + i - 1
+              let i = ndRange.GlobalID0
 
-                        if x >= sumOfSides then
-                            x <- sumOfSides - 1
+              let mutable beginIdxLocal = local ()
+              let mutable endIdxLocal = local ()
+              let localID = ndRange.LocalID0
 
-                        let diagonalNumber = x
+              if localID < 2 then
+                  let mutable x = localID * (workGroupSize - 1) + i - 1
 
-                        let mutable leftEdge = diagonalNumber + 1 - secondSide
-                        if leftEdge < 0 then leftEdge <- 0
+                  if x >= sumOfSides then
+                      x <- sumOfSides - 1
 
-                        let mutable rightEdge = firstSide - 1
+                  let diagonalNumber = x
 
-                        if rightEdge > diagonalNumber then
-                            rightEdge <- diagonalNumber
+                  let mutable leftEdge = diagonalNumber + 1 - secondSide
 
-                        while leftEdge <= rightEdge do
-                            let middleIdx = (leftEdge + rightEdge) / 2
+                  if leftEdge < 0 then
+                      leftEdge <- 0
 
-                            let firstIndex: uint64 =
-                                ((uint64 firstRowsBuffer.[middleIdx]) <<< 32)
-                                ||| (uint64 firstColumnsBuffer.[middleIdx])
+                  let mutable rightEdge = firstSide - 1
 
-                            let secondIndex: uint64 =
-                                ((uint64 secondRowsBuffer.[diagonalNumber - middleIdx])
-                                 <<< 32)
-                                ||| (uint64 secondColumnsBuffer.[diagonalNumber - middleIdx])
+                  if rightEdge > diagonalNumber then
+                      rightEdge <- diagonalNumber
 
-                            if firstIndex < secondIndex then
-                                leftEdge <- middleIdx + 1
-                            else
-                                rightEdge <- middleIdx - 1
+                  while leftEdge <= rightEdge do
+                      let middleIdx = (leftEdge + rightEdge) / 2
 
-                        // Here localID equals either 0 or 1
-                        if localID = 0 then
-                            beginIdxLocal <- leftEdge
-                        else
-                            endIdxLocal <- leftEdge
+                      let firstIndex: uint64 =
+                          ((uint64 firstRowsBuffer.[middleIdx]) <<< 32)
+                          ||| (uint64 firstColumnsBuffer.[middleIdx])
 
-                    barrierLocal ()
+                      let secondIndex: uint64 =
+                          ((uint64 secondRowsBuffer.[diagonalNumber - middleIdx]) <<< 32)
+                          ||| (uint64 secondColumnsBuffer.[diagonalNumber - middleIdx])
 
-                    let beginIdx = beginIdxLocal
-                    let endIdx = endIdxLocal
-                    let firstLocalLength = endIdx - beginIdx
-                    let mutable x = workGroupSize - firstLocalLength
+                      if firstIndex < secondIndex then
+                          leftEdge <- middleIdx + 1
+                      else
+                          rightEdge <- middleIdx - 1
 
-                    if endIdx = firstSide then
-                        x <- secondSide - i + localID + beginIdx
+                  // Here localID equals either 0 or 1
+                  if localID = 0 then
+                      beginIdxLocal <- leftEdge
+                  else
+                      endIdxLocal <- leftEdge
 
-                    let secondLocalLength = x
+              barrierLocal ()
 
-                    //First indices are from 0 to firstLocalLength - 1 inclusive
-                    //Second indices are from firstLocalLength to firstLocalLength + secondLocalLength - 1 inclusive
-                    let localIndices = localArray<uint64> workGroupSize
+              let beginIdx = beginIdxLocal
+              let endIdx = endIdxLocal
+              let firstLocalLength = endIdx - beginIdx
+              let mutable x = workGroupSize - firstLocalLength
 
-                    if localID < firstLocalLength then
-                        localIndices.[localID] <-
-                            ((uint64 firstRowsBuffer.[beginIdx + localID])
-                             <<< 32)
-                            ||| (uint64 firstColumnsBuffer.[beginIdx + localID])
+              if endIdx = firstSide then
+                  x <- secondSide - i + localID + beginIdx
 
-                    if localID < secondLocalLength then
-                        localIndices.[firstLocalLength + localID] <-
-                            ((uint64 secondRowsBuffer.[i - beginIdx]) <<< 32)
-                            ||| (uint64 secondColumnsBuffer.[i - beginIdx])
+              let secondLocalLength = x
 
-                    barrierLocal ()
+              //First indices are from 0 to firstLocalLength - 1 inclusive
+              //Second indices are from firstLocalLength to firstLocalLength + secondLocalLength - 1 inclusive
+              let localIndices = localArray<uint64> workGroupSize
 
-                    if i < sumOfSides then
-                        let mutable leftEdge = localID + 1 - secondLocalLength
-                        if leftEdge < 0 then leftEdge <- 0
+              if localID < firstLocalLength then
+                  localIndices.[localID] <-
+                      ((uint64 firstRowsBuffer.[beginIdx + localID]) <<< 32)
+                      ||| (uint64 firstColumnsBuffer.[beginIdx + localID])
 
-                        let mutable rightEdge = firstLocalLength - 1
+              if localID < secondLocalLength then
+                  localIndices.[firstLocalLength + localID] <-
+                      ((uint64 secondRowsBuffer.[i - beginIdx]) <<< 32)
+                      ||| (uint64 secondColumnsBuffer.[i - beginIdx])
 
-                        if rightEdge > localID then
-                            rightEdge <- localID
+              barrierLocal ()
 
-                        while leftEdge <= rightEdge do
-                            let middleIdx = (leftEdge + rightEdge) / 2
-                            let firstIndex = localIndices.[middleIdx]
+              if i < sumOfSides then
+                  let mutable leftEdge = localID + 1 - secondLocalLength
 
-                            let secondIndex =
-                                localIndices.[firstLocalLength + localID - middleIdx]
+                  if leftEdge < 0 then
+                      leftEdge <- 0
 
-                            if firstIndex < secondIndex then
-                                leftEdge <- middleIdx + 1
-                            else
-                                rightEdge <- middleIdx - 1
+                  let mutable rightEdge = firstLocalLength - 1
 
-                        let boundaryX = rightEdge
-                        let boundaryY = localID - leftEdge
+                  if rightEdge > localID then
+                      rightEdge <- localID
 
-                        // boundaryX and boundaryY can't be off the right edge of array (only off the left edge)
-                        let isValidX = boundaryX >= 0
-                        let isValidY = boundaryY >= 0
+                  while leftEdge <= rightEdge do
+                      let middleIdx = (leftEdge + rightEdge) / 2
+                      let firstIndex = localIndices.[middleIdx]
 
-                        let mutable fstIdx = 0UL
+                      let secondIndex = localIndices.[firstLocalLength + localID - middleIdx]
 
-                        if isValidX then
-                            fstIdx <- localIndices.[boundaryX]
+                      if firstIndex < secondIndex then
+                          leftEdge <- middleIdx + 1
+                      else
+                          rightEdge <- middleIdx - 1
 
-                        let mutable sndIdx = 0UL
+                  let boundaryX = rightEdge
+                  let boundaryY = localID - leftEdge
 
-                        if isValidY then
-                            sndIdx <- localIndices.[firstLocalLength + boundaryY]
+                  // boundaryX and boundaryY can't be off the right edge of array (only off the left edge)
+                  let isValidX = boundaryX >= 0
+                  let isValidY = boundaryY >= 0
 
-                        if not isValidX || isValidY && fstIdx < sndIdx then
-                            allRowsBuffer.[i] <- int (sndIdx >>> 32)
-                            allColumnsBuffer.[i] <- int sndIdx
-                            allValuesBuffer.[i] <- secondValuesBuffer.[i - localID - beginIdx + boundaryY]
-                        else
-                            allRowsBuffer.[i] <- int (fstIdx >>> 32)
-                            allColumnsBuffer.[i] <- int fstIdx
-                            allValuesBuffer.[i] <- firstValuesBuffer.[beginIdx + boundaryX]
-            @>
+                  let mutable fstIdx = 0UL
 
-        checkCode (command 256) "MergeKernel.gen" "MergeKernel.cl"
-    ]
+                  if isValidX then
+                      fstIdx <- localIndices.[boundaryX]
+
+                  let mutable sndIdx = 0UL
+
+                  if isValidY then
+                      sndIdx <- localIndices.[firstLocalLength + boundaryY]
+
+                  if not isValidX || isValidY && fstIdx < sndIdx then
+                      allRowsBuffer.[i] <- int (sndIdx >>> 32)
+                      allColumnsBuffer.[i] <- int sndIdx
+                      allValuesBuffer.[i] <- secondValuesBuffer.[i - localID - beginIdx + boundaryY]
+                  else
+                      allRowsBuffer.[i] <- int (fstIdx >>> 32)
+                      allColumnsBuffer.[i] <- int fstIdx
+                      allValuesBuffer.[i] <- firstValuesBuffer.[beginIdx + boundaryX]
+      @>
+      |> createTest "Merge path" "MergeKernel.cl"

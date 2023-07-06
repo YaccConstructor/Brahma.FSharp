@@ -21,18 +21,16 @@ open Brahma.FSharp.OpenCL.Printer
 
 module FunDecl =
     let private printFunFormalParam (param: FunFormalArg<_>) =
-        [
-            match param.DeclSpecs.AddressSpaceQualifier with
-            | Global -> yield wordL "__global"
-            | Local -> yield wordL "__local"
-            | _ -> yield wordL "private"
+        [ match param.DeclSpecs.AddressSpaceQualifier with
+          | Global -> yield wordL "__global"
+          | Local -> yield wordL "__local"
+          | _ -> yield wordL "private"
 
-            match param.DeclSpecs.Type with
-            | Some t -> yield Types.print t
-            | None -> failwith "Could not print a formal arg with undefined type"
+          match param.DeclSpecs.Type with
+          | Some t -> yield Types.print t
+          | None -> failwith "Could not print a formal arg with undefined type"
 
-            yield wordL param.Name
-        ]
+          yield wordL param.Name ]
         |> spaceListL
 
     let print<'lang> (funDecl: FunDecl<'lang>) =
@@ -45,15 +43,13 @@ module FunDecl =
             | None -> false
 
         let header =
-            [
-                match funDecl.DeclSpecs.FunQual with
-                | Some Kernel -> yield wordL "__kernel"
-                | None -> ()
-                match funDecl.DeclSpecs.Type with
-                | Some t -> yield Types.print t
-                | None -> failwith "Could not print a func declaration with undefined return type"
-                yield wordL funDecl.Name
-            ]
+            [ match funDecl.DeclSpecs.FunQual with
+              | Some Kernel -> yield wordL "__kernel"
+              | None -> ()
+              match funDecl.DeclSpecs.Type with
+              | Some t -> yield Types.print t
+              | None -> failwith "Could not print a func declaration with undefined return type"
+              yield wordL funDecl.Name ]
             |> spaceListL
 
         let formalParams =

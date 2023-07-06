@@ -1,49 +1,48 @@
-module Brahma.FSharp.Tests.Translator.Printf.Tests
+module Brahma.FSharp.Tests.Translator.Printf
 
-open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let printfTests translator = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "Printf", "Expected")
 
-    testCase "Printf test 1" <| fun _ ->
-        let command = <@ fun (range: Range1D) -> printf "%d %f" 10 15.0 @>
-        checkCode command "Printf test 1.gen" "Printf test 1.cl"
+let private printfTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-    testCase "Printf test 2" <| fun _ ->
-        let command =
-            <@ fun (range: Range1D) (xs: int clarray) ->
-                let gid = range.GlobalID0
-                let x = 10
+      <@ fun (range: Range1D) -> printf "%d %f" 10 15.0 @>
+      |> createTest "Printf test 1" "Printf test 1.cl"
 
-                printf "%d %d" x xs.[gid]
-            @>
+      <@
+          fun (range: Range1D) (xs: int clarray) ->
+              let gid = range.GlobalID0
+              let x = 10
 
-        checkCode command "Printf test 2.gen" "Printf test 2.cl"
+              printf "%d %d" x xs.[gid]
+      @>
+      |> createTest "Printf test 2" "Printf test 2.cl"
 
-    testCase "Printf test 3" <| fun _ ->
-        let command =
-            <@ fun (range: Range1D) (xs: int clarray) ->
-                let mutable i = 0
+      <@
+          fun (range: Range1D) (xs: int clarray) ->
+              let mutable i = 0
 
-                while i < 10 do
-                    xs.[0] <- i * 2
-                    printf "i = %d, xs.[0]*10 = %d\n" i (xs.[0] + 10)
-                    i <- i + 1
-            @>
+              while i < 10 do
+                  xs.[0] <- i * 2
+                  printf "i = %d, xs.[0]*10 = %d\n" i (xs.[0] + 10)
+                  i <- i + 1
+      @>
+      |> createTest "Printf test 3" "Printf test 3.cl"
 
-        checkCode command "Printf test 3.gen" "Printf test 3.cl"
+      <@ fun (range: Range1D) -> printfn "%d %f" 10 15.0 @>
+      |> createTest "Printf test 4: printfn" "Printf test 4.cl"
 
-    testCase "Printf test 4: printfn" <| fun _ ->
-        let command = <@ fun (range: Range1D) -> printfn "%d %f" 10 15.0 @>
-        checkCode command "Printf test 4.gen" "Printf test 4.cl"
+      <@ fun (range: Range1D) -> printf "I am complied" @>
+      |> createTest "Printf test 5: printf without args" "Printf test 5.cl"
 
-    testCase "Printf test 5: printf without args" <| fun _ ->
-        let command = <@ fun (range: Range1D) -> printf "I am complied" @>
-        checkCode command "Printf test 5.gen" "Printf test 5.cl"
+      <@ fun (range: Range1D) -> printfn "I am complied too" @>
+      |> createTest "Printf test 6: printfn without args" "Printf test 6.cl" ]
 
-    testCase "Printf test 6: printfn without args" <| fun _ ->
-        let command = <@ fun (range: Range1D) -> printfn "I am complied too" @>
-        checkCode command "Printf test 6.gen" "Printf test 6.cl"
-]
+let tests translator =
+    printfTests translator
+    |> testList "Printf"

@@ -33,12 +33,12 @@ module UniqueVarRenamer =
         | ExprShape.ShapeVar var ->
             let newVar = ctx.Add var
             Expr.Var(newVar)
-        | ExprShape.ShapeLambda (var, body) ->
+        | ExprShape.ShapeLambda(var, body) ->
             let newVar = ctx.Add var
             Expr.Lambda(newVar, makeVarNamesUniqueImpl ctx body)
-        | ExprShape.ShapeCombination (shapeComboObj, exprList) ->
+        | ExprShape.ShapeCombination(shapeComboObj, exprList) ->
             let exprList' = List.map (makeVarNamesUniqueImpl ctx) exprList
-            ExprShape.RebuildShapeCombination (shapeComboObj, exprList')
+            ExprShape.RebuildShapeCombination(shapeComboObj, exprList')
 
     let makeVarNameUnique (expr: Expr) =
-        makeVarNamesUniqueImpl <| RenamingContext () <| expr
+        makeVarNamesUniqueImpl <| RenamingContext() <| expr

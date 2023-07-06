@@ -1,28 +1,31 @@
-module Brahma.FSharp.Tests.Translator.LocalId.Tests
+module Brahma.FSharp.Tests.Translator.LangExtensions.LocalId
 
 open Brahma.FSharp
-open Expecto
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let basicLocalIdTests translator = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "Local", "Expected")
 
-    testCase "LocalID of 1D" <| fun _ ->
-        let command =
-            <@ fun (range: Range1D) (buf: int clarray) ->
-                let id = range.LocalID0
-                buf.[id] <- 0
-            @>
+let private basicLocalIdTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-        checkCode command "LocalID1D.gen" "LocalID1D.cl"
+      <@
+          fun (range: Range1D) (buf: int clarray) ->
+              let id = range.LocalID0
+              buf.[id] <- 0
+      @>
+      |> createTest "LocalID of 1D" "LocalID1D.cl"
 
-    testCase "LocalID of 2D" <| fun _ ->
-        let command =
-            <@ fun (range: Range2D) (buf: int clarray) ->
-                let v = range.LocalID0
-                let id = range.LocalID1
-                buf.[id] <- v
-            @>
+      <@
+          fun (range: Range2D) (buf: int clarray) ->
+              let v = range.LocalID0
+              let id = range.LocalID1
+              buf.[id] <- v
+      @>
+      |> createTest "LocalID of 2D" "LocalID2D.cl" ]
 
-        checkCode command "LocalID2D.gen" "LocalID2D.cl"
-]
+let tests translator =
+    basicLocalIdTests translator
+    |> testList "BasicLocalId"

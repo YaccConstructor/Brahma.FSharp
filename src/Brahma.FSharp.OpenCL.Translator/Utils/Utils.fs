@@ -6,8 +6,8 @@ open System
 module Utils =
     let getMethodInfoOfCall (expr: Expr) =
         match expr with
-        | Patterns.Call (_, mInfo, _) -> mInfo
-        | DerivedPatterns.Lambdas (_, Patterns.Call (_, mInfo, _)) -> mInfo
+        | Patterns.Call(_, mInfo, _) -> mInfo
+        | DerivedPatterns.Lambdas(_, Patterns.Call(_, mInfo, _)) -> mInfo
         | _ -> failwithf $"Expression is not kind of call, but {expr}"
 
     let makeGenericMethodCall (types: Type list) (expr: Expr) =
@@ -20,7 +20,4 @@ module Utils =
         |> Seq.exists (fun attr -> attr.GetType() = typeof<'attr>)
 
     let roundUp n x =
-        if x % n <> 0 then
-            (x / n) * n + n
-        else
-            x
+        if x % n <> 0 then (x / n) * n + n else x

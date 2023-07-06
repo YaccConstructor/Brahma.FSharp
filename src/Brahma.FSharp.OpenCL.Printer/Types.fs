@@ -54,23 +54,24 @@ module Types =
         | _ -> failwithf "Printer. Unsupported type: %A" type'
 
     and printAggregatingInplaceType keyword typeName fields =
-        let header = [ wordL keyword; wordL typeName ] |> spaceListL
+        let header =
+            [ wordL keyword
+              wordL typeName ]
+            |> spaceListL
 
         let body =
-            [
-                for field in fields ->
-                    [
-                        print field.Type
-                        wordL field.Name
-                        wordL ";"
-                    ]
-                    |> spaceListL
-            ]
+            [ for field in fields ->
+                  [ print field.Type
+                    wordL field.Name
+                    wordL ";" ]
+                  |> spaceListL ]
             |> aboveListL
             |> braceL
 
         header ^^ body
 
-    and printUnionInplaceType (t: UnionClInplaceType<_>) = printAggregatingInplaceType "union" t.Name t.Fields
+    and printUnionInplaceType (t: UnionClInplaceType<_>) =
+        printAggregatingInplaceType "union" t.Name t.Fields
 
-    and printStructInplaceType (t: StructInplaceType<_>) = printAggregatingInplaceType "struct" t.Name t.Fields
+    and printStructInplaceType (t: StructInplaceType<_>) =
+        printAggregatingInplaceType "struct" t.Name t.Fields

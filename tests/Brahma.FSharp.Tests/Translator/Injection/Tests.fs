@@ -1,32 +1,34 @@
-module Brahma.FSharp.Tests.Translator.Injection.Tests
+module Brahma.FSharp.Tests.Translator.Injection
 
-open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let quotationsInjectionTests translator = [
-    let inline checkCode cmd outFile expected = Helpers.checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "Injection", "Expected")
 
-    testCase "Quotations injections 1" <| fun _ ->
-        let myF = <@ fun x -> x * x @>
+let private quotationsInjectionTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-        let command =
-            <@ fun (range: Range1D) (buf: int clarray) ->
-                buf.[0] <- (%myF) 2
-                buf.[1] <- (%myF) 4
-            @>
+      let myF = <@ fun x -> x * x @>
 
-        checkCode command "Quotations.Injections.1.gen" "Quotations.Injections.1.cl"
+      <@
+          fun (range: Range1D) (buf: int clarray) ->
+              buf.[0] <- (%myF) 2
+              buf.[1] <- (%myF) 4
+      @>
+      |> createTest "Quotations injections 1" "Quotations.Injections.1.cl"
 
-    testCase "Quotations injections 2" <| fun _ ->
-        let myF = <@ fun x y -> x - y @>
+      let myF = <@ fun x y -> x - y @>
 
-        let command =
-            <@ fun (range: Range1D) (buf: int clarray) ->
-                buf.[0] <- (%myF) 2 3
-                buf.[1] <- (%myF) 4 5
-            @>
+      <@
+          fun (range: Range1D) (buf: int clarray) ->
+              buf.[0] <- (%myF) 2 3
+              buf.[1] <- (%myF) 4 5
+      @>
+      |> createTest "Quotations injections 2" "Quotations.Injections.2.cl" ]
 
-        checkCode command "Quotations.Injections.2.gen" "Quotations.Injections.2.cl"
-
-]
+let tests translator =
+    quotationsInjectionTests translator
+    |> testList "QuotationsInjection"

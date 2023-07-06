@@ -1,19 +1,32 @@
-module Brahma.FSharp.Tests.Translator.ConstantArray.Tests
+module Brahma.FSharp.Tests.Translator.ConstantArray
 
-open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
+open System.IO
+open Expecto
 
-let constantArrayTests translator = [
-    let inline checkCode cmd outFile expected = checkCode translator cmd outFile expected
+let private basePath = Path.Combine("Translator", "ConstantArray", "Expected")
 
-    testCase "Constant array translation. Test 1" <| fun _ ->
-        let cArray1 = [| 1; 2; 3 |]
-        let command = <@ fun (range: Range1D) (buf: int clarray) -> buf.[0] <- cArray1.[1] @>
-        checkCode command "Constant array translation. Test 1.gen" "Constant array translation. Test 1.cl"
+let private constantArrayTests translator =
+    [ let inline createTest name =
+          Helpers.createTest translator basePath name
 
-    testCase "Constant array translation. Test 2" <| fun _ ->
-        let cArray1 = [| 1; 2; 3 |]
-        let command = <@ fun (range: Range1D) (buf: int clarray) -> buf.[0] <- 1 + cArray1.[1] @>
-        checkCode command "Constant array translation. Test 2.gen" "Constant array translation. Test 2.cl"
-]
+      let cArray1 =
+          [| 1
+             2
+             3 |]
+
+      <@ fun (range: Range1D) (buf: int clarray) -> buf.[0] <- cArray1.[1] @>
+      |> createTest "Constant array translation. Test 1" "Constant array translation. Test 1.cl"
+
+      let cArray1 =
+          [| 1
+             2
+             3 |]
+
+      <@ fun (range: Range1D) (buf: int clarray) -> buf.[0] <- 1 + cArray1.[1] @>
+      |> createTest "Constant array translation. Test 2" "Constant array translation. Test 2.cl" ]
+
+let tests translator =
+    constantArrayTests translator
+    |> testList "ConstantArray"

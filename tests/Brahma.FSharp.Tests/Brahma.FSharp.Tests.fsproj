@@ -10,100 +10,94 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Common.fs" />
-    <Compile Include="TranslationTests.fs" />
-    <Content Include="TranslationTests\Expected\*">
+    <Compile Include="Translator\Common.fs" />
+      
+    <Content Include="Translator\BinOp\Expected\*">  
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Translator\Common.fs" />
-    <Compile Include="Translator\BinaryOperations\Tests.fs" />
-    <Content Include="Translator\BinaryOperations\Expected\Array.Item.Set.cl" />
-    <Content Include="Translator\BinaryOperations\Expected\Binding.cl" />
-    <Content Include="Translator\BinaryOperations\Expected\Binop.Plus.cl" />
-    <Content Include="Translator\BinaryOperations\Expected\Binary.Operations.Math.cl" />
-    <Content Include="Translator\BinaryOperations\Expected\MAX.Transformation.cl" />
+    <Compile Include="Translator\BinOp\Tests.fs" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\ControlFlow\Tests.fs" />
-    <Content Include="Translator\ControlFlow\Expected\If.Then.cl" />
-    <Content Include="Translator\ControlFlow\Expected\If.Then.Else.cl" />
-    <Content Include="Translator\ControlFlow\Expected\For.Integer.Loop.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Sequential.Bindings.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Binding.In.IF.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Binding.In.FOR.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Simple.WHILE.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Binding.In.WHILE.cl" />
-    <Content Include="Translator\ControlFlow\Expected\WHILE.with.complex.condition.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Simple.Seq.cl" />
-    <Content Include="Translator\ControlFlow\Expected\Seq.With.Bindings.cl" />
+
+    <Content Include="Translator\NamesResolving\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\NamesResolving\Tests.fs" />
-    <Content Include="Translator\NamesResolving\Expected\Bindings.With.Equal.Names.cl" />
-    <Content Include="Translator\NamesResolving\Expected\Binding.And.FOR.Counter.Conflict.1.cl" />
-    <Content Include="Translator\NamesResolving\Expected\Binding.And.FOR.Counter.Conflict.2.cl" />
-    <Content Include="Translator\NamesResolving\Expected\Binding.And.FOR.Counter.Conflict.3.cl" />
-    <Content Include="Translator\NamesResolving\Expected\Binding.And.FOR.Counter.Conflict.4.cl" />
+
+    <Content Include="Translator\ConstantArray\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\ConstantArray\Tests.fs" />
-    <Content Include="Translator\ConstantArray\Expected\Constant array translation. Test 1.cl" />
-    <Content Include="Translator\ConstantArray\Expected\Constant array translation. Test 2.cl" />
+
+    <Content Include="Translator\LambdaLifting\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\LambdaLifting\Tests.fs" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 0.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 1.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 10.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 11.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 12.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 13.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 14.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 15.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 16.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 2.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 3.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 4.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 5.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 6.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 7.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 8.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Template Test 9.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Let renamed 2.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Let renamed.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Renamer Test.cl" />
-    <Content Include="Translator\LambdaLifting\Expected\Nested.Function.cl" />
+
+    <Content Include="Translator\Carrying\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\Carrying\Tests.fs" />
-    <Content Include="Translator\Carrying\Expected\Nested.Function.Carring.cl" />
-    <Content Include="Translator\Carrying\Expected\Nested.Function.Carring2.cl" />
+
+    <Content Include="Translator\Injection\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\Injection\Tests.fs" />
-    <Content Include="Translator\Injection\Expected\Quotations.Injections.1.cl" />
-    <Content Include="Translator\Injection\Expected\Quotations.Injections.2.cl" />
+
+    <Content Include="Translator\Printf\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\Printf\Tests.fs" />
-    <Content Include="Translator\Printf\Expected\Printf test 1.cl" />
-    <Content Include="Translator\Printf\Expected\Printf test 2.cl" />
-    <Content Include="Translator\Printf\Expected\Printf test 3.cl" />
-    <Content Include="Translator\Printf\Expected\Printf test 4.cl" />
-    <Content Include="Translator\Printf\Expected\Printf test 5.cl" />
-    <Content Include="Translator\Printf\Expected\Printf test 6.cl" />
+
+    <Content Include="Translator\Union\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\Union\Tests.fs" />
-    <Content Include="Translator\Union\Expected\Translation.Test1.cl" />
+
+    <Content Include="Translator\Specific\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Translator\Specific\MergePath.fs" />
-    <Content Include="Translator\Specific\Expected\MergeKernel.cl" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\LocalID\Tests.fs" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\WorkSize\Tests.fs" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\LocalMemory\Tests.fs" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\Barrier\Tests.fs" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\Atomic.fs" />
+    
     <Compile Include="Translator\QuatationTransformation\Common.fs" />
     <Compile Include="Translator\QuatationTransformation\LambdaLifting.fs" />
     <Compile Include="Translator\QuatationTransformation\VarDefsToLambda.fs" />
     <Compile Include="Translator\QuatationTransformation\Transformation.fs" />
-    <Compile Include="Translator\LangExtensions\LocalID\Tests.fs" />
-    <Content Include="Translator\LangExtensions\LocalID\Expected\LocalID1D.cl" />
-    <Content Include="Translator\LangExtensions\LocalID\Expected\LocalID2D.cl" />
-    <Compile Include="Translator\LangExtensions\WorkSize\Tests.fs" />
-    <Content Include="Translator\LangExtensions\WorkSize\Expected\WorkSize1D.cl" />
-    <Content Include="Translator\LangExtensions\WorkSize\Expected\WorkSize2D.cl" />
-    <Content Include="Translator\LangExtensions\WorkSize\Expected\WorkSize3D.cl" />
-    <Compile Include="Translator\LangExtensions\LocalMemory\Tests.fs" />
-    <Content Include="Translator\LangExtensions\LocalMemory\Expected\LocalMemory.float.cl" />
-    <Content Include="Translator\LangExtensions\LocalMemory\Expected\LocalMemory.int [].cl" />
-    <Content Include="Translator\LangExtensions\LocalMemory\Expected\LocalMemory.int.cl" />
-    <Compile Include="Translator\LangExtensions\Barrier\Tests.fs" />
-    <Content Include="Translator\LangExtensions\Barrier\Expected\Barrier.Full.cl" />
-    <Content Include="Translator\LangExtensions\Barrier\Expected\Barrier.Global.cl" />
-    <Content Include="Translator\LangExtensions\Barrier\Expected\Barrier.Local.cl" />
-    <Compile Include="Translator\LangExtensions\Atomic.fs" />
+
+    <Compile Include="Translator\All.fs" />
+    
     <Content Include="ExecutionTests\Expected\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    
     <Compile Include="ExecutionTests\RuntimeTests.fs" />
     <Compile Include="ExecutionTests\CompilationTests.fs" />
     <Compile Include="ExecutionTests\WorkflowBuilderTests.fs" />

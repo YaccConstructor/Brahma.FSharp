@@ -45,9 +45,11 @@ module Expressions =
 
     let private printVar (varible: Variable<'lang>) = wordL varible.Name
 
-    let rec private printItem (itm: Item<'lang>) = (print itm.Arr) ++ squareBracketL (print itm.Idx)
+    let rec private printItem (itm: Item<'lang>) =
+        (print itm.Arr) ++ squareBracketL (print itm.Idx)
 
-    and private printIndirectionOp (deref: IndirectionOp<'lang>) = wordL "*" ++ (print deref.Expr |> bracketL)
+    and private printIndirectionOp (deref: IndirectionOp<'lang>) =
+        wordL "*" ++ (print deref.Expr |> bracketL)
 
     and private printBop (op: BOp<'lang>) =
         match op with
@@ -76,7 +78,12 @@ module Expressions =
         let l = print binop.Left
         let r = print binop.Right
         let op = printBop binop.Op
-        [ l; op; r ] |> spaceListL |> bracketL
+
+        [ l
+          op
+          r ]
+        |> spaceListL
+        |> bracketL
 
     and private printProperty (prop: Property<'lang>) =
         match prop.Property with
@@ -136,28 +143,40 @@ module Expressions =
 
     and printNewStruct (newStruct: NewStruct<_>) =
         let args = List.map print newStruct.ConstructorArgs |> commaListL
+
         match newStruct.Struct with
-        | :? StructInplaceType<_> -> [ wordL "{"; args; wordL "}" ] |> spaceListL
+        | :? StructInplaceType<_> ->
+            [ wordL "{"
+              args
+              wordL "}" ]
+            |> spaceListL
         | _ ->
             let t = Types.print newStruct.Struct
-            [ t |> bracketL; wordL "{"; args; wordL "}" ] |> spaceListL
+
+            [ t |> bracketL
+              wordL "{"
+              args
+              wordL "}" ]
+            |> spaceListL
 
     and printNewUnion (newUnion: NewUnion<_>) =
         let arg = print newUnion.ConstructorArg
 
-        [
-            wordL "{"
-            wordL <| "." + newUnion.ConstructorArgName
-            wordL "="
-            arg
-            wordL "}"
-        ]
+        [ wordL "{"
+          wordL <| "." + newUnion.ConstructorArgName
+          wordL "="
+          arg
+          wordL "}" ]
         |> spaceListL
 
     and printFfieldGet (fg: FieldGet<_>) =
         let host = print fg.Host
         let fld = wordL fg.Field
-        [ host |> bracketL; wordL "."; fld ] |> spaceListL
+
+        [ host |> bracketL
+          wordL "."
+          fld ]
+        |> spaceListL
 
     and print (expr: Expression<'lang>) =
         match expr with

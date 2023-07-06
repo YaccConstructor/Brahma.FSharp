@@ -9,13 +9,8 @@ module PrintfReplacer =
 
     let rec replacePrintf (expr: Expr) =
         match expr with
-        | Patterns.Printf (tpArgs, value, bindArgs) ->
-            <@@
-                print tpArgs value bindArgs
-            @@>
-        | ExprShape.ShapeVar _ ->
-            expr
-        | ExprShape.ShapeLambda (x, body) ->
-            Expr.Lambda(x, replacePrintf body)
+        | Patterns.Printf(tpArgs, value, bindArgs) -> <@@ print tpArgs value bindArgs @@>
+        | ExprShape.ShapeVar _ -> expr
+        | ExprShape.ShapeLambda(x, body) -> Expr.Lambda(x, replacePrintf body)
         | ExprShape.ShapeCombination(combo, exprList) ->
             ExprShape.RebuildShapeCombination(combo, List.map replacePrintf exprList)

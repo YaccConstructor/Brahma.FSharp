@@ -34,9 +34,19 @@ module KernelLangExtensions =
         failIfOutsideKernel ()
         f
 
-    let inline inc (p: 'a) = failIfOutsideKernel (); p + LanguagePrimitives.GenericOne<'a>
-    let inline dec (p: 'a) = failIfOutsideKernel (); p - LanguagePrimitives.GenericOne<'a>
+    let inline inc (p: 'a) =
+        failIfOutsideKernel ()
+        p + LanguagePrimitives.GenericOne<'a>
+
+    let inline dec (p: 'a) =
+        failIfOutsideKernel ()
+        p - LanguagePrimitives.GenericOne<'a>
 
     // работает для всех типов
-    let inline xchg (p: 'a) (value: 'a) = failIfOutsideKernel (); p
-    let inline cmpxchg (p: 'a) (cmp: 'a) (value: 'a) = failIfOutsideKernel (); if p = cmp then value else p
+    let inline xchg (p: 'a) (value: 'a) =
+        failIfOutsideKernel ()
+        p
+
+    let inline cmpxchg (p: 'a) (cmp: 'a) (value: 'a) =
+        failIfOutsideKernel ()
+        if p = cmp then value else p
