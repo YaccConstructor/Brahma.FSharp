@@ -28,5 +28,4 @@ let private constantArrayTests translator =
       |> createTest "Constant array translation. Test 2" "Constant array translation. Test 2.cl" ]
 
 let tests translator =
-    constantArrayTests translator
-    |> testList "ConstantArray"
+    constantArrayTests translator |> testList "ConstantArray"

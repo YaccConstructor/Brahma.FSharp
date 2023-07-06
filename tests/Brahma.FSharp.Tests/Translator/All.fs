@@ -20,9 +20,7 @@ let private common translator =
     |> List.map (fun f -> f translator)
     |> testList "Common"
 
-let private union _ =
-    [ Union.tests ]
-    |> testList "Union"
+let private union _ = [ Union.tests ] |> testList "Union"
 
 let private transformation translator =
     [ QuatationTransformation.Transformation.tests

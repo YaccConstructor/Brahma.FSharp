@@ -6,10 +6,9 @@ open Brahma.FSharp.Tests
 let allTests =
     testList
         "All tests"
-        [ Translator.All.tests]
+        [ Translator.All.tests
+          testList "Execution tests" ExecutionTests.tests ]
     |> testSequenced
-
-open System.IO
 
 [<EntryPoint>]
 let main argv = allTests |> runTestsWithCLIArgs [] argv

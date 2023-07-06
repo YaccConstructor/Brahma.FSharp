@@ -30,5 +30,4 @@ let private quotationsInjectionTests translator =
       |> createTest "Quotations injections 2" "Quotations.Injections.2.cl" ]
 
 let tests translator =
-    quotationsInjectionTests translator
-    |> testList "QuotationsInjection"
+    quotationsInjectionTests translator |> testList "QuotationsInjection"

@@ -27,5 +27,4 @@ let private basicLocalIdTests translator =
       |> createTest "LocalID of 2D" "LocalID2D.cl" ]
 
 let tests translator =
-    basicLocalIdTests translator
-    |> testList "BasicLocalId"
+    basicLocalIdTests translator |> testList "BasicLocalId"

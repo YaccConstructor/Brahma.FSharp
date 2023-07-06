@@ -33,5 +33,4 @@ let private localMemoryTests translator =
       |> createTest "Local int array" "LocalMemory.int [].cl" ]
 
 let tests translator =
-    localMemoryTests translator
-    |> testList "LocalMemory"
+    localMemoryTests translator |> testList "LocalMemory"

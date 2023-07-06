@@ -259,5 +259,4 @@ let private lambdaLiftingTests translator =
       |> createTest "Nested functions" "Nested.Function.cl" ]
 
 let tests translator =
-    lambdaLiftingTests translator
-    |> testList "LambdaLifting"
+    lambdaLiftingTests translator |> testList "LambdaLifting"

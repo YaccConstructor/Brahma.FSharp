@@ -104,6 +104,4 @@ let private lambdaLiftingTests =
           @> ]
 
 let tests _ =
-    lambdaLiftingTests
-    |> testList "Lambda lifting"
-
+    lambdaLiftingTests |> testList "Lambda lifting"

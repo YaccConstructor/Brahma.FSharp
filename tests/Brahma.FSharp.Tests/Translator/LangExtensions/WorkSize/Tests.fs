@@ -37,5 +37,4 @@ let private basicWorkSizeTests translator =
       |> createTest "WorkSize of 3D" "WorkSize3D.cl" ]
 
 let tests translator =
-    basicWorkSizeTests translator
-    |> testList "BasicWorkSize"
+    basicWorkSizeTests translator |> testList "BasicWorkSize"

@@ -21,5 +21,4 @@ let private barrierTests translator =
       |> createTest "Full barrier translation tests" "Barrier.Full.cl" ]
 
 let tests translator =
-    barrierTests translator
-    |> testList "Barrier"
+    barrierTests translator |> testList "Barrier"

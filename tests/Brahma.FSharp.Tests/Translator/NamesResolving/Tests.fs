@@ -56,5 +56,4 @@ let private namesResolvingTests translator =
       |> createTest "Binding and FOR counter conflict 4." "Binding.And.FOR.Counter.Conflict.4.cl" ]
 
 let tests translator =
-    namesResolvingTests translator
-    |> testList "NamesResolving"
+    namesResolvingTests translator |> testList "NamesResolving"

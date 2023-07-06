@@ -184,5 +184,4 @@ let private quotationTransformerTest translator =
           @> ]
 
 let tests translator =
-    quotationTransformerTest translator
-    |> testList "Transformation"
+    quotationTransformerTest translator |> testList "Transformation"

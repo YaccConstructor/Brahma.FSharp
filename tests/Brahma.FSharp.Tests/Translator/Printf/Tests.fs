@@ -44,5 +44,4 @@ let private printfTests translator =
       |> createTest "Printf test 6: printfn without args" "Printf test 6.cl" ]
 
 let tests translator =
-    printfTests translator
-    |> testList "Printf"
+    printfTests translator |> testList "Printf"

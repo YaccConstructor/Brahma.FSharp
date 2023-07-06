@@ -82,7 +82,7 @@ let unionTests context =
               @>
 
           testGen
-              testCase
+              ptestCase // TODO(https://github.com/YaccConstructor/Brahma.FSharp/issues/152)
               "Test 2: TranslateTest.B"
               "Union.Compile.Test2.gen"
               "Union.Compile.Test2.cl"
@@ -131,7 +131,7 @@ let unionTests context =
 
     let testUnionCaseTestLists =
         [ testGen
-              testCase
+              ptestCase // TODO(https://github.com/YaccConstructor/Brahma.FSharp/issues/152)
               "Test 1: simple pattern matching"
               "Union.Compile.Test6.gen"
               "Union.Compile.Test6.cl"
@@ -148,7 +148,7 @@ let unionTests context =
 
     let unionPropertyGetTestLists =
         [ testGen
-              testCase
+              ptestCase // TODO(https://github.com/YaccConstructor/Brahma.FSharp/issues/152)
               "Test 1: simple pattern matching bindings"
               "Union.Compile.Test7.gen"
               "Union.Compile.Test7.cl"

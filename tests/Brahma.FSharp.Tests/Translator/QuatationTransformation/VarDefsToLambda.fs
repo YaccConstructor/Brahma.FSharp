@@ -90,6 +90,4 @@ let private varDefsToLambdaTest =
           @> ]
 
 let tests _ =
-    varDefsToLambdaTest
-    |> testList "Var -> Lambda"
-
+    varDefsToLambdaTest |> testList "Var -> Lambda"

@@ -349,6 +349,7 @@ let unionTests context =
 
 
 
+
                   @>
 
       testProperty (message "SimpleDU")
@@ -413,6 +414,7 @@ let unionTests context =
                                   | { X = Some x; Y = None } -> { X = Some x; Y = None }
                                   | { X = None; Y = Some y } -> { X = None; Y = Some y }
                                   | { X = None; Y = None } -> { X = None; Y = None }
+
 
 
 
