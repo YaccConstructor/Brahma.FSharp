@@ -335,21 +335,6 @@ let unionTests context =
                                       | Some { X = x; Y = y } -> Some(Some { X = x; Y = y })
                                       | None -> Some None
                                   | None -> None
-
-                      // TODO didnt work
-                      //                            | Some (Some { X = x; Y = y }) -> Some (Some { X = x; Y = y })
-                      //                            | Some None -> Some None
-                      //                            | None -> None
-
-
-
-
-
-
-
-
-
-
                   @>
 
       testProperty (message "SimpleDU")
@@ -371,15 +356,6 @@ let unionTests context =
 
       ptestProperty (message "GenericDU<bool, Option<bool>>")
       <| fun (data: GenericDU<bool, Option<bool>>[]) ->
-          // TODO test case
-          //        let data =
-          //            [|
-          //                GenericDU.C {
-          //                    X = true
-          //                    Y = Some true
-          //                }
-          //            |]
-
           if data.Length <> 0 then
               check data
               <| fun length ->
@@ -414,17 +390,6 @@ let unionTests context =
                                   | { X = Some x; Y = None } -> { X = Some x; Y = None }
                                   | { X = None; Y = Some y } -> { X = None; Y = Some y }
                                   | { X = None; Y = None } -> { X = None; Y = None }
-
-
-
-
-
-
-
-
-
-
-
                   @>
 
       testProperty (message "EnumDU")
