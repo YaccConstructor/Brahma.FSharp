@@ -4,7 +4,6 @@ open Expecto
 open Brahma.FSharp
 open FSharp.Quotations
 open Common
-open Expecto
 
 let private quotationTransformerTest translator =
     let assertMethodListsEqual (actual: list<Var * Expr>) (expected: list<Var * Expr>) =
@@ -44,14 +43,14 @@ let private quotationTransformerTest translator =
                   buf.[0] <- x
           @>
           <@
-              let f (xRef: _ ref) (y: int) = xRef.Value <- y
+              let f xRef (y: int) = xRef := y
 
               fun (range: Range1D) (buf: array<int>) ->
                   let mutable x = 1
                   let xRef = ref x
 
                   f xRef 10
-                  buf.[0] <- xRef.Value
+                  buf.[0] <- !xRef
           @>
 
       genTest
@@ -65,14 +64,14 @@ let private quotationTransformerTest translator =
                   buf.[0] <- x
           @>
           <@
-              let f (xRef: _ ref) (y: int) = xRef.Value <- xRef.Value + y
+              let f (xRef: _ ref) (y: int) = xRef := !xRef + y
 
               fun (range: Range1D) (buf: array<int>) ->
                   let mutable x = 1
                   let xRef = ref x
 
                   f xRef 10
-                  buf.[0] <- xRef.Value
+                  buf.[0] <- !xRef
           @>
 
       genTest
@@ -127,7 +126,7 @@ let private quotationTransformerTest translator =
                   x
           @>
           <@
-              let addToY (yRef: _ ref) x = yRef.Value <- yRef.Value + x
+              let addToY (yRef: _ ref) x = yRef := !yRef + x
 
               let x1UnitFunc (arr: array<int>) =
                   let y = 0
@@ -136,7 +135,7 @@ let private quotationTransformerTest translator =
                   for i in 0..10 do
                       addToY yRef arr.[i]
 
-                  yRef.Value
+                  !yRef
 
               fun (range: Range1D) (arr: array<int>) ->
                   let x1 = x1UnitFunc arr
@@ -164,13 +163,13 @@ let private quotationTransformerTest translator =
           <@
               let xUnitFunc () = if 0 > 1 then 2 else 3
 
-              let yUnitFunc (xRef: _ ref) =
+              let yUnitFunc xRef =
                   for i in 0..10 do
-                      xRef.Value <- xRef.Value + 1
+                      xRef := !xRef + 1
 
-                  xRef.Value + 1
+                  !xRef + 1
 
-              let f (arr: array<int>) (xRef: _ ref) (yRef: _ ref) z = arr.[0] <- xRef.Value + yRef.Value + z
+              let f (arr: array<int>) xRef yRef z = arr.[0] <- !xRef + !yRef + z
 
               fun (range: Range1D) (arr: array<int>) ->
                   let mutable x = xUnitFunc ()
@@ -179,11 +178,11 @@ let private quotationTransformerTest translator =
                   let mutable y = yUnitFunc xRef
                   let yRef = ref y
 
-                  let z = xRef.Value + yRef.Value
+                  let z = !xRef + !yRef
 
                   f arr xRef yRef z
           @> ]
 
 let tests translator =
     quotationTransformerTest translator
-    |> testList "QuotationTransformer"
+    |> testList "Transformation"

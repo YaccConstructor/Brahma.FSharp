@@ -28,7 +28,7 @@ module Helpers =
         let actual' = renameUnitVar actual
         let expected' = renameUnitVar expected
 
-        Expect.sequenceEqual <| actual'.ToString() <| expected'.ToString() <| msg
+        Expect.equal <| actual'.ToString() <| expected'.ToString() <| msg
 
     let assertMethodEqual (actual: Var * Expr) (expected: Var * Expr) =
         Expect.equal (fst actual).Name (fst expected).Name "Method names should be equal"
