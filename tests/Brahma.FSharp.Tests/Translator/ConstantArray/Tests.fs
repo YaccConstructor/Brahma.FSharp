@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "ConstantArray", "Expected")
 
-let private constantArrayTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private constantArrayTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       let cArray1 =
           [| 1
@@ -27,5 +26,4 @@ let private constantArrayTests translator =
       <@ fun (range: Range1D) (buf: int clarray) -> buf.[0] <- 1 + cArray1.[1] @>
       |> createTest "Constant array translation. Test 2" "Constant array translation. Test 2.cl" ]
 
-let tests translator =
-    constantArrayTests translator |> testList "ConstantArray"
+let tests = constantArrayTests |> testList "ConstantArray"

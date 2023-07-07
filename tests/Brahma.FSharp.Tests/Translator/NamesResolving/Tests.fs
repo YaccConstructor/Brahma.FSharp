@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "NamesResolving", "Expected")
 
-let private namesResolvingTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private namesResolvingTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@
           fun (range: Range1D) (buf: int clarray) ->
@@ -55,5 +54,4 @@ let private namesResolvingTests translator =
       @>
       |> createTest "Binding and FOR counter conflict 4." "Binding.And.FOR.Counter.Conflict.4.cl" ]
 
-let tests translator =
-    namesResolvingTests translator |> testList "NamesResolving"
+let tests = namesResolvingTests |> testList "NamesResolving"

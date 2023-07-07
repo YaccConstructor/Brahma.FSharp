@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
 
-let private basicWorkSizeTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private basicWorkSizeTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@
           fun (range: Range1D) (buf: int clarray) ->
@@ -36,5 +35,4 @@ let private basicWorkSizeTests translator =
       @>
       |> createTest "WorkSize of 3D" "WorkSize3D.cl" ]
 
-let tests translator =
-    basicWorkSizeTests translator |> testList "BasicWorkSize"
+let tests = basicWorkSizeTests |> testList "BasicWorkSize"

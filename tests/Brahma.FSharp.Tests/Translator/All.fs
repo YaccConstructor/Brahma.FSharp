@@ -6,7 +6,7 @@ open Expecto
 
 let translator = FSQuotationToOpenCLTranslator.CreateDefault()
 
-let private common translator =
+let private common =
     [ BinOp.tests
       ControlFlow.tests
       NamesResolving.tests
@@ -17,21 +17,18 @@ let private common translator =
       Printf.tests
 
       Specific.MergePath.tests ]
-    |> List.map (fun f -> f translator)
     |> testList "Common"
 
-let private union _ = [ Union.tests ] |> testList "Union"
+let private union = [ Union.tests ] |> testList "Union"
 
-let private transformation translator =
+let private transformation =
     [ QuatationTransformation.Transformation.tests
       QuatationTransformation.LambdaLifting.tests
       QuatationTransformation.VarDefsToLambda.tests ]
-    |> List.map (fun f -> f translator)
     |> testList "Transformation"
 
 let tests =
     [ common
       union
       transformation ]
-    |> List.map (fun f -> f translator)
     |> testList "Translator"

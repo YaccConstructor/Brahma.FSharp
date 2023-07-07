@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "Printf", "Expected")
 
-let private printfTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private printfTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@ fun (range: Range1D) -> printf "%d %f" 10 15.0 @>
       |> createTest "Printf test 1" "Printf test 1.cl"
@@ -43,5 +42,4 @@ let private printfTests translator =
       <@ fun (range: Range1D) -> printfn "I am complied too" @>
       |> createTest "Printf test 6: printfn without args" "Printf test 6.cl" ]
 
-let tests translator =
-    printfTests translator |> testList "Printf"
+let tests = printfTests |> testList "Printf"

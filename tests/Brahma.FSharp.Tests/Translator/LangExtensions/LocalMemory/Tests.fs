@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
 
-let private localMemoryTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private localMemoryTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@
           fun (range: Range1D) ->
@@ -32,5 +31,4 @@ let private localMemoryTests translator =
       @>
       |> createTest "Local int array" "LocalMemory.int [].cl" ]
 
-let tests translator =
-    localMemoryTests translator |> testList "LocalMemory"
+let tests = localMemoryTests |> testList "LocalMemory"

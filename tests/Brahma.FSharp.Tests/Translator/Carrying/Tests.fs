@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "Carrying", "Expected")
 
-let private curryingTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private curryingTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       let inline createPTest name _ = Helpers.createPTest name
 
@@ -20,7 +19,7 @@ let private curryingTests translator =
               buf.[0] <- g 3
               buf.[1] <- g 5
       @>
-      |> createPTest "Nested functions.Carrying 1." // "Nested.Function.Carring.cl" TODO(error: f application)
+      |> createPTest "Nested functions.Carrying 1." // "Nested.Function.Carring.cl" // TODO(error: f application)
 
       <@
           fun (range: Range1D) (buf: int clarray) ->
@@ -38,5 +37,4 @@ let private curryingTests translator =
       @>
       |> createPTest "Nested functions.Currying 2." ] // "Nested.Function.Carring2.cl" TODO(error)
 
-let tests translator =
-    curryingTests translator |> testList "Currying"
+let tests = curryingTests |> testList "Currying"

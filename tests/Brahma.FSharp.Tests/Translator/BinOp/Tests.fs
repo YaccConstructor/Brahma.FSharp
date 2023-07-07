@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "BinOp", "Expected")
 
-let private basicBinOpsTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private basicBinOpsTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@ fun (range: Range1D) (buf: int clarray) -> buf.[0] <- 0 @>
       |> createTest "Array item set" "Array.Item.Set.cl"
@@ -43,5 +42,4 @@ let private basicBinOpsTests translator =
       @>
       |> createTest "TempVar from MAX transformation should not affect other variables" "MAX.Transformation.cl" ]
 
-let tests translator =
-    basicBinOpsTests translator |> testList "BinaryOperations"
+let tests = basicBinOpsTests |> testList "BinaryOperations"

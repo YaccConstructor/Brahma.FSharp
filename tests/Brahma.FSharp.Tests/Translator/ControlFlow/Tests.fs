@@ -8,9 +8,8 @@ open Brahma.FSharp.OpenCL.Translator
 
 let private basePath = Path.Combine("Translator", "ControlFlow", "Expected")
 
-let private controlFlowTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private controlFlowTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       let inline createPTest name _ = Helpers.createPTest name
 
@@ -105,5 +104,4 @@ let private controlFlowTests translator =
       @>
       |> createTest "Seq with bindings." "Seq.With.Bindings.cl" ]
 
-let tests translator =
-    controlFlowTests translator |> testList "ControlFlow"
+let tests = controlFlowTests |> testList "ControlFlow"

@@ -6,7 +6,7 @@ open Brahma.FSharp.Tests
 let allTests =
     testList
         "All tests"
-        [ Translator.All.tests
+        [ Brahma.FSharp.Tests.Translator.Carrying.tests
           testList "Execution tests" ExecutionTests.tests ]
     |> testSequenced
 

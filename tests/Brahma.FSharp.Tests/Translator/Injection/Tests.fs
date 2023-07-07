@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "Injection", "Expected")
 
-let private quotationsInjectionTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private quotationsInjectionTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       let myF = <@ fun x -> x * x @>
 
@@ -29,5 +28,4 @@ let private quotationsInjectionTests translator =
       @>
       |> createTest "Quotations injections 2" "Quotations.Injections.2.cl" ]
 
-let tests translator =
-    quotationsInjectionTests translator |> testList "QuotationsInjection"
+let tests = quotationsInjectionTests |> testList "QuotationsInjection"

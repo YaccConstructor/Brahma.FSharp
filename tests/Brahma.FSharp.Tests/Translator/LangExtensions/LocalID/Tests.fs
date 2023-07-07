@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "Local", "Expected")
 
-let private basicLocalIdTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private basicLocalIdTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@
           fun (range: Range1D) (buf: int clarray) ->
@@ -26,5 +25,4 @@ let private basicLocalIdTests translator =
       @>
       |> createTest "LocalID of 2D" "LocalID2D.cl" ]
 
-let tests translator =
-    basicLocalIdTests translator |> testList "BasicLocalId"
+let tests = basicLocalIdTests |> testList "BasicLocalId"

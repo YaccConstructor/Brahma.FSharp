@@ -7,9 +7,8 @@ open Brahma.FSharp.OpenCL.Translator
 
 let private basePath = Path.Combine("Translator", "Specific", "Expected")
 
-let tests (translator: FSQuotationToOpenCLTranslator) =
-    let inline createTest name =
-        Helpers.createTest translator basePath name
+let tests =
+    let inline createTest name = Helpers.createTest basePath name
 
     let workGroupSize = 256
 

@@ -8,31 +8,25 @@ open FSharp.Quotations
 
 [<RequireQualifiedAccess>]
 module Helpers =
-    let openclTranslate (translator: FSQuotationToOpenCLTranslator) (expr: Expr) =
-        translator.Translate expr |> fst |> AST.print
+    let openclTranslate (expr: Expr) =
+        FSQuotationToOpenCLTranslator.CreateDefault().Translate expr |> fst |> AST.print
+
+    let filterText (text: string) = text.Trim().Replace("\r\n", "\n")
 
     let compareCodeAndFile actualCode pathToExpectedCode =
-        let expectedCode =
-            (File.ReadAllText pathToExpectedCode).Trim().Replace("\r\n", "\n")
+        let expectedCode = (File.ReadAllText pathToExpectedCode) |> filterText
 
-        let actualCode = (actualCode: string).Trim().Replace("\r\n", "\n")
+        let actualCode = (actualCode: string).Trim().Replace("\r\n", "\n") |> filterText
 
         Expect.equal actualCode expectedCode <| "Code must be the same."
 
-    let checkCode translator quotation pathToExpectedCode =
-        let actualCode = quotation |> openclTranslate translator
+    let checkCode quotation pathToExpectedCode =
+        let actualCode = quotation |> openclTranslate
 
         compareCodeAndFile actualCode pathToExpectedCode
 
-    let printfStandard code =
-        let translator = FSQuotationToOpenCLTranslator.CreateDefault()
-
-        openclTranslate translator code
-        |> fun code -> code.Trim().Replace("\r\n", "\n")
-        |> printfn "%A"
-
     // create tests*
-    let inline createTest translator basePath name expectedFileName quotation =
-        test name { checkCode translator quotation <| Path.Combine(basePath, expectedFileName) }
+    let inline createTest basePath name expectedFileName quotation =
+        test name { checkCode quotation <| Path.Combine(basePath, expectedFileName) }
 
     let inline createPTest name = ptest name { () }

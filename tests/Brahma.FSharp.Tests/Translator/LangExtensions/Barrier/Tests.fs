@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
 
-let private barrierTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private barrierTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@ fun (range: Range1D) -> barrierLocal () @>
       |> createTest "Local barrier translation tests" "Barrier.Local.cl"
@@ -20,5 +19,4 @@ let private barrierTests translator =
       <@ fun (range: Range1D) -> barrierFull () @>
       |> createTest "Full barrier translation tests" "Barrier.Full.cl" ]
 
-let tests translator =
-    barrierTests translator |> testList "Barrier"
+let tests = barrierTests |> testList "Barrier"

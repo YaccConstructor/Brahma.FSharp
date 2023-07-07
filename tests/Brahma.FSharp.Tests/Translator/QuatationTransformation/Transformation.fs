@@ -1,11 +1,14 @@
 module Brahma.FSharp.Tests.Translator.QuatationTransformation.Transformation
 
+open Brahma.FSharp.OpenCL.Translator
 open Expecto
 open Brahma.FSharp
 open FSharp.Quotations
 open Common
 
-let private quotationTransformerTest translator =
+let private quotationTransformerTest =
+    let translator = FSQuotationToOpenCLTranslator.CreateDefault()
+
     let assertMethodListsEqual (actual: list<Var * Expr>) (expected: list<Var * Expr>) =
         Expect.equal actual.Length expected.Length "List sizes should be equal"
         List.iter2 assertMethodEqual actual expected
@@ -183,5 +186,4 @@ let private quotationTransformerTest translator =
                   f arr xRef yRef z
           @> ]
 
-let tests translator =
-    quotationTransformerTest translator |> testList "Transformation"
+let tests = quotationTransformerTest |> testList "Transformation"

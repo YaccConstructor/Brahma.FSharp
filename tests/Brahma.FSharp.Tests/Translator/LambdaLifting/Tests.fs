@@ -7,9 +7,8 @@ open Expecto
 
 let private basePath = Path.Combine("Translator", "LambdaLifting", "Expected")
 
-let private lambdaLiftingTests translator =
-    [ let inline createTest name =
-          Helpers.createTest translator basePath name
+let private lambdaLiftingTests =
+    [ let inline createTest name = Helpers.createTest basePath name
 
       <@
           fun (range: Range1D) (buf: int clarray) ->
@@ -258,5 +257,4 @@ let private lambdaLiftingTests translator =
       @>
       |> createTest "Nested functions" "Nested.Function.cl" ]
 
-let tests translator =
-    lambdaLiftingTests translator |> testList "LambdaLifting"
+let tests = lambdaLiftingTests |> testList "LambdaLifting"

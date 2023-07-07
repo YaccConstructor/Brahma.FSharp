@@ -103,5 +103,4 @@ let private lambdaLiftingTests =
               f x0 x0
           @> ]
 
-let tests _ =
-    lambdaLiftingTests |> testList "Lambda lifting"
+let tests = lambdaLiftingTests |> testList "Lambda lifting"

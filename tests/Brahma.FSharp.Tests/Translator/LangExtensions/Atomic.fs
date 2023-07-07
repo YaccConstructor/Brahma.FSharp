@@ -4,7 +4,7 @@ open Expecto
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
 
-let test translator =
+let test =
 
     [ testCase "Multiple local values in atomic operations"
       <| fun () ->
@@ -26,9 +26,9 @@ let test translator =
                       atomic (max) secondMaxIndex value |> ignore
               @>
 
-          Helpers.openclTranslate translator kernel |> ignore ]
+          Helpers.openclTranslate kernel |> ignore ]
 
-let commonApiTests translator =
+let commonApiTests =
     [
       // TODO is it correct?
       ptestCase "Using atomic in lambda should not raise exception if first parameter passed"
@@ -40,7 +40,7 @@ let commonApiTests translator =
                       g 5 |> ignore
               @>
 
-          command |> Helpers.openclTranslate translator |> ignore
+          command |> Helpers.openclTranslate |> ignore
 
       // TODO is it correct?
       ptestCase "Using atomic in lambda should raise exception if first parameter is argument"
@@ -53,5 +53,5 @@ let commonApiTests translator =
               @>
 
           Expect.throwsT<System.ArgumentException>
-          <| fun () -> command |> Helpers.openclTranslate translator |> ignore
+          <| fun () -> command |> Helpers.openclTranslate |> ignore
           <| "Exception should be thrown" ]
