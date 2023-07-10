@@ -872,7 +872,7 @@ module rec Body =
                 else
                     return! translateApplicationFun expr1 expr2 >>= toNode
 
-            | DerivedPatterns.SpecificCall <@@ print @@> (_, _, args) ->
+            | DerivedPatterns.SpecificCall <@@ Print.print @@> (_, _, args) ->
                 match args with
                 | [ Patterns.ValueWithName(argTypes, _, _)
                     Patterns.ValueWithName(formatStr, _, _)

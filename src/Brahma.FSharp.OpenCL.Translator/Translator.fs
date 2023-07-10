@@ -84,9 +84,11 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
 
         methods @ kernelFunc
 
+    // TODO(add logging (via CE state))
+
     let transformQuotation expr =
         expr
-        |> replacePrintf
+        |> Print.replace
         |> GettingWorkSizeTransformer.__
         |> processAtomic
         |> makeVarNameUnique
@@ -96,20 +98,19 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         |> lambdaLifting
 
     let translate expr =
-        let context = TranslationContext.Create(translatorOptions)
-
         // TODO: Extract quotationTransformer to translator
-        let (kernelExpr, functions) = transformQuotation expr
+        // what is it?
+        let kernelExpr, functions = transformQuotation expr
 
-        let (globalVars, localVars, atomicApplicationsInfo) =
-            collectData kernelExpr functions
+        let globalVars, localVars, atomicApplicationsInfo = collectData kernelExpr functions
 
         let methods = constructMethods kernelExpr functions atomicApplicationsInfo
 
+        let context = TranslationContext.Create(translatorOptions)
         let clFuncs = ResizeArray()
 
-        for method in methods do
-            clFuncs.AddRange(method.Translate(globalVars, localVars) |> State.eval context)
+        methods
+        |> List.iter (fun method -> clFuncs.AddRange(method.Translate(globalVars, localVars) |> State.eval context))
 
         let pragmas =
             let pragmas = ResizeArray()

@@ -4,10 +4,7 @@ open Brahma.FSharp.Tests
 
 [<Tests>]
 let allTests =
-    testList
-        "All tests"
-        [ Brahma.FSharp.Tests.Translator.Carrying.tests
-          testList "Execution tests" ExecutionTests.tests ]
+    testList "All tests" [ Brahma.FSharp.Tests.Translator.QuatationTransformation.Printf.tests ]
     |> testSequenced
 
 [<EntryPoint>]

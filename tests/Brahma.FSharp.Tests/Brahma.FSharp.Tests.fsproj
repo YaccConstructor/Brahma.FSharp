@@ -88,6 +88,8 @@
     <Compile Include="Translator\LangExtensions\Atomic.fs" />
     
     <Compile Include="Translator\QuatationTransformation\Common.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\Printf.fs" />
     <Compile Include="Translator\QuatationTransformation\LambdaLifting.fs" />
     <Compile Include="Translator\QuatationTransformation\VarDefsToLambda.fs" />
     <Compile Include="Translator\QuatationTransformation\Transformation.fs" />

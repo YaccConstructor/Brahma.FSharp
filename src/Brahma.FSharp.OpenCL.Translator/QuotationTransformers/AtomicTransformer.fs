@@ -82,7 +82,7 @@ module AtomicProcessor =
     let grabVariableAddresses (expr: Expr) =
         match expr with
         | DerivedPatterns.Lambdas(args, body) ->
-            let kernelArgs = List.collect id args
+            let kernelArgs = List.concat args
 
             let vars = Dictionary<Var, AddressQual>()
 
