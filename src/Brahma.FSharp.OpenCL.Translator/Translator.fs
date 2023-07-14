@@ -89,7 +89,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
     let transformQuotation expr =
         expr
         |> Print.replace
-        |> GettingWorkSizeTransformer.__
+        |> WorkSize.get
         |> processAtomic
         |> makeVarNameUnique
         |> transformVarDefsToLambda

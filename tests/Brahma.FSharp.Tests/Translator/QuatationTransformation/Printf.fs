@@ -57,6 +57,22 @@ let private replaceTests =
 
       createTest "6 Test. New line. printfn"
       <| <@ printfn "He\nllo, w\nor\nld!" @>
+      <| <@ Print.print tpArgs value bindArgs @>
+
+      let tpArgs: System.Type list =
+          [ typeof<int>
+            typeof<int>
+            typeof<string> ]
+
+      let value = "%d %d %s"
+
+      let bindArgs: Quotations.Expr list =
+          [ <@@ 1 @@>
+            <@@ 2 @@>
+            <@@ "" @@> ]
+
+      createTest "7 Test. %d %d %s. printf"
+      <| <@ printf "%d %d %s" 1 2 "" @>
       <| <@ Print.print tpArgs value bindArgs @> ]
 
-let tests = replaceTests |> testList "Printf"
+let tests = replaceTests |> testList "Printf" |> testSequenced

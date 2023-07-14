@@ -26,7 +26,7 @@
     <Compile Include="QuotationTransformers\Utilities\Utils.fs" />
     <Compile Include="QuotationTransformers\Utilities\Patterns.fs" />
     <Compile Include="QuotationTransformers\Print.fs" />
-    <Compile Include="QuotationTransformers\GettingWorkSizeTransformer.fs" />
+    <Compile Include="QuotationTransformers\WorkSize.fs" />
     <Compile Include="QuotationTransformers\AtomicTransformer.fs" />
     <Compile Include="QuotationTransformers\VarDefsToLambdaTransformer.fs" />
     <Compile Include="QuotationTransformers\MutableVarsToRefTransformer.fs" />
