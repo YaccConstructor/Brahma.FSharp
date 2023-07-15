@@ -41,6 +41,7 @@ module WorkSize =
     let inline private (|CoordinateBind|_|) number (|InPatter|_|) =
         function
         | Patterns.Let(var, Patterns.TupleGet(Patterns.Var(Name "patternInput"), Equal number), InPatter inExp) ->
+
             Some(var, inExp)
         | _ -> None
 
@@ -73,7 +74,7 @@ module WorkSize =
             let inExp = Expr.Let(varY, (globalSize1 qualifier), go inExp)
 
             Expr.Let(varX, (globalSize0 qualifier), inExp)
-        | Patterns.LetVar(Name "patternInput", Qualifier Range2D_ qualifier, Second(varZ, (varY, (varX, inExp)))) ->
+        | Patterns.LetVar(Name "patternInput", Qualifier Range3D_ qualifier, Second(varZ, (varY, (varX, inExp)))) ->
             let inExp = Expr.Let(varZ, (globalSize2 qualifier), go inExp)
             let inExp = Expr.Let(varY, (globalSize1 qualifier), inExp)
 

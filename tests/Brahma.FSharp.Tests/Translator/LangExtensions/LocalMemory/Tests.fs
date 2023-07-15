@@ -1,11 +1,12 @@
-module Brahma.FSharp.Tests.Translator.LocalMemory
+module Brahma.FSharp.Tests.Translator.LangExtensions.LocalMemory
 
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
 open System.IO
 open Expecto
 
-let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
+let private basePath =
+    Path.Combine("Translator", "LangExtensions", "LocalMemory", "Expected")
 
 let private localMemoryTests =
     [ let inline createTest name = Helpers.createTest basePath name

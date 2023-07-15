@@ -90,7 +90,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         expr
         |> Print.replace
         |> WorkSize.get
-        |> processAtomic
+        |> Atomic.parse
         |> makeVarNameUnique
         |> transformVarDefsToLambda
         |> transformMutableVarsToRef

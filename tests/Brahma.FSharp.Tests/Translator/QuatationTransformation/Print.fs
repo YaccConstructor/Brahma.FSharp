@@ -1,4 +1,4 @@
-module Brahma.FSharp.Tests.Translator.QuatationTransformation.Printf
+module Brahma.FSharp.Tests.Translator.QuatationTransformation.Print
 
 open Expecto
 open Brahma.FSharp.OpenCL.Translator.QuotationTransformers

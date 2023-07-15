@@ -1,11 +1,12 @@
-module Brahma.FSharp.Tests.Translator.Barrier
+module Brahma.FSharp.Tests.Translator.LangExtensions.Barrier
 
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
 open System.IO
 open Expecto
 
-let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
+let private basePath =
+    Path.Combine("Translator", "LangExtensions", "Barrier", "Expected")
 
 let private barrierTests =
     [ let inline createTest name = Helpers.createTest basePath name

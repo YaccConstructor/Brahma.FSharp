@@ -5,7 +5,8 @@ open Brahma.FSharp.Tests.Translator.Common
 open System.IO
 open Expecto
 
-let private basePath = Path.Combine("Translator", "Local", "Expected")
+let private basePath =
+    Path.Combine("Translator", "LangExtensions", "LocalID", "Expected")
 
 let private basicLocalIdTests =
     [ let inline createTest name = Helpers.createTest basePath name

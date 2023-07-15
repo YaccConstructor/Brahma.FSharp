@@ -17,8 +17,7 @@ type AddressQual =
 module AtomicProcessing =
     let atomicProcessing = StateBuilder<Map<Var, Var>>()
 
-[<AutoOpen>]
-module AtomicProcessor =
+module Atomic =
     let inline private atomicAdd p v = (+) !p v
     let inline private atomicSub p v = (-) !p v
     let inline private atomicInc p = inc !p
@@ -532,7 +531,7 @@ module AtomicProcessor =
                     <| InvalidKernelException $"Invalid kernel expression. Must be lambda, but given\n{expr}"
         }
 
-    let processAtomic (expr: Expr) =
+    let parse (expr: Expr) =
         let nonPrivateVars = grabVariableAddresses expr
 
         transformAtomicsAndCollectPointerVars expr nonPrivateVars

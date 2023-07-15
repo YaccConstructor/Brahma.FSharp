@@ -1,12 +1,12 @@
 ﻿module Brahma.FSharp.Tests.Translator.All
 
-open Brahma.FSharp.OpenCL.Translator
 open Brahma.FSharp.Tests.Translator
 open Expecto
 
-let translator = FSQuotationToOpenCLTranslator.CreateDefault()
+let translator =
+    Brahma.FSharp.OpenCL.Translator.FSQuotationToOpenCLTranslator.CreateDefault()
 
-let private common =
+let common =
     [ BinOp.tests
       ControlFlow.tests
       NamesResolving.tests
@@ -14,14 +14,25 @@ let private common =
       LambdaLifting.tests
       Carrying.tests
       Injection.tests
-      Printf.tests
 
       Specific.MergePath.tests ]
     |> testList "Common"
 
-let private union = [ Union.tests ] |> testList "Union"
+let extensions =
+    [ LangExtensions.Barrier.tests
+      LangExtensions.LocalId.tests
+      LangExtensions.LocalMemory.tests
+      LangExtensions.WorkSize.tests ]
+    |> testList "LangExtensions"
 
-let private transformation =
+let passes =
+    [ QuatationTransformation.Print.tests
+      QuatationTransformation.WorkSize.tests ]
+    |> testList "Passes"
+
+let union = [ Union.tests ] |> testList "Union"
+
+let transformation =
     [ QuatationTransformation.Transformation.tests
       QuatationTransformation.LambdaLifting.tests
       QuatationTransformation.VarDefsToLambda.tests ]
@@ -29,6 +40,7 @@ let private transformation =
 
 let tests =
     [ common
+      passes
       union
       transformation ]
     |> testList "Translator"

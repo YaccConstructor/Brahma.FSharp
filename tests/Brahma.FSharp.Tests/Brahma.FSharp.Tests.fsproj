@@ -62,34 +62,33 @@
     </Content>
     <Compile Include="Translator\Specific\MergePath.fs" />
 
-    <Content Include="Translator\ControlFlow\Expected\*">
+    <Content Include="Translator\LangExtensions\LocalID\Expected\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Translator\LangExtensions\LocalID\Tests.fs" />
 
-    <Content Include="Translator\ControlFlow\Expected\*">
+    <Content Include="Translator\LangExtensions\WorkSize\Expected\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Translator\LangExtensions\WorkSize\Tests.fs" />
 
-    <Content Include="Translator\ControlFlow\Expected\*">
+    <Content Include="Translator\LangExtensions\LocalMemory\Expected\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Translator\LangExtensions\LocalMemory\Tests.fs" />
 
-    <Content Include="Translator\ControlFlow\Expected\*">
+    <Content Include="Translator\LangExtensions\Barrier\Expected\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Translator\LangExtensions\Barrier\Tests.fs" />
-
-    <Content Include="Translator\ControlFlow\Expected\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    
     <Compile Include="Translator\LangExtensions\Atomic.fs" />
     
     <Compile Include="Translator\QuatationTransformation\Common.fs" />
     
-    <Compile Include="Translator\QuatationTransformation\Printf.fs" />
+    <Compile Include="Translator\QuatationTransformation\Print.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\WorkSize.fs" />
     <Compile Include="Translator\QuatationTransformation\LambdaLifting.fs" />
     <Compile Include="Translator\QuatationTransformation\VarDefsToLambda.fs" />
     <Compile Include="Translator\QuatationTransformation\Transformation.fs" />

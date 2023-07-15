@@ -1,11 +1,12 @@
-module Brahma.FSharp.Tests.Translator.WorkSize
+module Brahma.FSharp.Tests.Translator.LangExtensions.WorkSize
 
 open Brahma.FSharp
 open Brahma.FSharp.Tests.Translator.Common
 open System.IO
 open Expecto
 
-let private basePath = Path.Combine("Translator", "BinaryOperations", "Expected")
+let private basePath =
+    Path.Combine("Translator", "LangExtensions", "WorkSize", "Expected")
 
 let private basicWorkSizeTests =
     [ let inline createTest name = Helpers.createTest basePath name
@@ -25,7 +26,6 @@ let private basicWorkSizeTests =
               ()
       @>
       |> createTest "WorkSize of 2D" "WorkSize2D.cl"
-
 
       <@
           fun (range: Range3D) (buf: int clarray) ->
