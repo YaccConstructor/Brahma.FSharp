@@ -27,7 +27,8 @@ let extensions =
 
 let passes =
     [ QuatationTransformation.Print.tests
-      QuatationTransformation.WorkSize.tests ]
+      QuatationTransformation.WorkSize.tests
+      QuatationTransformation.Names.tests ]
     |> testList "Passes"
 
 let union = [ Union.tests ] |> testList "Union"

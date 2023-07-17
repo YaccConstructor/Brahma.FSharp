@@ -3,11 +3,9 @@ namespace Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open FSharp.Quotations
 open FSharp.Reflection
 
-[<AutoOpen>]
-module VarDefsToLambdaTransformer =
+module Variables =
     // TODO need way to identify expression vs statements (now it is very primitive)
-    let rec isPrimitiveExpression (expr: Expr) =
-        match expr with
+    let rec isPrimitiveExpression = function
         | Patterns.Value _
         | Patterns.ValueWithName _
         | Patterns.DefaultValue _
@@ -19,16 +17,16 @@ module VarDefsToLambdaTransformer =
                 instance |> Option.map isPrimitiveExpression |> Option.defaultValue true
 
             let isPrimitiveArgs = List.forall isPrimitiveExpression args
+
             isPrimitiveInstance && isPrimitiveArgs
         | Patterns.NewUnionCase _ -> true
         | _ -> false
 
     // let x = expr -> let x = let unit () = expr in unit ()
-    let rec transformVarDefsToLambda (expr: Expr) =
-        match expr with
+    let rec defsToLambda = function
         | Patterns.LetVar(var, body, inExpr) ->
             if isPrimitiveExpression body then
-                Expr.Let(var, body, transformVarDefsToLambda inExpr)
+                Expr.Let(var, body, defsToLambda inExpr)
             else
                 let fType = FSharpType.MakeFunctionType(typeof<unit>, var.Type)
                 let fVar = Var(var.Name + "UnitFunc", fType)
@@ -37,10 +35,10 @@ module VarDefsToLambdaTransformer =
                     var,
                     Expr.Let(
                         fVar,
-                        Expr.Lambda(Var("unitVar", typeof<unit>), transformVarDefsToLambda body),
+                        Expr.Lambda(Var("unitVar", typeof<unit>), defsToLambda body),
                         Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
                     ),
-                    transformVarDefsToLambda inExpr
+                    defsToLambda inExpr
                 )
 
         | Patterns.PropertySet(Some o, prop, idxs, value) ->
@@ -55,14 +53,14 @@ module VarDefsToLambdaTransformer =
                     prop,
                     Expr.Let(
                         fVar,
-                        Expr.Lambda(Var("unitVar", typeof<unit>), transformVarDefsToLambda value),
+                        Expr.Lambda(Var("unitVar", typeof<unit>), defsToLambda value),
                         Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
                     ),
                     idxs
                 )
 
-        | ExprShape.ShapeVar _ -> expr
-        | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, transformVarDefsToLambda body)
+        | ExprShape.ShapeVar _ as expr -> expr
+        | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, defsToLambda body)
         | ExprShape.ShapeCombination(shapeComboObject, exprList) ->
-            let exprList' = List.map transformVarDefsToLambda exprList
+            let exprList' = List.map defsToLambda exprList
             ExprShape.RebuildShapeCombination(shapeComboObject, exprList')

@@ -27,10 +27,10 @@
     <Compile Include="QuotationTransformers\Utilities\Patterns.fs" />
     <Compile Include="QuotationTransformers\Print.fs" />
     <Compile Include="QuotationTransformers\WorkSize.fs" />
-    <Compile Include="QuotationTransformers\AtomicTransformer.fs" />
-    <Compile Include="QuotationTransformers\VarDefsToLambdaTransformer.fs" />
+    <Compile Include="QuotationTransformers\Atomic.fs" />
+    <Compile Include="QuotationTransformers\Variables.fs" />
     <Compile Include="QuotationTransformers\MutableVarsToRefTransformer.fs" />
-    <Compile Include="QuotationTransformers\UniqueVarNamesTransformer.fs" />
+    <Compile Include="QuotationTransformers\Names.fs" />
     <Compile Include="QuotationTransformers\LambdaLiftingTransformer.fs" />
     <Compile Include="Type.fs" />
     <Compile Include="Body.fs" />

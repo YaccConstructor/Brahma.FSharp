@@ -18,17 +18,17 @@ module AtomicProcessing =
     let atomicProcessing = StateBuilder<Map<Var, Var>>()
 
 module Atomic =
-    let inline private atomicAdd p v = (+) !p v
-    let inline private atomicSub p v = (-) !p v
-    let inline private atomicInc p = inc !p
-    let inline private atomicDec p = dec !p
-    let inline private atomicXchg p v = xchg !p v
-    let inline private atomicCmpxchg p cmp v = cmpxchg !p cmp v
-    let inline private atomicMin p v = min !p v
-    let inline private atomicMax p v = max !p v
-    let inline private atomicAnd p v = (&&&) !p v
-    let inline private atomicOr p v = (|||) !p v
-    let inline private atomicXor p v = (^^^) !p v
+    let inline private atomicAdd (p: _ ref) v = (+) p.Value v
+    let inline private atomicSub (p: _ ref) v = (-) p.Value v
+    let inline private atomicInc (p: _ ref) = inc p.Value
+    let inline private atomicDec (p: _ ref) = dec p.Value
+    let inline private atomicXchg (p: _ ref) v = xchg p.Value v
+    let inline private atomicCmpxchg (p: _ ref) cmp v = cmpxchg p.Value cmp v
+    let inline private atomicMin (p: _ ref) v = min p.Value v
+    let inline private atomicMax (p: _ ref) v = max p.Value v
+    let inline private atomicAnd (p: _ ref) v = (&&&) p.Value v
+    let inline private atomicOr (p: _ ref) v = (|||) p.Value v
+    let inline private atomicXor (p: _ ref) v = (^^^) p.Value v
 
     let private atomicAddInfo =
         (Utils.getMethodInfoOfCall <@ atomicAdd @>).GetGenericMethodDefinition()
@@ -78,8 +78,8 @@ module Atomic =
         | [ x ] :: _ -> f x
         | _ -> invalidArg "lst" "List should not be empty"
 
-    let grabVariableAddresses (expr: Expr) =
-        match expr with
+    // TODO(test)
+    let grabVariableAddresses = function
         | DerivedPatterns.Lambdas(args, body) ->
             let kernelArgs = List.concat args
 
@@ -89,22 +89,22 @@ module Atomic =
             |> List.filter Utils.isGlobal
             |> List.iter (fun v -> vars.Add(v, GlobalQ))
 
-            let rec traverse expr =
-                match expr with
-                | Patterns.Let(var, (DerivedPatterns.SpecificCall <@ local @> _), body)
-                | Patterns.Let(var, (DerivedPatterns.SpecificCall <@ localArray @> _), body) ->
+            let rec traverse = function
+                // TODO(Note: precomputation in specificCall, make static?)
+                | Patterns.Let(var, DerivedPatterns.SpecificCall <@ local @> _, body)
+                | Patterns.Let(var, DerivedPatterns.SpecificCall <@ localArray @> _, body) ->
                     vars.Add(var, LocalQ)
                     traverse body
 
                 | ExprShape.ShapeVar _ -> ()
                 | ExprShape.ShapeLambda(_, lambda) -> traverse lambda
-                | ExprShape.ShapeCombination(_, exprs) -> List.iter traverse exprs
+                | ExprShape.ShapeCombination(_, exp) -> List.iter traverse exp
 
             traverse body
 
             vars |> Seq.map (|KeyValue|) |> Map.ofSeq
 
-        | _ ->
+        | expr ->
             raise
             <| InvalidKernelException $"Invalid kernel expression. Must be lambda, but given\n{expr}"
 
@@ -115,12 +115,13 @@ module Atomic =
                                                                                       _,
                                                                                       [ DerivedPatterns.Lambdas(lambdaArgs,
                                                                                                                 lambdaBody) ]),
+                                            // atomic application restriction
                                            ([ Patterns.ValidVolatileArg pointerVar as volatileArg ] :: _ as applicationArgs)) when
                 nonPrivateVars |> Map.containsKey pointerVar
                 -> // private vars not supported
 
                 let newApplicationArgs =
-                    applicationArgs |> List.collect id |> modifyFirstOfList Utils.createRefCall
+                    applicationArgs |> List.concat |> modifyFirstOfList Utils.createRefCall
 
                 // https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/atomicFunctions.html
                 match lambdaBody with
@@ -239,7 +240,7 @@ module Atomic =
                     ->
                     return Expr.Call(atomicXorInfo.MakeGenericMethod(onType), newApplicationArgs)
 
-                | _ ->
+                | lambdaBody ->
                     let collectedLambdaTypes =
                         lambdaArgs
                         |> List.collect id

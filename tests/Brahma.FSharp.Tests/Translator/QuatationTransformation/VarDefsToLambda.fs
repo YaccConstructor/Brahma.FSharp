@@ -8,7 +8,7 @@ open Expecto
 let private varDefsToLambdaTest =
     let genVarDefToLambdaTest name expr expected =
         test name {
-            let actual = VarDefsToLambdaTransformer.transformVarDefsToLambda expr
+            let actual = Variables.defsToLambda expr
 
             assertExprEqual actual expected equalsMessage
         }

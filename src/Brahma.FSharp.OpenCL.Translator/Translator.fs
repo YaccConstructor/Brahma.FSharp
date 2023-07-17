@@ -90,11 +90,11 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         expr
         |> Print.replace
         |> WorkSize.get
-        |> Atomic.parse
-        |> makeVarNameUnique
-        |> transformVarDefsToLambda
+        |> Atomic.parse // TODO(refactor)
+        |> Names.makeUnique
+        |> Variables.defsToLambda // TODO(tests)
         |> transformMutableVarsToRef
-        |> makeVarNameUnique
+        |> Names.makeUnique
         |> lambdaLifting
 
     let translate expr =

@@ -8,10 +8,13 @@ type RenamingContext() =
     let totalNames = HashSet<string>()
     let mutable counter = 0
 
-    let makeUniqueVarName (varName: string) =
+    let rec makeUniqueVarName (varName: string) =
         if totalNames.Contains varName then
             counter <- counter + 1
+
             sprintf "%s%d" varName counter
+            // if name with this postfix already exists
+            |> makeUniqueVarName
         else
             varName
 
@@ -19,6 +22,7 @@ type RenamingContext() =
         if not <| varMapper.ContainsKey var then
             let newName = makeUniqueVarName var.Name
             let newVar = Var(newName, var.Type, var.IsMutable)
+
             varMapper.Add(var, newVar)
             totalNames.Add newName |> ignore
 
@@ -26,19 +30,21 @@ type RenamingContext() =
 
     member this.Mapper = varMapper
 
-[<AutoOpen>]
-module UniqueVarRenamer =
-    let rec private makeVarNamesUniqueImpl (ctx: RenamingContext) (expr: Expr) =
-        match expr with
+module Names =
+    let rec private makeVarNamesUniqueImpl (ctx: RenamingContext) = function
         | ExprShape.ShapeVar var ->
             let newVar = ctx.Add var
+
             Expr.Var(newVar)
         | ExprShape.ShapeLambda(var, body) ->
             let newVar = ctx.Add var
+
             Expr.Lambda(newVar, makeVarNamesUniqueImpl ctx body)
         | ExprShape.ShapeCombination(shapeComboObj, exprList) ->
-            let exprList' = List.map (makeVarNamesUniqueImpl ctx) exprList
+            let exprList' =
+                List.map (makeVarNamesUniqueImpl ctx) exprList
+
             ExprShape.RebuildShapeCombination(shapeComboObj, exprList')
 
-    let makeVarNameUnique (expr: Expr) =
+    let makeUnique (expr: Expr) =
         makeVarNamesUniqueImpl <| RenamingContext() <| expr
