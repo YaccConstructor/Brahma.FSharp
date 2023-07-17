@@ -13,24 +13,22 @@ let private getNames expr =
         if not <| dict.Contains var then
             dict.Add(var) |> ignore
 
-    let rec get = function
+    let rec get =
+        function
         | ExprShape.ShapeVar var -> addToDict var
         | ExprShape.ShapeLambda(var, body) ->
             addToDict var
             get body
-        | ExprShape.ShapeCombination(_, exprList) ->
-            List.iter get exprList
+        | ExprShape.ShapeCombination(_, exprList) -> List.iter get exprList
 
     get expr
 
-    dict
-    |> Seq.map (fun var -> var.Name)
+    dict |> Seq.map (fun var -> var.Name)
 
 let private uniquesTests =
     [ let createTest name source =
           test name {
-              let names =
-                  Names.makeUnique source |> getNames
+              let names = Names.makeUnique source |> getNames
 
               let namesWithoutDuplicates = Seq.distinct names
 
@@ -48,12 +46,14 @@ let private uniquesTests =
       @>
 
       createTest "Test 2."
-      <| <@ fun f ->
-               let f (x: int) = x
-               let f (x: int) (y: int) = x
+      <| <@
+          fun f ->
+              let f (x: int) = x
+              let f (x: int) (y: int) = x
 
-               let f = 4
-               () @>
+              let f = 4
+              ()
+      @>
 
       createTest "Test 3."
       <| <@

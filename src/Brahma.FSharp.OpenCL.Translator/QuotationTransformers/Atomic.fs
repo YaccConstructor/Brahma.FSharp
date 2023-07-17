@@ -79,7 +79,8 @@ module Atomic =
         | _ -> invalidArg "lst" "List should not be empty"
 
     // TODO(test)
-    let grabVariableAddresses = function
+    let grabVariableAddresses =
+        function
         | DerivedPatterns.Lambdas(args, body) ->
             let kernelArgs = List.concat args
 
@@ -89,7 +90,8 @@ module Atomic =
             |> List.filter Utils.isGlobal
             |> List.iter (fun v -> vars.Add(v, GlobalQ))
 
-            let rec traverse = function
+            let rec traverse =
+                function
                 // TODO(Note: precomputation in specificCall, make static?)
                 | Patterns.Let(var, DerivedPatterns.SpecificCall <@ local @> _, body)
                 | Patterns.Let(var, DerivedPatterns.SpecificCall <@ localArray @> _, body) ->
@@ -115,7 +117,7 @@ module Atomic =
                                                                                       _,
                                                                                       [ DerivedPatterns.Lambdas(lambdaArgs,
                                                                                                                 lambdaBody) ]),
-                                            // atomic application restriction
+                                           // atomic application restriction
                                            ([ Patterns.ValidVolatileArg pointerVar as volatileArg ] :: _ as applicationArgs)) when
                 nonPrivateVars |> Map.containsKey pointerVar
                 -> // private vars not supported

@@ -31,7 +31,8 @@ type RenamingContext() =
     member this.Mapper = varMapper
 
 module Names =
-    let rec private makeVarNamesUniqueImpl (ctx: RenamingContext) = function
+    let rec private makeVarNamesUniqueImpl (ctx: RenamingContext) =
+        function
         | ExprShape.ShapeVar var ->
             let newVar = ctx.Add var
 
@@ -41,8 +42,7 @@ module Names =
 
             Expr.Lambda(newVar, makeVarNamesUniqueImpl ctx body)
         | ExprShape.ShapeCombination(shapeComboObj, exprList) ->
-            let exprList' =
-                List.map (makeVarNamesUniqueImpl ctx) exprList
+            let exprList' = List.map (makeVarNamesUniqueImpl ctx) exprList
 
             ExprShape.RebuildShapeCombination(shapeComboObj, exprList')
 

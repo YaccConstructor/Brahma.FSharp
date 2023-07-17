@@ -28,15 +28,15 @@ let extensions =
 let passes =
     [ QuatationTransformation.Print.tests
       QuatationTransformation.WorkSize.tests
-      QuatationTransformation.Names.tests ]
+      QuatationTransformation.Names.tests
+      QuatationTransformation.Variables.tests ]
     |> testList "Passes"
 
 let union = [ Union.tests ] |> testList "Union"
 
 let transformation =
     [ QuatationTransformation.Transformation.tests
-      QuatationTransformation.LambdaLifting.tests
-      QuatationTransformation.VarDefsToLambda.tests ]
+      QuatationTransformation.LambdaLifting.tests ]
     |> testList "Transformation"
 
 let tests =

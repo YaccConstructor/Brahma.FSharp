@@ -91,8 +91,9 @@
     <Compile Include="Translator\QuatationTransformation\WorkSize.fs" />
     
     <Compile Include="Translator\QuatationTransformation\Names.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\Variables.fs" />
     <Compile Include="Translator\QuatationTransformation\LambdaLifting.fs" />
-    <Compile Include="Translator\QuatationTransformation\VarDefsToLambda.fs" />
     <Compile Include="Translator\QuatationTransformation\Transformation.fs" />
 
     <Compile Include="Translator\All.fs" />

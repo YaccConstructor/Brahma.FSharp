@@ -7,7 +7,8 @@ module MutableVarsToRefTransformer =
     let private isMutableVar (var: Var) =
         var.IsMutable && not (Utils.isFunction var)
 
-    let rec collectMutableVarsInClosure = function
+    let rec collectMutableVarsInClosure =
+        function
         | Patterns.LetFunc(_, body, inExpr) ->
             let mutableFreeVars = body |> Utils.collectFreeVarsWithPredicate isMutableVar
 

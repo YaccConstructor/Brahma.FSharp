@@ -5,7 +5,8 @@ open FSharp.Reflection
 
 module Variables =
     // TODO need way to identify expression vs statements (now it is very primitive)
-    let rec isPrimitiveExpression = function
+    let rec private isPrimitiveExpression =
+        function
         | Patterns.Value _
         | Patterns.ValueWithName _
         | Patterns.DefaultValue _
@@ -22,45 +23,46 @@ module Variables =
         | Patterns.NewUnionCase _ -> true
         | _ -> false
 
+    // create: let fVal () = expr in unit ()
+    let private createApplication fVar body =
+        Expr.Let(
+            fVar,
+            Expr.Lambda(Var("unitVar", typeof<unit>), body),
+            Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
+        )
+
     // let x = expr -> let x = let unit () = expr in unit ()
-    let rec defsToLambda = function
+    let rec defsToLambda =
+        function
         | Patterns.LetVar(var, body, inExpr) ->
             if isPrimitiveExpression body then
                 Expr.Let(var, body, defsToLambda inExpr)
             else
-                let fType = FSharpType.MakeFunctionType(typeof<unit>, var.Type)
-                let fVar = Var(var.Name + "UnitFunc", fType)
+                let funVal =
+                    let fType = FSharpType.MakeFunctionType(typeof<unit>, var.Type)
 
-                Expr.Let(
-                    var,
-                    Expr.Let(
-                        fVar,
-                        Expr.Lambda(Var("unitVar", typeof<unit>), defsToLambda body),
-                        Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
-                    ),
-                    defsToLambda inExpr
-                )
+                    Var(var.Name + "UnitFunc", fType)
 
-        | Patterns.PropertySet(Some o, prop, idxs, value) ->
+                let body = defsToLambda body
+                let letEvalAndApplication = createApplication funVal body
+
+                let newInExpr = defsToLambda inExpr
+
+                Expr.Let(var, letEvalAndApplication, newInExpr)
+        | Patterns.PropertySet(Some o, prop, indices, value) ->
             if isPrimitiveExpression value then
-                Expr.PropertySet(o, prop, value, idxs)
+                Expr.PropertySet(o, prop, value, indices)
             else
                 let fType = FSharpType.MakeFunctionType(typeof<unit>, prop.PropertyType)
-                let fVar = Var(prop.Name + "UnitFunc", fType)
+                let fVal = Var(prop.Name + "UnitFunc", fType)
 
-                Expr.PropertySet(
-                    o,
-                    prop,
-                    Expr.Let(
-                        fVar,
-                        Expr.Lambda(Var("unitVar", typeof<unit>), defsToLambda value),
-                        Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
-                    ),
-                    idxs
-                )
+                let body = defsToLambda value
+                let letEvalAndApplication = createApplication fVal body
 
+                Expr.PropertySet(o, prop, letEvalAndApplication, indices)
         | ExprShape.ShapeVar _ as expr -> expr
         | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, defsToLambda body)
         | ExprShape.ShapeCombination(shapeComboObject, exprList) ->
             let exprList' = List.map defsToLambda exprList
+
             ExprShape.RebuildShapeCombination(shapeComboObject, exprList')
