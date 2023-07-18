@@ -29,7 +29,8 @@ let passes =
     [ QuatationTransformation.Print.tests
       QuatationTransformation.WorkSize.tests
       QuatationTransformation.Names.tests
-      QuatationTransformation.Variables.tests ]
+      QuatationTransformation.Variables.tests
+      QuatationTransformation.VarToRef.tests ]
     |> testList "Passes"
 
 let union = [ Union.tests ] |> testList "Union"

@@ -38,8 +38,6 @@ module Utils =
         | ExprShape.ShapeLambda(var, body) -> var :: collectLambdaArguments body
         | _ -> []
 
-    // Это из замыкания переменные?
-    /// Collect free variables of expression that satisfies predicate.
     let rec collectFreeVarsWithPredicate (predicate: Var -> bool) (expr: Expr) : Set<Var> =
         expr.GetFreeVars() |> Seq.filter predicate |> Set.ofSeq
 
@@ -62,11 +60,20 @@ module Utils =
 
     let isTypeOf<'tp> (var: Var) = var.Type = typeof<'tp>
 
+    let createRefVar (var: Var) =
+        let refName = var.Name + "Ref"
+        let refType = typedefof<ref<_>>.MakeGenericType var.Type
+
+        Var(refName, refType, false)
+
+    // TODO(make static)
     let createRefCall (value: Expr) =
         match <@@ ref () @@> with
         | Patterns.Call(obj, methodInfo, _) ->
             let newMethodInfo =
-                methodInfo.GetGenericMethodDefinition().MakeGenericMethod([| value.Type |])
+                methodInfo
+                    .GetGenericMethodDefinition()
+                    .MakeGenericMethod([| value.Type |])
 
             match obj with
             | Some obj -> Expr.Call(obj, newMethodInfo, [ value ])

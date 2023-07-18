@@ -29,7 +29,7 @@
     <Compile Include="QuotationTransformers\WorkSize.fs" />
     <Compile Include="QuotationTransformers\Atomic.fs" />
     <Compile Include="QuotationTransformers\Variables.fs" />
-    <Compile Include="QuotationTransformers\MutableVarsToRefTransformer.fs" />
+    <Compile Include="QuotationTransformers\VarToRef.fs" />
     <Compile Include="QuotationTransformers\Names.fs" />
     <Compile Include="QuotationTransformers\LambdaLiftingTransformer.fs" />
     <Compile Include="Type.fs" />

@@ -92,8 +92,8 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         |> WorkSize.get
         |> Atomic.parse // TODO(refactor)
         |> Names.makeUnique
-        |> Variables.defsToLambda // TODO(tests)
-        |> transformMutableVarsToRef
+        |> Variables.defsToLambda
+        |> VarToRef.transform
         |> Names.makeUnique
         |> lambdaLifting
 
