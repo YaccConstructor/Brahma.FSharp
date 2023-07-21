@@ -95,7 +95,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         |> Variables.defsToLambda
         |> VarToRef.transform
         |> Names.makeUnique
-        |> lambdaLifting
+        |> Lift.parse
 
     let translate expr =
         // TODO: Extract quotationTransformer to translator

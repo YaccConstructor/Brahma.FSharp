@@ -25,6 +25,14 @@ module Utils =
     let makeApplicationExpr (head: Expr) (expressions: Expr list) =
         List.fold (fun l r -> Expr.Application(l, r)) head expressions
 
+    /// head: t, args: [x1: t1; x2: t2; x3: t3]
+    /// newHead: t1 -> t2 -> t3 -> t
+    let transformToFunctionVar (source: Var) (args: List<Var>) =
+        args
+        |> List.map (fun x -> x.Type)
+        |> makeFunctionType source.Type
+        |> fun t ->  Var(source.Name, t, source.IsMutable)
+
     // TODO tail recursion
     let rec extractLambdaArguments =
         function
@@ -57,8 +65,6 @@ module Utils =
         | ExprShape.ShapeVar _ -> []
         | ExprShape.ShapeLambda(_, lambda) -> collectLocalVars lambda
         | ExprShape.ShapeCombination(_, expressions) -> List.collect collectLocalVars expressions
-
-    let isTypeOf<'tp> (var: Var) = var.Type = typeof<'tp>
 
     let createRefVar (var: Var) =
         let refName = var.Name + "Ref"
@@ -107,3 +113,5 @@ module Utils =
     let isGlobal (var: Var) =
         var.Type.Name.ToLower().StartsWith ClArray_
         || var.Type.Name.ToLower().StartsWith ClCell_
+
+

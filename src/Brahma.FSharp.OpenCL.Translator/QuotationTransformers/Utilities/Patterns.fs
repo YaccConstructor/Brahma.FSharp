@@ -25,8 +25,7 @@ module Patterns =
         | _ -> [], expr
 
     let private uncurryApplication (expr: Expr) =
-        let rec uncurryApplicationImpl (acc: list<Expr>) (expr: Expr) =
-            match expr with
+        let rec uncurryApplicationImpl (acc: list<Expr>) = function
             | Application(l, r) -> uncurryApplicationImpl (r :: acc) l
             | _ -> expr, acc
 

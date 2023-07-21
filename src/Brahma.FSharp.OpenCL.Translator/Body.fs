@@ -27,7 +27,6 @@ open Brahma.FSharp
 // Translations restricts the generic parameter of the AST nodes to the type Lang
 #nowarn "64"
 
-[<AutoOpen>]
 module private BodyPatterns =
     let (|VarName|_|) (str: string) (var': Var) =
         match var'.Name with
@@ -428,21 +427,21 @@ module rec Body =
 
             | None ->
                 match propName with
-                | Lower(nameof Anchors._localID0) ->
+                | BodyPatterns.Lower(nameof Anchors._localID0) ->
                     return FunCall("get_local_id", [ Const(PrimitiveType Int, "0") ]) :> Expression<_>
 
-                | Lower(nameof Anchors._globalSize0) ->
+                | BodyPatterns.Lower(nameof Anchors._globalSize0) ->
                     return FunCall("get_global_size", [ Const(PrimitiveType Int, "0") ]) :> Expression<_>
-                | Lower(nameof Anchors._globalSize1) ->
+                | BodyPatterns.Lower(nameof Anchors._globalSize1) ->
                     return FunCall("get_global_size", [ Const(PrimitiveType Int, "1") ]) :> Expression<_>
-                | Lower(nameof Anchors._globalSize2) ->
+                | BodyPatterns.Lower(nameof Anchors._globalSize2) ->
                     return FunCall("get_global_size", [ Const(PrimitiveType Int, "2") ]) :> Expression<_>
 
-                | Lower(nameof Anchors._localSize0) ->
+                | BodyPatterns.Lower(nameof Anchors._localSize0) ->
                     return FunCall("get_local_size", [ Const(PrimitiveType Int, "0") ]) :> Expression<_>
-                | Lower(nameof Anchors._localSize1) ->
+                | BodyPatterns.Lower(nameof Anchors._localSize1) ->
                     return FunCall("get_local_size", [ Const(PrimitiveType Int, "1") ]) :> Expression<_>
-                | Lower(nameof Anchors._localSize2) ->
+                | BodyPatterns.Lower(nameof Anchors._localSize2) ->
                     return FunCall("get_local_size", [ Const(PrimitiveType Int, "2") ]) :> Expression<_>
 
                 | _ ->
@@ -929,9 +928,9 @@ module rec Body =
                         raise
                         <| InvalidKernelException $"Field set with empty host is not supported. Field: %A{fldInfo}"
 
-            | ForLoopWithStep(loopVar, (start, step, finish), loopBody) ->
+            | BodyPatterns.ForLoopWithStep(loopVar, (start, step, finish), loopBody) ->
                 return! translateForLoop loopVar start finish (Some step) loopBody >>= toNode
-            | ForLoop(loopVar, (start, finish), loopBody) ->
+            | BodyPatterns.ForLoop(loopVar, (start, finish), loopBody) ->
                 return! translateForLoop loopVar start finish None loopBody >>= toNode
             | Patterns.ForIntegerRangeLoop(loopVar, start, finish, loopBody) ->
                 return! translateForLoop loopVar start finish None loopBody >>= toNode

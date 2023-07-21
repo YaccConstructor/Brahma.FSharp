@@ -31,7 +31,7 @@
     <Compile Include="QuotationTransformers\Variables.fs" />
     <Compile Include="QuotationTransformers\VarToRef.fs" />
     <Compile Include="QuotationTransformers\Names.fs" />
-    <Compile Include="QuotationTransformers\LambdaLiftingTransformer.fs" />
+    <Compile Include="QuotationTransformers\Lifting.fs" />
     <Compile Include="Type.fs" />
     <Compile Include="Body.fs" />
     <Compile Include="Methods.fs" />

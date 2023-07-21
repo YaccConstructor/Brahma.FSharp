@@ -5,15 +5,15 @@ open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open Common
 open Expecto
 
-let private lambdaLiftingTests =
-    let genParameterLiftTest name expr expected =
+let private parameterLiftingTests =
+    let createTest name expr expected =
         test name {
-            let actual = LambdaLifting.parameterLiftExpr expr
+            let actual = Lift.Parameters.lift expr
 
             assertExprEqual actual expected equalsMessage
         }
 
-    [ genParameterLiftTest
+    [ createTest
           "Test 1"
           <@
               let x = 1
@@ -26,7 +26,7 @@ let private lambdaLiftingTests =
               addToX x 2
           @>
 
-      genParameterLiftTest
+      createTest
           "Test 2"
           <@
               let x = 1
@@ -49,7 +49,7 @@ let private lambdaLiftingTests =
               f x z 3
           @>
 
-      genParameterLiftTest
+      createTest
           "Test 3"
           <@
               let mainX = "global variable"
@@ -76,7 +76,7 @@ let private lambdaLiftingTests =
               foo mainX mainY mainZ
           @>
 
-      genParameterLiftTest
+      createTest
           "Test 4"
           <@
               let x0 = 0
@@ -102,5 +102,52 @@ let private lambdaLiftingTests =
 
               f x0 x0
           @> ]
+    |> testList "Parameter lifting"
 
-let tests = lambdaLiftingTests |> testList "Lambda lifting"
+
+let unitCleanUpTests =
+    let createTest name expr expected =
+        test name {
+            let actual = Lift.UnitArguments.cleanUp expr
+
+            assertExprEqual actual expected equalsMessage
+        }
+
+    [ createTest "Test 1"
+      <| <@ let f (x: unit) = x in () @>
+      <| <@ let f (x: unit) = x in () @>
+
+      // createTest "Test 2"
+      // <| <@ let f (x: unit) (y: int) = x in () @>
+      // <| (let s = () in <@ let f (y: int) = s in () @>)
+      //
+      // createTest "Test 3"
+      // <| <@ let f (x: unit) (y: unit) = x in () @>
+      // <| <@ let f (x: unit) = x in () @>
+      //
+      // createTest "Test 4"
+      // <| <@ let f (x: int) = x in () @>
+      // <| <@ let f (x: int) = x in () @>
+      //
+      // createTest "Test 5"
+      // <| <@ let f (x: int option) = x in () @>
+      // <| <@ let f (x: int option) = x in () @>
+      //
+      // createTest "Test 6"
+      // <| <@ let f (x: unit option) = x in () @>
+      // <| <@ let f (x: unit option) = x in () @>
+      //
+      // createTest "Test 7"
+      // <| <@ let f (x: unit) (y: unit) (z: unit) = if x = y then z else z in () @>
+      // <| <@ let What = () in () @>
+      //
+      // createTest "Test 8"
+      // <| <@ let f (x: unit) (y: unit) (z: unit) = let x = () in y in () @>
+      // <| <@ () @>
+
+      ]
+    |> testList "Unit clean up"
+
+
+let tests = [ parameterLiftingTests ]
+            |> testList "Lambda lifting"
