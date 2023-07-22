@@ -4,7 +4,7 @@ open Brahma.FSharp.Tests
 
 [<Tests>]
 let allTests =
-    testList "All tests" [ Brahma.FSharp.Tests.Translator.QuatationTransformation.LambdaLifting.unitCleanUpTests ]
+    testList "All tests" [ Brahma.FSharp.Tests.Translator.QuatationTransformation.LambdaLifting.lambdaLiftingTests ]
     |> testSequenced
 
 [<EntryPoint>]

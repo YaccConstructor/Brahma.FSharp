@@ -3,8 +3,7 @@ module Brahma.FSharp.Tests.Translator.QuatationTransformation.LambdaLifting
 open Expecto
 open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open Common
-open Microsoft.FSharp.Quotations
-open Brahma.FSharp
+open FSharp.Quotations
 
 let private parameterLiftingTests =
     let createTest name expr expected =
@@ -108,7 +107,7 @@ let private parameterLiftingTests =
           @> ]
     |> testList "Parameter lifting"
 
-let unitVar name = Expr.Cast<unit>(Expr.Var(Var(name, typeof<unit>)))
+let unitVar name = expVar<unit> name
 
 let unitCleanUpTests =
     let createTest name expr expected =
@@ -126,7 +125,7 @@ let unitCleanUpTests =
       <| <@ let f (x: unit) (y: int) = x in () @>
       <| <@ let f (y: int) = (%unitVar "x") in () @>
 
-      createTest "Test 3"
+      createTest "Test 3" // TODO(is it correct?)
       <| <@ let f (x: unit) (y: unit) = x in () @>
       <| <@ let f = (%unitVar "x") in () @>
 
@@ -161,7 +160,7 @@ let unitCleanUpTests =
             let g (x: unit) (y: unit) (z: int) = z
 
             // side effect in f application
-            g (f ()) () 0 @>
+            g (f ()) () 0 @> // TODO(unit expr in application)
       <| <@ let f () = printfn "side effect"; ()
             let g (z: int) = z
 
@@ -186,5 +185,73 @@ let unitCleanUpTests =
     |> testList "Unit clean up"
 
 
-let tests = [ parameterLiftingTests ]
-            |> testList "Lambda lifting"
+let lambdaLiftingTests =
+    let inline createTest name expr expectedKernel (expectedFunctions: (Var * #Expr) list ) =
+        test name {
+            let actualKernel, actualFunctions = Lift.Lambda.lift expr
+
+            typesEqual actualKernel expectedKernel
+
+            (actualFunctions, expectedFunctions)
+            ||> List.iter2 (fun actual expected ->
+                varEqual (fst actual) (fst expected)
+
+                let actualFunction = snd actual
+                let expectedFunction = snd expected
+
+                typesEqual actualFunction expectedFunction
+                equalAsStrings actualFunction expectedFunction equalsMessage)
+
+            equalAsStrings actualKernel expectedKernel
+            <| "Kernels should be the same"
+        }
+
+    [ createTest "Test 1"
+      <| <@ let f () = () in () @> // source
+      <| <@ () @> // kernel
+      <| [ var<unit -> unit> "f", <@ fun (unitVar0: unit) -> () @> ] // lifted lambdas (var, body)
+
+      createTest "Test 2"
+      <| <@ let f () = printfn "text" in () @>
+      <| <@ () @>
+      <| [ var<unit -> unit> "f", <@ fun (unitVar0: unit) -> printfn "text" @> ]
+
+      createTest "Test 3"
+      <| <@ let f (x: int) = () in () @>
+      <| <@ () @>
+      <| [ var<int -> unit> "f", <@ fun (x: int) -> () @> ]
+
+      createTest "Test 4"
+      <| <@ let f (x: int) = Some 0 in () @>
+      <| <@ () @>
+      <| [ var<int -> int option> "f", <@ fun (x: int) -> Some 0 @> ]
+
+      createTest "Test 5"
+      <| <@ let f () = printfn "first"; printfn "second" in () @>
+      <| <@ () @>
+      <| [ var<unit -> unit> "f", <@ fun (unitVar0: unit) -> printfn "first"; printfn "second" @> ]
+
+      createTest "Test 6"
+      <| <@ let f () = () in let g () = () in () @>
+      <| <@ () @>
+      <| [ var<unit -> unit> "f", <@ fun (unitVar0: unit) -> () @>
+           var<unit -> unit> "g", <@ fun (unitVar0: unit) -> () @> ]
+
+      createTest "Test 7"
+      <| <@ let f () = let g () = () in () in () @>
+      <| <@ () @>
+      <| [ var<unit -> unit> "g", <@ fun (unitVar0: unit) -> () @>
+           var<unit -> unit> "f", <@ fun (unitVar0: unit) -> () @> ]
+
+      createTest "Test 8"
+      <| <@ let f (x: int) = let g () = x in () in () @>
+      <| <@ () @>
+      <| [ var<unit -> int> "g", <@@ fun (unitVar0: unit) -> (%expVar<int> "x") @@>
+           var<int -> unit> "f", <@@ fun (x: int) -> () @@> ] ]
+    |> testList "Lambda"
+
+let tests =
+    [ parameterLiftingTests
+      unitCleanUpTests
+      lambdaLiftingTests ]
+    |> testList "Lifting"
