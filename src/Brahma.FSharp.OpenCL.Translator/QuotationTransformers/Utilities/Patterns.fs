@@ -11,41 +11,18 @@ module Patterns =
         | Let(var, expr, inExpr) -> if predicate var then Some(var, expr, inExpr) else None
         | _ -> None
 
-    let (|LetFunc|_|) = letDefinition Utils.isFunction
+    let (|LetFunc|_|) exp = letDefinition Utils.isFunction exp
 
     let (|LetVar|_|) (expr: Expr) =
         letDefinition (not << Utils.isFunction) expr
-
-    // HACK это все можно DerrivedPatterns.Lambdas и DerrivedPatterns.Applications заменить же
-    let rec private uncurryLambda (expr: Expr) =
-        match expr with
-        | ExprShape.ShapeLambda(var, body) ->
-            let (args, innerBody) = uncurryLambda body
-            var :: args, innerBody
-        | _ -> [], expr
-
-    let private uncurryApplication (expr: Expr) =
-        let rec uncurryApplicationImpl (acc: list<Expr>) = function
-            | Application(l, r) -> uncurryApplicationImpl (r :: acc) l
-            | _ -> expr, acc
-
-        uncurryApplicationImpl [] expr
 
     /// let f x1 x2 x3 = body in e
     /// => LetFuncUncurry(f, [x1; x2, x3], body, e)
     let (|LetFuncUncurry|_|) (expr: Expr) =
         match expr with
-        | LetFunc(var, body, inExpr) ->
-            let args, body' = uncurryLambda body
-            Some(var, args, body', inExpr)
-        | _ -> None
-
-    /// e0 e1 e2 e3
-    /// => (e0, [e1; e2; e3])
-    let (|ApplicationUncurry|_|) (expr: Expr) =
-        // TODO: think about partial function, we should to raise exception somewhere
-        match expr with
-        | Application _ -> Some <| uncurryApplication expr
+        | Let(var, DerivedPatterns.Lambdas(args, body), inExp) ->
+            let args = List.concat args
+            Some(var, args, body, inExp)
         | _ -> None
 
     let (|GlobalVar|_|) =

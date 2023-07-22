@@ -9,29 +9,28 @@ module Helpers =
     let equalsMessage = "Values should be the same."
 
     let rec renameUnitVar (expr: Expr) =
-        let replaceUnitVar (var: Var) =
-            if var.Type = typeof<unit> then
+        expr.Substitute
+        <| function
+            | var when var.Type.IsEquivalentTo(typeof<unit>) ->
                 Var("unitVar", var.Type, var.IsMutable)
-            else
-                var
-
-        match expr with
-        | ExprShape.ShapeVar var -> Expr.Var(replaceUnitVar var)
-        | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(replaceUnitVar var, renameUnitVar body)
-        | ExprShape.ShapeCombination(shapeComboObj, exprList) ->
-            ExprShape.RebuildShapeCombination(shapeComboObj, List.map renameUnitVar exprList)
+                |> Expr.Var
+                |> Some
+            | _ -> None
 
     let openclTransformQuotation (translator: FSQuotationToOpenCLTranslator) (expr: Expr) =
         translator.TransformQuotation expr
 
-    let assertExprEqual (actual: Expr) (expected: Expr) (msg: string) =
-        let actual' = renameUnitVar actual
-        let expected' = renameUnitVar expected
+    let equalAsStrings (actual: Expr) (expected: Expr) (msg: string) =
+        Expect.equal <| actual.ToString() <| expected.ToString() <| msg
 
-        Expect.equal <| actual'.ToString() <| expected'.ToString() <| msg
+    let equalToTheExactUnitVars (actual: Expr) (expected: Expr) (msg: string) =
+        let actual = renameUnitVar actual
+        let expected = renameUnitVar expected
+
+        equalAsStrings actual expected msg
 
     let assertMethodEqual (actual: Var * Expr) (expected: Var * Expr) =
         Expect.equal (fst actual).Name (fst expected).Name "Method names should be equal"
 
-        assertExprEqual (snd actual) (snd expected)
+        equalAsStrings (snd actual) (snd expected)
         <| $"Method bodies of %s{(fst actual).Name} is not equal"

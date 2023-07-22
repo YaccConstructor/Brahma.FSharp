@@ -33,7 +33,7 @@ let private quotationTransformerTest =
                 expr |> openclTransformQuotation translator
 
             assertMethodListsEqual actualKernelMethods expectedMethods
-            assertExprEqual actualKernelExpr expectedKernelExpr "kernels not equals"
+            equalToTheExactUnitVars actualKernelExpr expectedKernelExpr "kernels not equals"
 
     [ genTest
           testCase

@@ -25,14 +25,6 @@ module Utils =
     let makeApplicationExpr (head: Expr) (expressions: Expr list) =
         List.fold (fun l r -> Expr.Application(l, r)) head expressions
 
-    /// head: t, args: [x1: t1; x2: t2; x3: t3]
-    /// newHead: t1 -> t2 -> t3 -> t
-    let transformToFunctionVar (source: Var) (args: List<Var>) =
-        args
-        |> List.map (fun x -> x.Type)
-        |> makeFunctionType source.Type
-        |> fun t ->  Var(source.Name, t, source.IsMutable)
-
     // TODO tail recursion
     let rec extractLambdaArguments =
         function
