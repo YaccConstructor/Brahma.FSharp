@@ -17,15 +17,8 @@ module Helpers =
     let _localSize2 = Unchecked.defaultof<int>
 
 let private workSizeTests =
-    [ let createTest name source expected =
-          test name {
-              let actual = WorkSize.get source
-
-              let actualStr = actual.ToString()
-              let expectedStr = expected.ToString()
-
-              Expect.equal actualStr expectedStr "Result should be the same."
-          }
+    [ let createTest name  =
+          Common.Helpers.createMapTestAndCompareAsStrings WorkSize.get name
 
       createTest "Test 1D. Global"
       <| <@

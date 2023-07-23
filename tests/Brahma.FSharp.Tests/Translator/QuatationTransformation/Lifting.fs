@@ -1,20 +1,13 @@
-module Brahma.FSharp.Tests.Translator.QuatationTransformation.LambdaLifting
+module Brahma.FSharp.Tests.Translator.QuatationTransformation.Lifting
 
 open Expecto
 open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open Common
 open FSharp.Quotations
 
-let private parameterLiftingTests =
-    let createTest name expr expected =
-        test name {
-            let actual = Lift.Parameters.lift expr
-
-            let actual = actual.ToString()
-            let expected = expected.ToString()
-
-            Expect.equal actual expected equalsMessage
-        }
+let parameterLiftingTests =
+    let createTest name =
+        createMapTestAndCompareAsStrings Lift.Parameters.lift name
 
     [ createTest
           "Test 1"
@@ -104,18 +97,18 @@ let private parameterLiftingTests =
                   g x0 x1
 
               f x0 x0
-          @> ]
-    |> testList "Parameter lifting"
+          @>
+
+      createTest "Test 5" // id
+      <| <@ let f = let x = 4 in x in () @>
+      <| <@ let f = let x = 4 in x in () @> ]
+    |> testList "Parameter"
 
 let unitVar name = expVar<unit> name
 
 let unitCleanUpTests =
-    let createTest name expr expected =
-        test name {
-            let actual = Lift.UnitArguments.cleanUp expr
-
-            equalAsStrings actual expected equalsMessage
-        }
+    let createTest name =
+        createMapTestAndCompareAsStrings Lift.UnitArguments.cleanUp name
 
     [ createTest "Test 1"
       <| <@ let f (x: unit) = x in () @>
@@ -143,41 +136,65 @@ let unitCleanUpTests =
 
       createTest "Test 7"
       <| <@ let f (x: unit) (y: unit) (z: unit) = if x = y then z else y in () @>
-      <| <@ let f = if (%unitVar "x") = (%unitVar "y") then (%unitVar "z") else (%unitVar "y") in () @>
+      <| <@
+          let f =
+              if (%unitVar "x") = (%unitVar "y") then
+                  (%unitVar "z")
+              else
+                  (%unitVar "y") in ()
+      @>
 
       createTest "Test 8"
-      <| <@ let f (x: unit) = let g (y: unit) = Some () in () in () @>
-      <| <@ let f (x: unit) = let g (y: unit) = Some () in () in () @>
+      <| <@ let f (x: unit) = let g (y: unit) = Some() in () in () @>
+      <| <@ let f (x: unit) = let g (y: unit) = Some() in () in () @>
 
       createTest "Test 9"
-      <| <@ let f (x: unit) (y: unit) =
-                let g (z: unit) (c: unit) = x in g y x
-            in () @>
+      <| <@ let f (x: unit) (y: unit) = let g (z: unit) (c: unit) = x in g y x in () @>
       <| <@ let f = let g = (%unitVar "x") in g in () @>
 
       createTest "Test 10"
-      <| <@ let f () = printfn "side effect"; ()
-            let g (x: unit) (y: unit) (z: int) = z
+      <| <@
+          let f () =
+              printfn "side effect"
+              ()
 
-            // side effect in f application
-            g (f ()) () 0 @> // TODO(unit expr in application)
-      <| <@ let f () = printfn "side effect"; ()
-            let g (z: int) = z
+          let g (x: unit) (y: unit) (z: int) = z
 
-            // no side effect
-            g 0 @>
+          // side effect in f application
+          g (f ()) () 0
+      @> // TODO(unit expr in application)
+      <| <@
+          let f () =
+              printfn "side effect"
+              ()
+
+          let g (z: int) = z
+
+          // no side effect
+          g 0
+      @>
 
       createTest "Test 11"
-      <| <@ let f (x: int) = printfn "side effect"; () in
-            let g (x: unit) (y: int) = y in
+      <| <@
+          let f (x: int) =
+              printfn "side effect"
+              () in
 
-            // side effect in f application
-            g (f 0) 0 @>
-      <| <@ let f (x: int) = printfn "side effect"; () in
-            let g (y: int) = y in
+          let g (x: unit) (y: int) = y in
 
-            // no side effect
-            g 0 @>
+          // side effect in f application
+          g (f 0) 0
+      @>
+      <| <@
+          let f (x: int) =
+              printfn "side effect"
+              () in
+
+          let g (y: int) = y in
+
+          // no side effect
+          g 0
+      @>
 
       createTest "Test 12" // id
       <| <@ let f (x: int) = x in f 4 @>
@@ -186,24 +203,16 @@ let unitCleanUpTests =
 
 
 let lambdaLiftingTests =
-    let inline createTest name expr expectedKernel (expectedFunctions: (Var * #Expr) list ) =
+    let inline createTest name expr expectedKernel (expectedFunctions: (Var * #Expr) list) =
         test name {
             let actualKernel, actualFunctions = Lift.Lambda.lift expr
 
             typesEqual actualKernel expectedKernel
 
             (actualFunctions, expectedFunctions)
-            ||> List.iter2 (fun actual expected ->
-                varEqual (fst actual) (fst expected)
+            ||> List.iter2 assertMethodEqual
 
-                let actualFunction = snd actual
-                let expectedFunction = snd expected
-
-                typesEqual actualFunction expectedFunction
-                equalAsStrings actualFunction expectedFunction equalsMessage)
-
-            equalAsStrings actualKernel expectedKernel
-            <| "Kernels should be the same"
+            equalAsStrings actualKernel expectedKernel <| "Kernels should be the same"
         }
 
     [ createTest "Test 1"
@@ -227,12 +236,25 @@ let lambdaLiftingTests =
       <| [ var<int -> int option> "f", <@ fun (x: int) -> Some 0 @> ]
 
       createTest "Test 5"
-      <| <@ let f () = printfn "first"; printfn "second" in () @>
+      <| <@
+          let f () =
+              printfn "first"
+              printfn "second" in ()
+      @>
       <| <@ () @>
-      <| [ var<unit -> unit> "f", <@ fun (unitVar0: unit) -> printfn "first"; printfn "second" @> ]
+      <| [ var<unit -> unit> "f",
+           <@
+               fun (unitVar0: unit) ->
+                   printfn "first"
+                   printfn "second"
+           @> ]
 
       createTest "Test 6"
-      <| <@ let f () = () in let g () = () in () @>
+      <| <@
+          let f () = () in
+          let g () = () in
+          ()
+      @>
       <| <@ () @>
       <| [ var<unit -> unit> "f", <@ fun (unitVar0: unit) -> () @>
            var<unit -> unit> "g", <@ fun (unitVar0: unit) -> () @> ]

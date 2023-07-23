@@ -4,12 +4,8 @@ open Expecto
 open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 
 let private replaceTests =
-    [ let createTest name source expected =
-          test name {
-              let actual = Print.replace source
-
-              Expect.equal actual expected "Result should be the same."
-          }
+    [ let inline createTest name =
+        Common.Helpers.createMapTestAndCompareAsStrings Print.replace name
 
       let tpArgs: System.Type list = []
       let value = ""

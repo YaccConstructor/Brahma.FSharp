@@ -30,15 +30,14 @@ let passes =
       QuatationTransformation.WorkSize.tests
       QuatationTransformation.Names.tests
       QuatationTransformation.Variables.tests
-      QuatationTransformation.VarToRef.tests ]
+      QuatationTransformation.VarToRef.tests
+      QuatationTransformation.Lifting.tests ]
     |> testList "Passes"
 
 let union = [ Union.tests ] |> testList "Union"
 
 let transformation =
-    [ QuatationTransformation.Transformation.tests
-      QuatationTransformation.LambdaLifting.tests ]
-    |> testList "Transformation"
+    [ QuatationTransformation.Transformation.tests ] |> testList "Transformation"
 
 let tests =
     [ common

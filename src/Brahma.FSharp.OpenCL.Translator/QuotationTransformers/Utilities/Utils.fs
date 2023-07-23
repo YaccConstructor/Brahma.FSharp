@@ -69,9 +69,7 @@ module Utils =
         match <@@ ref () @@> with
         | Patterns.Call(obj, methodInfo, _) ->
             let newMethodInfo =
-                methodInfo
-                    .GetGenericMethodDefinition()
-                    .MakeGenericMethod([| value.Type |])
+                methodInfo.GetGenericMethodDefinition().MakeGenericMethod([| value.Type |])
 
             match obj with
             | Some obj -> Expr.Call(obj, newMethodInfo, [ value ])
@@ -105,5 +103,3 @@ module Utils =
     let isGlobal (var: Var) =
         var.Type.Name.ToLower().StartsWith ClArray_
         || var.Type.Name.ToLower().StartsWith ClCell_
-
-

@@ -4,15 +4,8 @@ open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open Expecto
 
 let private uniquesTests =
-    [ let createTest name source expected =
-          test name {
-              let actual = Variables.defsToLambda source
-
-              let actualStr = actual.ToString()
-              let expectedStr = expected.ToString()
-
-              Expect.equal actualStr expectedStr "Result should be the same."
-          }
+    [ let createTest name  =
+          Common.Helpers.createMapTestAndCompareAsStrings Variables.defsToLambda name
 
       createTest "Test 1." <| <@ let x = 1 + 1 in () @> <| <@ let x = 1 + 1 in () @>
 
@@ -30,14 +23,13 @@ let private uniquesTests =
       @>
       <| <@
           let x =
-              let xUnitFunc =
-                  fun (unitVar: unit) ->
-                      let mutable y = 0
+              let xUnitFunc () =
+                  let mutable y = 0
 
-                      for i in 1..10 do
-                          y <- y + i
+                  for i in 1..10 do
+                      y <- y + i
 
-                      y
+                  y
 
               xUnitFunc ()
 
@@ -65,32 +57,46 @@ let private uniquesTests =
       @>
       <| <@
           let x =
-              let xUnitFunc =
-                  fun (unitVar: unit) ->
-                      let mutable y =
-                          let yUnitFunc =
-                              fun (unitVar: unit) ->
-                                  if true then
-                                      let z = 10
-                                      z + 1
-                                  else
-                                      let z = 20
-                                      z + 2
+              let xUnitFunc () =
+                  let mutable y =
+                      let yUnitFunc () =
+                          if true then
+                              let z = 10
+                              z + 1
+                          else
+                              let z = 20
+                              z + 2
 
-                          yUnitFunc ()
+                      yUnitFunc ()
 
-                      for i in 1..10 do
-                          let z =
-                              let zUnitFunc = fun (unitVar: unit) -> if false then 10 else 20
-                              zUnitFunc ()
+                  for i in 1..10 do
+                      let z =
+                          let zUnitFunc () = if false then 10 else 20
+                          zUnitFunc ()
 
-                          y <- y + i + z
+                      y <- y + i + z
 
-                      y
+                  y
 
               xUnitFunc ()
 
           x
-      @> ]
+      @>
+
+      createTest "Test 4"
+      <| <@ let f = let x = 4 in x in () @>
+      <| <@ let f = let fUnitFunc () = let x = 4 in x in fUnitFunc () in () @>
+
+      createTest "Test 5"
+      <| <@ let f = let g = let x = 4 in x in () in () @>
+      <| <@ let f =
+                let fUnitFunc () =
+                    let g =
+                        let gUnitFunc () =
+                            let x = 4 in x
+                        gUnitFunc () in
+                    () in
+                fUnitFunc () in
+            () @> ]
 
 let tests = uniquesTests |> testList "Variables" |> testSequenced

@@ -4,6 +4,8 @@ open FSharp.Quotations
 open FSharp.Reflection
 
 module Variables =
+    let unitVarName = "unitVar0"
+
     // TODO need way to identify expression vs statements (now it is very primitive)
     let rec private isPrimitiveExpression =
         function
@@ -23,11 +25,16 @@ module Variables =
         | Patterns.NewUnionCase _ -> true
         | _ -> false
 
+    let inline private createFunVar sourceName sourceType =
+        let fType = FSharpType.MakeFunctionType(typeof<unit>, sourceType)
+
+        Var(sourceName + "UnitFunc", fType)
+
     // create: let fVal () = expr in unit ()
-    let private createApplication fVar body =
+    let private createDefinitionAndApplication fVar body =
         Expr.Let(
             fVar,
-            Expr.Lambda(Var("unitVar", typeof<unit>), body),
+            Expr.Lambda(Var(unitVarName, typeof<unit>), body),
             Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
         )
 
@@ -38,28 +45,24 @@ module Variables =
             if isPrimitiveExpression body then
                 Expr.Let(var, body, defsToLambda inExpr)
             else
-                let funVal =
-                    let fType = FSharpType.MakeFunctionType(typeof<unit>, var.Type)
-
-                    Var(var.Name + "UnitFunc", fType)
-
-                let body = defsToLambda body
-                let letEvalAndApplication = createApplication funVal body
+                let letAndApplication =
+                    createDefinitionAndApplication
+                    <| createFunVar var.Name var.Type
+                    <| defsToLambda body
 
                 let newInExpr = defsToLambda inExpr
 
-                Expr.Let(var, letEvalAndApplication, newInExpr)
+                Expr.Let(var, letAndApplication, newInExpr)
         | Patterns.PropertySet(Some o, prop, indices, value) ->
             if isPrimitiveExpression value then
                 Expr.PropertySet(o, prop, value, indices)
             else
-                let fType = FSharpType.MakeFunctionType(typeof<unit>, prop.PropertyType)
-                let fVal = Var(prop.Name + "UnitFunc", fType)
+                let letAndApplication =
+                    createDefinitionAndApplication
+                    <|createFunVar prop.Name prop.PropertyType
+                    <| defsToLambda value
 
-                let body = defsToLambda value
-                let letEvalAndApplication = createApplication fVal body
-
-                Expr.PropertySet(o, prop, letEvalAndApplication, indices)
+                Expr.PropertySet(o, prop, letAndApplication, indices)
         | ExprShape.ShapeVar _ as expr -> expr
         | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, defsToLambda body)
         | ExprShape.ShapeCombination(shapeComboObject, exprList) ->

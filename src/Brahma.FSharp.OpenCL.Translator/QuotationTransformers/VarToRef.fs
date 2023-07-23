@@ -9,10 +9,7 @@ module VarToRef =
     let rec private collectMutableVarsInClosure =
         function
         | Patterns.LetFunc(_, body, inExpr) ->
-            let mutableFreeVars =
-                body.GetFreeVars()
-                |> Seq.filter isMutableVar
-                |> Set.ofSeq
+            let mutableFreeVars = body.GetFreeVars() |> Seq.filter isMutableVar |> Set.ofSeq
 
             [ mutableFreeVars
               collectMutableVarsInClosure body
@@ -20,13 +17,11 @@ module VarToRef =
             |> Set.unionMany
         | ExprShape.ShapeLambda(_, body) -> collectMutableVarsInClosure body
         | ExprShape.ShapeVar _ -> Set.empty
-        | ExprShape.ShapeCombination(_, exprList) ->
-            exprList
-            |> List.map collectMutableVarsInClosure
-            |> Set.unionMany
+        | ExprShape.ShapeCombination(_, exprList) -> exprList |> List.map collectMutableVarsInClosure |> Set.unionMany
 
     let private varsToRefsWithPredicate (predicate: Var -> bool) (expr: Expr) =
-        let rec parse (refMap: Map<Var, Expr>) = function
+        let rec parse (refMap: Map<Var, Expr>) =
+            function
             | Patterns.LetVar(var, body, inExpr) ->
                 if predicate var then
                     // create refVar, typeof<refVar> = ref<typeof<var>>

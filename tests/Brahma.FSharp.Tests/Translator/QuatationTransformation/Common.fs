@@ -12,9 +12,7 @@ module Helpers =
         expr.Substitute
         <| function
             | var when var.Type.IsEquivalentTo(typeof<unit>) ->
-                Var("unitVar", var.Type, var.IsMutable)
-                |> Expr.Var
-                |> Some
+                Var("unitVar", var.Type, var.IsMutable) |> Expr.Var |> Some
             | _ -> None
 
     let var<'t> name = Var(name, typeof<'t>)
@@ -33,8 +31,9 @@ module Helpers =
         Expect.equal <| actual.ToString() <| expected.ToString() <| msg
 
     let inline typesEqual
-        (actual: ^a when ^a : (member Type : System.Type))
-        (expected: ^b when ^b : (member Type : System.Type)) =
+        (actual: ^a when ^a: (member Type: System.Type))
+        (expected: ^b when ^b: (member Type: System.Type))
+        =
 
         Expect.isTrue (actual.Type = expected.Type) "Types must be the same"
 
@@ -44,8 +43,14 @@ module Helpers =
 
         equalAsStrings actual expected msg
 
-    let assertMethodEqual (actual: Var * Expr) (expected: Var * Expr) =
-        Expect.equal (fst actual).Name (fst expected).Name "Method names should be equal"
+    let exprEqual (actual: Expr) (expected: Expr) =
+        typesEqual actual expected // TODO(check that all types in exps are equal (vars, ...))
+        equalAsStrings actual expected equalsMessage
 
-        equalAsStrings (snd actual) (snd expected)
-        <| $"Method bodies of %s{(fst actual).Name} is not equal"
+    let assertMethodEqual (actual: Var * Expr) (expected: Var * Expr) =
+        varEqual (fst actual) (fst expected)
+        exprEqual (snd actual) (snd expected)
+
+    let createMapTestAndCompareAsStrings map name source expected  =
+        test name { exprEqual (map source) expected }
+
