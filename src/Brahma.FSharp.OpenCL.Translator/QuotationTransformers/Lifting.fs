@@ -70,7 +70,7 @@ module Lift =
             | [] -> failwith "Arguments cannot be empty"
             | [ _ ] -> args
             | _ ->
-                // if several units ???
+                // TODO() if several units ???
                 args |> List.filter (fun arg -> arg.Type <> typeof<unit>)
 
         /// args: [x1: t1; x2: t2; x3: t3], boyd: t4
@@ -80,6 +80,15 @@ module Lift =
             |> List.map (fun var -> var.Type)
             |> Utils.makeFunctionType body.Type
             |> fun t -> Var(var.Name, t, var.IsMutable)
+
+        // application like <@ f () @> represented as Application(f, Value(<null>));
+        // Value(<null>) in Applications patterns go to []
+        // Then i think we should map [] -> [ Value((), typeof<unit>) ] in exps
+        let private mapExpressions =
+            List.map (function
+                | [] -> [ Expr.Value((), typeof<unit>) ]
+                | x -> x)
+            >> List.concat
 
         let cleanUp (expr: Expr) =
             let rec parse (subst: Map<Var, Var>) =
@@ -95,7 +104,7 @@ module Lift =
                     subst.TryFind var
                     |> Option.map (fun var' ->
                         // TODO(what about exp with unit type???)
-                        let exps' = unitExpFilter <| List.concat exps
+                        let exps' = mapExpressions exps |> unitExpFilter
 
                         Utils.makeApplicationExpr <| Expr.Var var' <| List.map (parse subst) exps')
                     |> Option.defaultValue source

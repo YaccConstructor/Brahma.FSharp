@@ -17,7 +17,7 @@ module Helpers =
     let _localSize2 = Unchecked.defaultof<int>
 
 let private workSizeTests =
-    [ let createTest name  =
+    [ let createTest name =
           Common.Helpers.createMapTestAndCompareAsStrings WorkSize.get name
 
       createTest "Test 1D. Global"

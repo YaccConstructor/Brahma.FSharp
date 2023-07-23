@@ -59,7 +59,7 @@ module Variables =
             else
                 let letAndApplication =
                     createDefinitionAndApplication
-                    <|createFunVar prop.Name prop.PropertyType
+                    <| createFunVar prop.Name prop.PropertyType
                     <| defsToLambda value
 
                 Expr.PropertySet(o, prop, letAndApplication, indices)

@@ -198,9 +198,12 @@ let unitCleanUpTests =
 
       createTest "Test 12" // id
       <| <@ let f (x: int) = x in f 4 @>
-      <| <@ let f (x: int) = x in f 4 @> ]
-    |> testList "Unit clean up"
+      <| <@ let f (x: int) = x in f 4 @>
 
+      createTest "Test 13"
+      <| <@ let f = let fUnitFunc () = let x = 3 in x in fUnitFunc () in () @>
+      <| <@ let f = let fUnitFunc () = let x = 3 in x in fUnitFunc () in () @> ]
+    |> testList "Unit clean up"
 
 let lambdaLiftingTests =
     let inline createTest name expr expectedKernel (expectedFunctions: (Var * #Expr) list) =
@@ -209,8 +212,7 @@ let lambdaLiftingTests =
 
             typesEqual actualKernel expectedKernel
 
-            (actualFunctions, expectedFunctions)
-            ||> List.iter2 assertMethodEqual
+            (actualFunctions, expectedFunctions) ||> List.iter2 assertMethodEqual
 
             equalAsStrings actualKernel expectedKernel <| "Kernels should be the same"
         }

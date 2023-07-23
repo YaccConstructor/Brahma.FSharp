@@ -4,7 +4,10 @@ open Brahma.FSharp.Tests
 
 [<Tests>]
 let allTests =
-    testList "All tests" [ Translator.QuatationTransformation.Variables.tests ]
+    testList
+        "All tests"
+        [ Translator.All.tests
+          ExecutionTests.tests |> testList "Execution" ]
     |> testSequenced
 
 [<EntryPoint>]

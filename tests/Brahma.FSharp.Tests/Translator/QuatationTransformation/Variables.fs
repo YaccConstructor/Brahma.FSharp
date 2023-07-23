@@ -4,7 +4,7 @@ open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open Expecto
 
 let private uniquesTests =
-    [ let createTest name  =
+    [ let createTest name =
           Common.Helpers.createMapTestAndCompareAsStrings Variables.defsToLambda name
 
       createTest "Test 1." <| <@ let x = 1 + 1 in () @> <| <@ let x = 1 + 1 in () @>
@@ -89,14 +89,18 @@ let private uniquesTests =
 
       createTest "Test 5"
       <| <@ let f = let g = let x = 4 in x in () in () @>
-      <| <@ let f =
-                let fUnitFunc () =
-                    let g =
-                        let gUnitFunc () =
-                            let x = 4 in x
-                        gUnitFunc () in
-                    () in
-                fUnitFunc () in
-            () @> ]
+      <| <@
+          let f =
+              let fUnitFunc () =
+                  let g =
+                      let gUnitFunc () = let x = 4 in x
+                      gUnitFunc ()
+
+                  ()
+
+              fUnitFunc ()
+
+          ()
+      @> ]
 
 let tests = uniquesTests |> testList "Variables" |> testSequenced
