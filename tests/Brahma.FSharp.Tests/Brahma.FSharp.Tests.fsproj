@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <LangVersion>default</LangVersion>
+    <RootNamespace>Brahma.FSharp.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Common.fs" />
+    <Content Include="TranslationTests\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="TranslationTests\TranslatorTests.fs" />
+    <Compile Include="TranslationTests\QuotationTransformersTests.fs" />
+    <Compile Include="TranslationTests\TranslationTests.fs" />
+    <Content Include="ExecutionTests\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="ExecutionTests\RuntimeTests.fs" />
+    <Compile Include="ExecutionTests\CompilationTests.fs" />
+    <Compile Include="ExecutionTests\WorkflowBuilderTests.fs" />
+    <Compile Include="ExecutionTests\AtomicTests.fs" />
+    <Compile Include="ExecutionTests\CompositeTypesTests.fs" />
+    <Compile Include="ExecutionTests\ExecutionTests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brahma.FSharp.OpenCL.Core\Brahma.FSharp.OpenCL.Core.fsproj" />
+    <ProjectReference Include="..\..\src\Brahma.FSharp.OpenCL.Translator\Brahma.FSharp.OpenCL.Translator.fsproj" />
+    <ProjectReference Include="..\..\src\YC.OpenCL.NET\YC.OpenCL.NET.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Compiler.Service" Version="34.1.0" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

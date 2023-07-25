@@ -1,185 +1,168 @@
 ﻿// Copyright (c) 2012, 2013 Semyon Grigorev <rsdpisuy@gmail.com>
 // All rights reserved.
-// 
+//
 // The contents of this file are made available under the terms of the
 // Eclipse Public License v1.0 (the "License") which accompanies this
 // distribution, and is available at the following URL:
 // http://www.opensource.org/licenses/eclipse-1.0.php
-// 
+//
 // Software distributed under the License is distributed on an "AS IS" basis,
 // WITHOUT WARRANTY OF ANY KIND, either expressed or implied. See the License for
 // the specific language governing rights and limitations under the License.
-// 
+//
 // By using this software in any fashion, you are agreeing to be bound by the
 // terms of the License.
 
 namespace Brahma.FSharp.OpenCL.Translator
 
 open Microsoft.FSharp.Quotations
-open  Brahma.FSharp.OpenCL.AST
+open Brahma.FSharp.OpenCL.AST
+open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open System.Collections.Generic
-open Brahma.FSharp.OpenCL.Translator.Type
+open Brahma.FSharp
 
-type FSQuotationToOpenCLTranslator() =
-   
-    let CollectStructs e =
-        let escapeNames = [|"_1D";"_2D";"_3D"|]
-        let structs = new System.Collections.Generic.Dictionary<System.Type, _> ()
-        let  add (t:System.Type) =
-            if ((t.IsValueType && not t.IsPrimitive && not t.IsEnum)) && not (structs.ContainsKey t) 
-               && not (Array.exists ((=)t.Name) escapeNames )
-            then structs.Add(t, ())
-        let rec go (e: Expr) = 
-            add e.Type
-            match e with
-            | ExprShape.ShapeVar(v) -> ()
-            | ExprShape.ShapeLambda(v, body) -> go body            
-            | ExprShape.ShapeCombination(o, l) ->
-                o.GetType() |> add 
-                List.iter go l
-        go e
-        structs
+type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: TranslatorOptions) =
+    let translatorOptions = defaultArg translatorOptions (TranslatorOptions())
+    let mainKernelName = "brahmaKernel"
+    let lockObject = obj ()
 
-    /// The parameter 'vars' is an immutable map that assigns expressions to variables
-    /// (as we recursively process the tree, we replace all known variables)
-    let rec expand vars expr = 
+    let collectData (expr: Expr) (functions: (Var * Expr) list) =
+        // global var names
+        let kernelArgumentsNames =
+            expr
+            |> Utils.collectLambdaArguments
+            |> List.map (fun var -> var.Name)
 
-      // First recursively process & replace variables
-      let expanded = 
-        match expr with
-        // If the variable has an assignment, then replace it with the expression
-        | ExprShape.ShapeVar v when Map.containsKey v vars -> vars.[v]
-        // Apply 'expand' recursively on all sub-expressions
-        | ExprShape.ShapeVar v -> Expr.Var v
-        | Patterns.Call(body, DerivedPatterns.MethodWithReflectedDefinition meth, args) ->
-            let this = match body with Some b -> Expr.Application(meth, b) | _ -> meth
-            let res = Expr.Applications(this, [ for a in args -> [a]])
-            expand vars res
-        | ExprShape.ShapeLambda(v, expr) -> 
-            Expr.Lambda(v, expand vars expr)
-        | ExprShape.ShapeCombination(o, exprs) ->
-            ExprShape.RebuildShapeCombination(o, List.map (expand vars) exprs)
+        let localVarsNames =
+            expr
+            |> Utils.collectLocalVars
+            |> List.map (fun var -> var.Name)
 
-      // After expanding, try reducing the expression - we can replace 'let'
-      // expressions and applications where the first argument is lambda
-      match expanded with
-      | Patterns.Application(ExprShape.ShapeLambda(v, body), assign)
-      | Patterns.Let(v, assign, body) ->
-          expand (Map.add v (expand vars assign) vars) body
-      | _ -> expanded
+        let atomicApplicationsInfo =
+            let atomicPointerArgQualifiers = Dictionary<Var, AddressSpaceQualifier<Lang>>()
 
-    let addReturn subAST = 
-        let rec adding (stmt:Statement<'lang>) =
-            match stmt with
-            | :? StatementBlock<'lang> as sb -> 
-                let listStaments = sb.Statements
-                let lastStatement = listStaments.[listStaments.Count - 1]
-                sb.Remove (listStaments.Count - 1)             
-                sb.Append(adding lastStatement)
-                sb :> Statement<_>
-            | :? Expression<'lang> as ex -> (new Return<_>(ex)) :> Statement<_>
-            | :? IfThenElse<'lang> as ite -> 
-                let newThen = (adding (ite.Then)) :?> StatementBlock<_>
-                let newElse =
-                    if(ite.Else = None) then
-                        None
+            let (|AtomicApplArgs|_|) (args: Expr list list) =
+                match args with
+                | [mutex] :: _ :: [[DerivedPatterns.SpecificCall <@ ref @> (_, _, [Patterns.ValidVolatileArg var])]]
+                | [mutex] :: [[DerivedPatterns.SpecificCall <@ ref @> (_, _, [Patterns.ValidVolatileArg var])]] -> Some (mutex, var)
+                | _ -> None
+
+            let rec go expr =
+                match expr with
+                | DerivedPatterns.Applications
+                    (
+                        Patterns.Var funcVar,
+                        AtomicApplArgs (_, volatileVar)
+                    )
+                    when funcVar.Name.StartsWith "atomic" ->
+
+                    if kernelArgumentsNames |> List.contains volatileVar.Name then
+                        atomicPointerArgQualifiers.Add(funcVar, Global)
+                    elif localVarsNames |> List.contains volatileVar.Name then
+                        atomicPointerArgQualifiers.Add(funcVar, Local)
                     else
-                        Some((adding (ite.Else.Value)) :?> StatementBlock<_> )
-                (new IfThenElse<_>(ite.Condition,newThen, newElse)) :> Statement<_>
-            | _ -> failwithf "Unsapported statement to add Return: %A" stmt
+                        failwith "Atomic pointer argument should be from local or global memory only"
 
-        adding subAST
+                | ExprShape.ShapeVar _ -> ()
+                | ExprShape.ShapeLambda (_, lambda) -> go lambda
+                | ExprShape.ShapeCombination (_, exprs) -> List.iter go exprs
 
+            functions
+            |> List.map snd
+            |> fun tail -> expr :: tail
+            |> Seq.iter go
 
-    let mutable newAST = new ResizeArray<Method>()
-    let brahmaDimensionsTypes = ["_1d";"_2d";"_3d"]
-    let brahmaDimensionsTypesPrefix = "brahma.opencl."
-    let bdts = brahmaDimensionsTypes |> List.map (fun s -> brahmaDimensionsTypesPrefix + s)
-    let buildFullAst (varsList:ResizeArray<_>) types (partialAstList:ResizeArray<_>) (contextList:ResizeArray<TargetContext<_,_>>) =
-        let mutable listCLFun = []
-        for i in 0..(varsList.Count-1) do
-            let formalArgs = 
-                varsList.[i] |> List.filter (fun (v:Var) -> bdts |> List.exists((=) (v.Type.FullName.ToLowerInvariant())) |> not)
-                |> List.map 
-                    (fun v -> 
-                       
-                        let t = Type.Translate v.Type true None (contextList.[i]) 
-                        new FunFormalArg<_>(t :? RefType<_> , v.Name, t))
-            let nameFun:Var = ((newAST.[i]).FunVar)
-            let mutable retFunType = new PrimitiveType<_>(Void) :> Type<_>
-            if i <> varsList.Count-1 then
-                let typeFun = newAST.[i].FunVar.Type                
-                retFunType <- Type.Translate typeFun  false  None (contextList.[i])
-            let typeRet = retFunType :?> PrimitiveType<_>
-            let partAST, isKernel = 
-                if typeRet.Type <> PTypes.Void
-                then addReturn partialAstList.[i], false
-                else partialAstList.[i], true
+            atomicPointerArgQualifiers
+            |> Seq.map (|KeyValue|)
+            |> Map.ofSeq
 
-            let mainKernelFun = new FunDecl<_>(isKernel, nameFun.Name, retFunType, formalArgs,partAST)
-            
-            let pragmas = 
-                let res = new ResizeArray<_>()
-                if contextList.[i].Flags.enableAtomic
-                then
-                    res.Add(new CLPragma<_>(CLGlobalInt32BaseAtomics) :> TopDef<_>)
-                    res.Add(new CLPragma<_>(CLLocalInt32BaseAtomics) :> TopDef<_>)
-                if contextList.[i].Flags.enableFP64
-                then res.Add(new CLPragma<_>(CLFP64))
-                List.ofSeq res
-            let translatedTuples = contextList.[i].tupleList |> Seq.cast<_> |> List.ofSeq 
-            listCLFun <- pragmas@translatedTuples@types@listCLFun@[mainKernelFun]
-        new AST<_>(listCLFun)
+        kernelArgumentsNames, localVarsNames, atomicApplicationsInfo
 
-    let translate qExpr translatorOptions =
-        
-        let structs = CollectStructs qExpr
-        let context = new TargetContext<_,_>()
-        let translatedStructs = Type.TransleteStructDecls structs.Keys context |> Seq.cast<_> |> List.ofSeq
-        newAST <- QuotationsTransformer.quontationTransformer qExpr translatorOptions
+    let constructMethods (expr: Expr) (functions: (Var * Expr) list) (atomicApplicationsInfo: Map<Var, AddressSpaceQualifier<Lang>>) =
+        let kernelFunc = KernelFunc(Var(mainKernelName, expr.Type), expr) :> Method |> List.singleton
 
-        //let qExpr = expand Map.empty qExpr
-        let rec go expr vars  =
-            match expr with
-            | Patterns.Lambda (v, body) -> go body (v::vars) 
-            | e -> 
-                let body =
-                    let b,context =
-                        let c = new TargetContext<_,_>()
-                        c.UserDefinedTypes.AddRange context.UserDefinedTypes
-                        c.UserDefinedTypesOpenCLDeclaration.Clear()
-                        for x in context.UserDefinedTypesOpenCLDeclaration do c.UserDefinedTypesOpenCLDeclaration.Add (x.Key,x.Value)
-                        for x in context.tupleDecls do c.tupleDecls.Add(x.Key,x.Value)
-                        for x in context.tupleList do c.tupleList.Add(x)
-                        c.tupleNumber <- context.tupleNumber
+        let methods =
+            functions
+            |> List.map (fun (var, expr) ->
+                match atomicApplicationsInfo |> Map.tryFind var with
+                | Some qual -> AtomicFunc(var, expr, qual) :> Method
+                | None -> Function(var, expr) :> Method
+            )
 
-                        c.Flags.enableFP64 <- context.Flags.enableFP64
-                        c.Namer.LetIn()
-                        c.TranslatorOptions.AddRange translatorOptions
-                        vars |> List.iter (fun v -> c.Namer.AddVar v.Name)
-                        //printfn "%A" e
-                        Body.Translate e c
-                    match b  with
-                    | :? StatementBlock<Lang> as sb -> sb
-                    | :? Statement<Lang> as s -> new StatementBlock<_>(new ResizeArray<_>([s]))
-                    | _ -> failwithf "Incorrect function body: %A" b
-                    ,context
-                vars, body
-            | x -> "Incorrect OpenCL quotation: " + string x |> failwith
-        
-        let listPartsASTVars = new ResizeArray<_>()
-        let listPartsASTPartialAst = new ResizeArray<_>()
-        let listPartsASTContext = new ResizeArray<_>()        
-        Body.dictionaryFun.Clear()
-        for partAST in  newAST do
-            let vars,(partialAst,context) = go partAST.FunExpr [] 
-            listPartsASTVars.Add(List.rev vars)
-            listPartsASTPartialAst.Add((partialAst :> Statement<_>))
-            listPartsASTContext.Add(context)
-            //Body.dictionaryFun.Add(partAST.FunVar.Name, partialAst)
-        let AST = buildFullAst (listPartsASTVars) translatedStructs (listPartsASTPartialAst) listPartsASTContext
-        AST, newAST        
-  
-    member this.Translate qExpr translatorOptions = 
-        let ast, newQExpr = translate qExpr translatorOptions
-        ast, newQExpr
+        methods @ kernelFunc
+
+    let transformQuotation expr =
+        expr
+        |> replacePrintf
+        |> GettingWorkSizeTransformer.__
+        |> processAtomic
+        |> makeVarNameUnique
+        |> transformVarDefsToLambda
+        |> transformMutableVarsToRef
+        |> makeVarNameUnique
+        |> lambdaLifting
+
+    let translate expr =
+        let context = TranslationContext.Create(translatorOptions)
+
+        // TODO: Extract quotationTransformer to translator
+        let (kernelExpr, functions) = transformQuotation expr
+        let (globalVars, localVars, atomicApplicationsInfo) = collectData kernelExpr functions
+        let methods = constructMethods kernelExpr functions atomicApplicationsInfo
+
+        let clFuncs = ResizeArray()
+        for method in methods do
+            clFuncs.AddRange(method.Translate(globalVars, localVars) |> State.eval context)
+
+        let pragmas =
+            let pragmas = ResizeArray()
+
+            context.Flags
+            |> Seq.iter (fun (flag: Flag) ->
+                match flag with
+                | EnableAtomic ->
+                    pragmas.Add(CLPragma CLGlobalInt32BaseAtomics :> ITopDef<_>)
+                    pragmas.Add(CLPragma CLLocalInt32BaseAtomics :> ITopDef<_>)
+                | EnableFP64 ->
+                    pragmas.Add(CLPragma CLFP64)
+            )
+
+            List.ofSeq pragmas
+
+        let userDefinedTypes =
+            context.CStructDecls.Values
+            |> Seq.map StructDecl
+            |> Seq.cast<ITopDef<Lang>>
+            |> List.ofSeq
+
+        AST(pragmas @ userDefinedTypes @ List.ofSeq clFuncs),
+        methods
+        |> List.find (fun method -> method :? KernelFunc)
+        |> fun kernel -> kernel.FunExpr
+
+    member val Marshaller = CustomMarshaller() with get
+
+    member this.TranslatorOptions = translatorOptions
+
+    member this.Translate(qExpr) =
+        lock lockObject <| fun () ->
+            translate qExpr
+
+    member this.TransformQuotation(expr: Expr) =
+        transformQuotation expr
+
+    static member CreateDefault() =
+        let device =
+            { new IDevice with
+                member this.Name = ""
+                member this.Platform = Platform.Any
+                member this.DeviceType = DeviceType.Default
+                member this.MaxWorkGroupSize = 0
+                member this.MaxWorkItemDimensions = 0
+                member this.MaxWorkItemSizes = [| 0 |]
+                member this.DeviceExtensions = [||]
+                member this.LocalMemSize = 0<Byte>
+                member this.GlobalMemSize = 0L<Byte>
+            }
+
+        FSQuotationToOpenCLTranslator(device)

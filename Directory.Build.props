@@ -1,0 +1,18 @@
+<Project>
+    <ItemGroup>
+      <None Include="../../docsSrc/files/figures/BrahmaFSharpLogoBW_small1.png" Pack="true" PackagePath="/"/>
+      <None Include="../../LICENSE.md" Pack="true" PackagePath="/"/>
+    </ItemGroup>
+    <PropertyGroup>
+        <!-- summary is not migrated from project.json, but you can use the <Description> property for that if needed. -->
+        <PackageTags>OpenCL, GPGPU, f#, fsharp</PackageTags>
+        <PackageProjectUrl>https://github.com/YaccConstructor/Brahma.FSharp</PackageProjectUrl>
+        <PackageIcon>BrahmaFSharpLogoBW_small1.png</PackageIcon>
+        <PackageLicenseExpression>EPL-1.0</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <RepositoryType>git</RepositoryType>
+        <Authors>YaccConstructor</Authors>
+        <RepositoryUrl>https://github.com/YaccConstructor/Brahma.FSharp</RepositoryUrl>
+        <!-- owners is not supported in MSBuild -->
+    </PropertyGroup>
+</Project>

@@ -1,0 +1,130 @@
+name: FAKE Build on Push
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  win-build:
+    name: Windows Build (No Tests)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: System Info
+        run: systeminfo
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: ./build.cmd DotnetBuild
+        env:
+          CI: true
+
+  win-test:
+    name: Windows Build And Test
+    if: github.repository_owner != 'YaccConstructor'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: System Info
+        run: systeminfo
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Install OpenCL
+        run: |
+          set NUGETDIR=C:\NUGET
+          nuget install opencl-nug -Version 0.777.77 -OutputDirectory %NUGETDIR%
+          dir %NUGETDIR%\opencl-nug.0.777.77\build\native\
+          set OCL_ROOT=%NUGETDIR%\opencl-nug.0.777.77\build\native
+          # Install OpenCL Runtime
+          choco install opencl-intel-cpu-runtime
+
+      - name: Build And Test
+        run: ./build.cmd
+        env:
+          CI: true
+
+  linux-build:
+    name: Linux Build (No Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: System Info
+        run: lscpu
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+        
+      - name: Build
+        run: |
+          chmod +x ./build.sh
+          ./build.sh DotnetBuild
+        env:
+          CI: true
+
+  linux-test:
+    name: Linux Build And Test
+    if: github.repository_owner != 'YaccConstructor'
+    runs-on: ubuntu-latest
+    steps:
+      - name: System Info
+        run: lscpu
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Install OpenCL
+        run: |
+          chmod +x ./.github/workflows/install-ubuntu-dependencies.sh
+          sudo ./.github/workflows/install-ubuntu-dependencies.sh
+
+      - name: Download "clinfo.exe"
+        run: sudo apt install clinfo
+
+      - name: OpenCL Info
+        run: clinfo
+
+      - name: Build And Test
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+        env:
+          CI: true
+
+  linux-test-self-hosted:
+    name: Linux Self-Hosted Test
+    if: github.repository_owner == 'YaccConstructor'
+    runs-on: self-hosted
+    steps:
+      - name: System Info
+        run: lscpu
+
+      - uses: actions/checkout@v3
+
+      - name: OpenCL Info
+        run: clinfo
+
+      - name: Build And Test
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+        env:
+          CI: true

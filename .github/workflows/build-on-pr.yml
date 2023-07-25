@@ -1,0 +1,66 @@
+name: FAKE Build on PR
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  win-build:
+    name: Windows Build (No Tests)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: System Info
+        run: systeminfo
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: ./build.cmd DotnetBuild
+        env:
+          CI: true
+
+  linux-build:
+    name: Linux Build (No Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: System Info
+        run: lscpu
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: |
+          chmod +x ./build.sh
+          ./build.sh DotnetBuild
+        env:
+          CI: true
+
+  linux-test-self-hosted:
+    name: Linux Self-Hosted Test
+    runs-on: self-hosted
+    steps:
+      - name: System Info
+        run: lscpu
+
+      - uses: actions/checkout@v3
+
+      - name: OpenCL Info
+        run: clinfo
+
+      - name: Build And Test
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+        env:
+          CI: true

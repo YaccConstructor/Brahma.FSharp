@@ -1,0 +1,27 @@
+name: Publish Nuget packages
+
+on:
+  push:
+    tags:
+      - '*'
+      
+jobs:
+  publish-self-hosted:
+    name: Build, test, and publish Nuget packages on self-hosted server with GPU
+    if: github.repository_owner == 'YaccConstructor'
+    runs-on: self-hosted
+    steps:        
+      - uses: actions/checkout@v3
+
+      - name: OpenCL Info
+        run: clinfo
+        
+      - name: Build, test, publish
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
+          FAKE_DETAILED_ERRORS: true
+          CI: true
+        run:  |
+          chmod +x ./build.sh
+          ./build.sh Publish

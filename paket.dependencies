@@ -1,24 +1,66 @@
-source https://nuget.org/api/v2
+source https://www.nuget.org/api/v2
+source https://api.nuget.org/v3/index.json
+framework: net7.0
+storage: none
 
-nuget Argu
-nuget FSharp.Quotations.Evaluator
-nuget FSharpx.Collections
-nuget NuGet.CommandLine
-nuget NUnit 2.6.3
-nuget OpenCL.Net 2.2.9.0
-nuget YC.PrettyPrinter
+nuget FSharp.Core 7.0.0
+nuget Microsoft.SourceLink.GitHub 1.0.0 copy_local: true
+nuget Expecto //9.0.2
+nuget Expecto.FsCheck //9.0.2
+nuget YoloDev.Expecto.TestSdk
+nuget Microsoft.NET.Test.Sdk 16.8.0
+nuget altcover ~> 7
 
+nuget ExtraConstraints.Fody 1.14.0
+nuget Microsoft.Build.Framework 16.10.0
+nuget System.CodeDom //5.0.0
+nuget FSharp.Quotations.Evaluator //2.1.0
+nuget FSharpx.Collections //2.1.3
+nuget FSharpx.Text.StructuredFormat //3.0.0
+nuget System.Runtime.CompilerServices.Unsafe 6.0.0
+nuget Microsoft.NETCore.Platforms //5.0.0
+
+nuget BenchmarkDotNet
+nuget ILGPU 1.1.0
+nuget FSCL.Runtime 2.0.1
+
+// [ FAKE GROUP ]
 group Build
-  source https://nuget.org/api/v2
-  
-  nuget SourceLink.Fake
-  nuget FAKE
-  nuget FSharp.Formatting
+  storage: none
+  source https://www.nuget.org/api/v2
+  source https://api.nuget.org/v3/index.json
+  framework: net7.0
+  nuget Fake.IO.FileSystem 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.Core.Target 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.Core.ReleaseNotes 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget FAKE.Core.Environment 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.DotNet.Cli 6.0.0-beta001
+  nuget FAKE.Core.Process 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.DotNet.AssemblyInfoFile 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.Tools.Git 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.DotNet.Paket 6.0.0-beta001 //5.23.1
+  nuget Fake.Api.GitHub 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.BuildServer.GitHubActions 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fantomas //3.2
+  nuget Argu
+  nuget Octokit //0.48
 
-  github fsharp/FAKE modules/Octokit/Octokit.fsx
+group Docs
+  storage: none
+  source https://www.nuget.org/api/v2
+  source https://api.nuget.org/v3/index.json
+  framework: net7.0
+  nuget Argu
+  nuget FSharp.Compiler.Service 34.1.0
+  nuget FSharp.Core // ~> 4.6
+  nuget Fake.IO.FileSystem 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget FAKE.Core.Environment 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget Fake.DotNet.Cli 6.0.0-beta001 //5.20.4-alpha.1642
+  nuget FSharp.Formatting 4.0.0-rc1
+  nuget FSharp.Literate 4.0.0-rc1
+  nuget Fable.React
 
-group Test
-  source https://nuget.org/api/v2
-  
-  nuget NUnit ~> 2
-  nuget NUnit.Runners ~> 2
+//group Analyzers
+//  source https://www.nuget.org/api/v2
+//  source https://api.nuget.org/v3/index.json
+//  nuget BinaryDefense.FSharp.Analyzers.Hashing 0.2.2

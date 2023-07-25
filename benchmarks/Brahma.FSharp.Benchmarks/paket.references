@@ -1,0 +1,5 @@
+FSharp.Core
+BenchmarkDotNet
+Expecto.FsCheck
+ILGPU
+FSCL.Runtime

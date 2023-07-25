@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <WarnOn>3390;$(WarnOn)</WarnOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="BenchmarksSimple.fs" />
+    <Compile Include="BenchmarksTransfer\TransferBenchmarks.fs" />
+    <Compile Include="BenchmarksTransfer\BrahmaTransferBenchmarks.fs" />
+    <Compile Include="BenchmarksTransfer\IlgpuTransferBenchmarks.fs" />
+    <Compile Include="BenchmarksTransfer\FsclTransferBenchmarks.fs" />
+    <Compile Include="BenchmarksAtomic\AtomicBenchamrks.fs" />
+    <Compile Include="BenchmarksAtomic\BrahmaAtomicBenchamrks.fs" />
+    <Compile Include="BenchmarksAtomic\IlgpuAtomicBenchamrks.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brahma.FSharp.OpenCL.Core\Brahma.FSharp.OpenCL.Core.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

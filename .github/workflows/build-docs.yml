@@ -1,0 +1,48 @@
+name: BuildDocs
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  win-build:
+    name: Windows Build Docs
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: System Info
+        run: systeminfo
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: ./build.cmd BuildDocs
+        env:
+          CI: true
+
+  linux-build:
+    name: Linux Build Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: System Info
+        run: lscpu
+
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: |
+          chmod +x ./build.sh
+          ./build.sh BuildDocs
+        env:
+          CI: true

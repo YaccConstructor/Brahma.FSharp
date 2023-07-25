@@ -1,115 +1,46 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>bbb08eb4-a2ae-430b-a29c-3b3446f69a6d</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Brahma.FSharp.OpenCL.Translator</RootNamespace>
     <AssemblyName>Brahma.FSharp.OpenCL.Translator</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>Brahma.FSharp.OpenCL.Translator</Name>
-    <TargetFrameworkProfile />
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <TargetFramework>net7.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <WarningLevel>3</WarningLevel>
+  <PropertyGroup>
+    <Title>Brahma.FSharp.OpenCL.Translator</Title>
+    <Description>F# quotations to OpenCL C translator.</Description>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Brahma.FSharp.OpenCL.Translator.XML</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
-  </PropertyGroup>
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '11.0'">
-      <PropertyGroup>
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
-      <PropertyGroup>
-        <__paket__OpenCL_Net_targets>net40\OpenCL.Net</__paket__OpenCL_Net_targets>
-      </PropertyGroup>
-    </When>
-  </Choose>
   <ItemGroup>
-    <Compile Include="Namer.fs" />
-    <Compile Include="Common.fs" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Utils\StateBuilder.fs" />
+    <Compile Include="Utils\Extensions.fs" />
+    <Compile Include="Utils\Utils.fs" />
+    <Compile Include="Bindings.fs" />
+    <Compile Include="Exceptions.fs" />
+    <Compile Include="TranslatorOptions.fs" />
+    <Compile Include="TranslationContext.fs" />
+    <Compile Include="QuotationTransformers\Utilities\Utils.fs" />
+    <Compile Include="QuotationTransformers\Utilities\Patterns.fs" />
+    <Compile Include="QuotationTransformers\GettingWorkSizeTransformer.fs" />
+    <Compile Include="QuotationTransformers\AtomicTransformer.fs" />
+    <Compile Include="QuotationTransformers\PrintfTransformer.fs" />
+    <Compile Include="QuotationTransformers\VarDefsToLambdaTransformer.fs" />
+    <Compile Include="QuotationTransformers\MutableVarsToRefTransformer.fs" />
+    <Compile Include="QuotationTransformers\UniqueVarNamesTransformer.fs" />
+    <Compile Include="QuotationTransformers\LambdaLiftingTransformer.fs" />
     <Compile Include="Type.fs" />
-    <Compile Include="Array.fs" />
-    <Compile Include="QuotationsTransformer.fs" />
     <Compile Include="Body.fs" />
+    <Compile Include="Methods.fs" />
+    <Compile Include="CustomMarshaller.fs" />
     <Compile Include="Translator.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Brahma.FSharp.OpenCL.AST\Brahma.FSharp.OpenCL.AST.fsproj" />
+    <ProjectReference Include="..\Brahma.FSharp.OpenCL.Shared\Brahma.FSharp.OpenCL.Shared.fsproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Brahma.FSharp.OpenCL.AST\Brahma.FSharp.OpenCL.AST.fsproj">
-      <Name>Brahma.FSharp.OpenCL.AST</Name>
-      <Project>{e0388e66-e36c-4eca-adcc-bfd115820c25}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <Import Project="..\..\.paket\paket.targets" />
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
-      <ItemGroup>
-        <Reference Include="FSharpx.Collections">
-          <HintPath>..\..\packages\FSharpx.Collections\lib\net40\FSharpx.Collections.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
-      <ItemGroup>
-        <Reference Include="OpenCL.Net">
-          <HintPath>..\..\packages\OpenCL.Net\lib\net40\OpenCL.Net.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Import Project="..\..\packages\OpenCL.Net\build\$(__paket__OpenCL_Net_targets).targets" Condition="Exists('..\..\packages\OpenCL.Net\build\$(__paket__OpenCL_Net_targets).targets')" Label="Paket" />
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

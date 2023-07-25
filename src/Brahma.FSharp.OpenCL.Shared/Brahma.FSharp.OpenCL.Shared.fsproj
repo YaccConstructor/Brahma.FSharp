@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brahma.FSharp.OpenCL.Shared</AssemblyName>
+    <TargetFramework>net7.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Title>Brahma.FSharp.OpenCL.Shared</Title>
+    <Description>Shared components for Brahma.FSharp project.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="KernelLangExtensions.fs" />
+    <Compile Include="IBuffer.fs" />
+    <Compile Include="IDevice.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\YC.OpenCL.NET\YC.OpenCL.NET.csproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

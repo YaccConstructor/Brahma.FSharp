@@ -1,0 +1,3 @@
+ExtraConstraints.Fody
+Microsoft.Build.Framework
+System.CodeDom
