@@ -19,8 +19,7 @@ module Utils =
     let makeLambdaType types =
         List.reduceBack (fun domain range -> FSharpType.MakeFunctionType(domain, range)) types
 
-    let makeLambdaExpr (args: Var list) (body: Expr) =
-        List.foldBack (fun var expr -> Expr.Lambda(var, expr)) args body
+    let makeLambdaExpr (args: Var list) (body: Expr) = List.foldBack (fun var expr -> Expr.Lambda(var, expr)) args body
 
     let makeApplicationExpr (head: Expr) (expressions: Expr list) =
         List.fold (fun l r -> Expr.Application(l, r)) head expressions
@@ -93,11 +92,7 @@ module Utils =
             let tp = reference.Type.GenericTypeArguments.[0]
             let newMethodInfo = methodInfo.GetGenericMethodDefinition().MakeGenericMethod(tp)
 
-            Expr.Call(
-                newMethodInfo,
-                [ reference
-                  value ]
-            )
+            Expr.Call(newMethodInfo, [ reference; value ])
         | _ -> failwithf "createReferenceSetCall: (:=) is not more a Call expression"
 
     let isGlobal (var: Var) =

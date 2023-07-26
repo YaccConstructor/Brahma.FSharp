@@ -10,6 +10,7 @@
     <Title>Brahma.FSharp.OpenCL.Core</Title>
     <Description>Core components of Brahma.FSharp.</Description>
     <OtherFlags>--warnon:3390</OtherFlags>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Optimize>true</Optimize>

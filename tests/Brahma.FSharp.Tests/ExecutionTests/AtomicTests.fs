@@ -37,7 +37,8 @@ module Helpers =
             { Config.QuickThrowOnFailure with
                 QuietOnSuccess = true
                 MaxTest = 20
-                Arbitrary = [ typeof<NormalizedFloatArray> ] }
+                Arbitrary = [ typeof<NormalizedFloatArray> ]
+            }
 
     let checkDefault<'a when 'a: equality and 'a: struct> context expected kernel =
         let actual =
@@ -95,78 +96,86 @@ let stressTest<'a when 'a: equality and 'a: struct> context (f: Expr<'a -> 'a>) 
     "Results should be equal" |> Expect.isTrue (isEqual actual expected)
 
 let stressTestCases context =
-    [ let range = [ 1..10..100 ]
+    [
+        let range = [ 1..10..100 ]
 
-      // int
-      yield!
-          range
-          |> List.map (fun size ->
-              testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on int"
-              <| fun () -> stressTest<int> context <@ inc @> size (fun x -> x + 1) (=))
+        // int
+        yield!
+            range
+            |> List.map (fun size ->
+                testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on int"
+                <| fun () -> stressTest<int> context <@ inc @> size (fun x -> x + 1) (=)
+            )
 
-      yield!
-          range
-          |> List.map (fun size ->
-              testCase $"Smoke stress test (size %i{size}) on atomic 'dec' on int"
-              <| fun () -> stressTest<int> context <@ dec @> size (fun x -> x - 1) (=))
+        yield!
+            range
+            |> List.map (fun size ->
+                testCase $"Smoke stress test (size %i{size}) on atomic 'dec' on int"
+                <| fun () -> stressTest<int> context <@ dec @> size (fun x -> x - 1) (=)
+            )
 
-      // float32
-      yield!
-          range
-          |> List.map (fun size ->
-              testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on float32"
-              <| fun () ->
-                  stressTest<float32>
-                      context
-                      <@ fun x -> x + 1.f @>
-                      size
-                      (fun x -> x + 1.f)
-                      (fun x y -> float (abs (x - y)) < Accuracy.low.relative))
+        // float32
+        yield!
+            range
+            |> List.map (fun size ->
+                testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on float32"
+                <| fun () ->
+                    stressTest<float32>
+                        context
+                        <@ fun x -> x + 1.f @>
+                        size
+                        (fun x -> x + 1.f)
+                        (fun x y -> float (abs (x - y)) < Accuracy.low.relative)
+            )
 
-      // double
-      yield!
-          range
-          |> List.map (fun size ->
-              testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on float"
-              <| fun () ->
-                  stressTest<float>
-                      context
-                      <@ fun x -> x + 1. @>
-                      size
-                      (fun x -> x + 1.)
-                      (fun x y -> abs (x - y) < Accuracy.low.relative))
+        // double
+        yield!
+            range
+            |> List.map (fun size ->
+                testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on float"
+                <| fun () ->
+                    stressTest<float>
+                        context
+                        <@ fun x -> x + 1. @>
+                        size
+                        (fun x -> x + 1.)
+                        (fun x y -> abs (x - y) < Accuracy.low.relative)
+            )
 
-      // bool
-      yield!
-          range
-          |> List.map (fun size ->
-              testCase $"Smoke stress test (size %i{size}) on atomic 'not' on bool"
-              <| fun () -> stressTest<bool> context <@ not @> size not (=))
+        // bool
+        yield!
+            range
+            |> List.map (fun size ->
+                testCase $"Smoke stress test (size %i{size}) on atomic 'not' on bool"
+                <| fun () -> stressTest<bool> context <@ not @> size not (=)
+            )
 
-      // WrappedInt (не работает транляция или типа того)
-      let wrappedIntInc = <@ fun x -> x + WrappedInt(1) @>
+        // WrappedInt (не работает транляция или типа того)
+        let wrappedIntInc = <@ fun x -> x + WrappedInt(1) @>
 
-      yield!
-          range
-          |> List.map (fun size ->
-              ptestCase $"Smoke stress test (size %i{size}) on custom atomic 'inc' on WrappedInt"
-              <| fun () -> stressTest<WrappedInt> context wrappedIntInc size (fun x -> x + WrappedInt(1)) (=))
+        yield!
+            range
+            |> List.map (fun size ->
+                ptestCase $"Smoke stress test (size %i{size}) on custom atomic 'inc' on WrappedInt"
+                <| fun () -> stressTest<WrappedInt> context wrappedIntInc size (fun x -> x + WrappedInt(1)) (=)
+            )
 
-      // custom int op
-      let incx2 = <@ fun x -> x + 2 @>
+        // custom int op
+        let incx2 = <@ fun x -> x + 2 @>
 
-      yield!
-          range
-          |> List.map (fun size ->
-              testCase $"Smoke stress test (size %i{size}) on atomic unary func on int"
-              <| fun () -> stressTest<int> context incx2 size (fun x -> x + 2) (=)) ]
+        yield!
+            range
+            |> List.map (fun size ->
+                testCase $"Smoke stress test (size %i{size}) on atomic unary func on int"
+                <| fun () -> stressTest<int> context incx2 size (fun x -> x + 2) (=)
+            )
+    ]
 
 /// Test for add and sub like atomic operations.
 /// Use local and global atomics,
 /// use reading from global mem in local atomic
 let foldTest<'a when 'a: equality and 'a: struct> context f (isEqual: 'a -> 'a -> bool) =
-    let (.=.) left right =
-        isEqual left right |@ $"%A{left} = %A{right}"
+    let (.=.) left right = isEqual left right |@ $"%A{left} = %A{right}"
 
     Check.One(
         Settings.fscheckConfig,
@@ -219,54 +228,55 @@ let foldTest<'a when 'a: equality and 'a: struct> context f (isEqual: 'a -> 'a -
 
 let foldTestCases context =
     [
-      // int, smoke tests
-      testCase "Smoke fold test atomic 'add' on int"
-      <| fun () -> foldTest<int> context <@ (+) @> (=)
+        // int, smoke tests
+        testCase "Smoke fold test atomic 'add' on int"
+        <| fun () -> foldTest<int> context <@ (+) @> (=)
 
-      // float
-      testCase "Fold test atomic 'add' on float32"
-      <| fun () -> foldTest<float32> context <@ (+) @> (fun x y -> float (abs (x - y)) < Accuracy.low.relative)
+        // float
+        testCase "Fold test atomic 'add' on float32"
+        <| fun () -> foldTest<float32> context <@ (+) @> (fun x y -> float (abs (x - y)) < Accuracy.low.relative)
 
-      // double
-      testCase "Fold test atomic 'add' on float"
-      <| fun () -> foldTest<float> context <@ (+) @> (fun x y -> abs (x - y) < Accuracy.low.relative)
+        // double
+        testCase "Fold test atomic 'add' on float"
+        <| fun () -> foldTest<float> context <@ (+) @> (fun x y -> abs (x - y) < Accuracy.low.relative)
 
-      // bool
-      ptestCase "Fold test atomic '&&' on bool"
-      <| fun () -> foldTest<bool> context <@ (&&) @> (=)
+        // bool
+        ptestCase "Fold test atomic '&&' on bool"
+        <| fun () -> foldTest<bool> context <@ (&&) @> (=)
 
-      testCase "Reduce test atomic 'min' on int"
-      <| fun () -> foldTest<int> context <@ min @> (=)
-      ptestCase "Reduce test atomic 'min' on int64"
-      <| fun () -> foldTest<int64> context <@ min @> (=)
-      testCase "Reduce test atomic 'min' on int16"
-      <| fun () -> foldTest<int16> context <@ min @> (=)
+        testCase "Reduce test atomic 'min' on int"
+        <| fun () -> foldTest<int> context <@ min @> (=)
+        ptestCase "Reduce test atomic 'min' on int64"
+        <| fun () -> foldTest<int64> context <@ min @> (=)
+        testCase "Reduce test atomic 'min' on int16"
+        <| fun () -> foldTest<int16> context <@ min @> (=)
 
-      testCase "Reduce test atomic 'max' on int"
-      <| fun () -> foldTest<int> context <@ max @> (=)
-      ptestCase "Reduce test atomic 'max' on int64"
-      <| fun () -> foldTest<int64> context <@ max @> (=)
-      testCase "Reduce test atomic 'max' on int16"
-      <| fun () -> foldTest<int16> context <@ max @> (=)
+        testCase "Reduce test atomic 'max' on int"
+        <| fun () -> foldTest<int> context <@ max @> (=)
+        ptestCase "Reduce test atomic 'max' on int64"
+        <| fun () -> foldTest<int64> context <@ max @> (=)
+        testCase "Reduce test atomic 'max' on int16"
+        <| fun () -> foldTest<int16> context <@ max @> (=)
 
-      testCase "Reduce test atomic '&&&' on int"
-      <| fun () -> foldTest<int> context <@ (&&&) @> (=)
-      ptestCase "Reduce test atomic '&&&' on int64"
-      <| fun () -> foldTest<int64> context <@ (&&&) @> (=)
+        testCase "Reduce test atomic '&&&' on int"
+        <| fun () -> foldTest<int> context <@ (&&&) @> (=)
+        ptestCase "Reduce test atomic '&&&' on int64"
+        <| fun () -> foldTest<int64> context <@ (&&&) @> (=)
 
-      testCase "Reduce test atomic '|||' on int"
-      <| fun () -> foldTest<int> context <@ (|||) @> (=)
-      ptestCase "Reduce test atomic '|||' on int64"
-      <| fun () -> foldTest<int64> context <@ (|||) @> (=)
+        testCase "Reduce test atomic '|||' on int"
+        <| fun () -> foldTest<int> context <@ (|||) @> (=)
+        ptestCase "Reduce test atomic '|||' on int64"
+        <| fun () -> foldTest<int64> context <@ (|||) @> (=)
 
-      testCase "Reduce test atomic '^^^' on int"
-      <| fun () -> foldTest<int> context <@ (^^^) @> (=)
-      ptestCase "Reduce test atomic '^^^' on int64"
-      <| fun () -> foldTest<int64> context <@ (^^^) @> (=)
+        testCase "Reduce test atomic '^^^' on int"
+        <| fun () -> foldTest<int> context <@ (^^^) @> (=)
+        ptestCase "Reduce test atomic '^^^' on int64"
+        <| fun () -> foldTest<int64> context <@ (^^^) @> (=)
 
-      // WrappedInt (не работает транляция или типа того)
-      ptestCase "Fold test atomic 'add' on WrappedInt"
-      <| fun () -> foldTest<WrappedInt> context <@ (+) @> (=) ]
+        // WrappedInt (не работает транляция или типа того)
+        ptestCase "Fold test atomic 'add' on WrappedInt"
+        <| fun () -> foldTest<WrappedInt> context <@ (+) @> (=)
+    ]
 
 let xchgTest<'a when 'a: equality and 'a: struct> context cmp value =
     let localSize = Settings.wgSize
@@ -287,8 +297,10 @@ let xchgTest<'a when 'a: equality and 'a: struct> context cmp value =
         opencl {
             use! buffer =
                 ClArray.toDevice
-                    [| for i = 0 to localSize - 1 do
-                           if i < localSize / 2 then cmp else value |]
+                    [|
+                        for i = 0 to localSize - 1 do
+                            if i < localSize / 2 then cmp else value
+                    |]
 
             do!
                 runCommand kernel
@@ -301,11 +313,13 @@ let xchgTest<'a when 'a: equality and 'a: struct> context cmp value =
     "Results should be equal" |> Expect.sequenceEqual actual expected
 
 let xchgTestCases context =
-    [ testCase "Xchg test on int" <| fun () -> xchgTest<int> context 0 256
-      testCase "Xchg test on float" <| fun () -> xchgTest<float> context 0. 256.
-      testCase "Xchg test on bool" <| fun () -> xchgTest<bool> context false true
-      ptestCase "Xchg test on WrappedInt"
-      <| fun () -> xchgTest<WrappedInt> context (WrappedInt 0) (WrappedInt 256) ]
+    [
+        testCase "Xchg test on int" <| fun () -> xchgTest<int> context 0 256
+        testCase "Xchg test on float" <| fun () -> xchgTest<float> context 0. 256.
+        testCase "Xchg test on bool" <| fun () -> xchgTest<bool> context false true
+        ptestCase "Xchg test on WrappedInt"
+        <| fun () -> xchgTest<WrappedInt> context (WrappedInt 0) (WrappedInt 256)
+    ]
 
 // TODO barrier broken
 let perfomanceTest context =
@@ -360,8 +374,10 @@ let perfomanceTest context =
         |> Expect.isFasterThan (prepare kernelUsingNativeInc) (prepare kernelUsingCustomInc)
 
 let tests context =
-    [ testList "Stress tests" << stressTestCases
-      ptestList "Fold tests" << foldTestCases
-      ptestList "Xchg tests" << xchgTestCases
-      ptestCase "Perfomance test on 'inc'" << perfomanceTest ]
+    [
+        testList "Stress tests" << stressTestCases
+        ptestList "Fold tests" << foldTestCases
+        ptestList "Xchg tests" << xchgTestCases
+        ptestCase "Perfomance test on 'inc'" << perfomanceTest
+    ]
     |> List.map (fun testFixture -> testFixture context)

@@ -87,13 +87,9 @@ type Range2D private (globalWorkSizeX: int, globalWorkSizeY: int, localWorkSizeX
     member this.LocalWorkSize = (localWorkSizeX, localWorkSizeY)
 
     interface INDRange with
-        member this.GlobalWorkSize =
-            [| IntPtr globalWorkSizeX
-               IntPtr globalWorkSizeY |]
+        member this.GlobalWorkSize = [| IntPtr globalWorkSizeX; IntPtr globalWorkSizeY |]
 
-        member this.LocalWorkSize =
-            [| IntPtr localWorkSizeX
-               IntPtr localWorkSizeY |]
+        member this.LocalWorkSize = [| IntPtr localWorkSizeX; IntPtr localWorkSizeY |]
 
         member this.Dimensions = 2
 
@@ -158,13 +154,9 @@ type Range3D
 
     interface INDRange with
         member this.GlobalWorkSize =
-            [| IntPtr globalWorkSizeX
-               IntPtr globalWorkSizeY
-               IntPtr globalWorkSizeZ |]
+            [| IntPtr globalWorkSizeX; IntPtr globalWorkSizeY; IntPtr globalWorkSizeZ |]
 
         member this.LocalWorkSize =
-            [| IntPtr localWorkSizeX
-               IntPtr localWorkSizeY
-               IntPtr globalWorkSizeZ |]
+            [| IntPtr localWorkSizeX; IntPtr localWorkSizeY; IntPtr globalWorkSizeZ |]
 
         member this.Dimensions = 3

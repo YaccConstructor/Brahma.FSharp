@@ -46,5 +46,4 @@ module Names =
 
             ExprShape.RebuildShapeCombination(shapeComboObj, exprList')
 
-    let makeUnique (expr: Expr) =
-        makeVarNamesUniqueImpl <| RenamingContext() <| expr
+    let makeUnique (expr: Expr) = makeVarNamesUniqueImpl <| RenamingContext() <| expr

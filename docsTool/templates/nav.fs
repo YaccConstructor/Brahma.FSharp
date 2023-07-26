@@ -48,7 +48,7 @@ let navItemIconOnly link ariaLabel inner =
     ]
 
 let dropDownNavMenu text items =
-            li [ Class "nav-item dropdown" ][
+            li [ Class "nav-item dropdown" ] [
                 a [
                     Id (sprintf "navbarDropdown-%s"  text)
                     Href "#"
@@ -57,8 +57,8 @@ let dropDownNavMenu text items =
                     AriaExpanded false
                     Class "nav-link dropdown-toggle" ]
                     [ normalizeStr text ]
-                ul [    HTMLAttr.Custom ("aria-labelledby", "dropdownMenu1")
-                        Class "dropdown-menu border-0 shadow" ] items ]
+                ul [ HTMLAttr.Custom ("aria-labelledby", "dropdownMenu1")
+                     Class "dropdown-menu border-0 shadow" ] items ]
 
 let dropDownNavItem text link =
     li [

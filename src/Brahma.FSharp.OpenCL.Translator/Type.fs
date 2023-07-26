@@ -57,7 +57,8 @@ module rec Type =
                 do!
                     State.modify (fun ctx ->
                         ctx.Flags.Add EnableFP64 |> ignore
-                        ctx)
+                        ctx
+                    )
 
                 return PrimitiveType<Lang>(Double) :> Type<Lang>
 
@@ -115,13 +116,17 @@ module rec Type =
                 return context.CStructDecls.[type']
             else
                 let! fields =
-                    [ for f in type'.GetProperties(BindingFlags.Public ||| BindingFlags.Instance) ->
-                          translate f.PropertyType
-                          >>= fun type' -> State.return' { Name = f.Name; Type = type' } ]
-                    @ [ if not <| FSharpType.IsRecord type' then
+                    [
+                        for f in type'.GetProperties(BindingFlags.Public ||| BindingFlags.Instance) ->
+                            translate f.PropertyType
+                            >>= fun type' -> State.return' { Name = f.Name; Type = type' }
+                    ]
+                    @ [
+                        if not <| FSharpType.IsRecord type' then
                             for f in type'.GetFields(BindingFlags.Public ||| BindingFlags.Instance) ->
                                 translate f.FieldType
-                                >>= fun type' -> State.return' { Name = f.Name; Type = type' } ]
+                                >>= fun type' -> State.return' { Name = f.Name; Type = type' }
+                    ]
                     |> State.collect
 
                 let fields = fields |> List.distinct
@@ -132,7 +137,8 @@ module rec Type =
                 do!
                     State.modify (fun context ->
                         context.CStructDecls.Add(type', structType)
-                        context)
+                        context
+                    )
 
                 return structType
         }
@@ -152,10 +158,9 @@ module rec Type =
                         translation {
                             let! translatedType = translate type'
 
-                            return
-                                { Name = $"_%i{i + 1}"
-                                  Type = translatedType }
-                        })
+                            return { Name = $"_%i{i + 1}"; Type = translatedType }
+                        }
+                    )
                     |> State.collect
 
                 let! index = State.gets (fun ctx -> ctx.CStructDecls.Count)
@@ -164,7 +169,8 @@ module rec Type =
                 do!
                     State.modify (fun ctx ->
                         ctx.CStructDecls.Add(type', tupleDecl)
-                        ctx)
+                        ctx
+                    )
 
                 return tupleDecl
         }
@@ -181,34 +187,40 @@ module rec Type =
                     |> Array.filter (fun case -> case.GetFields().Length <> 0)
 
                 let! fields =
-                    [ for case in notEmptyCases ->
-                          translation {
-                              let structName = case.Name
-                              let tag = case.Tag
+                    [
+                        for case in notEmptyCases ->
+                            translation {
+                                let structName = case.Name
+                                let tag = case.Tag
 
-                              let! fields =
-                                  [ for field in case.GetFields() ->
-                                        translate field.PropertyType
-                                        >>= fun type' -> State.return' { Name = field.Name; Type = type' } ]
-                                  |> State.collect
+                                let! fields =
+                                    [
+                                        for field in case.GetFields() ->
+                                            translate field.PropertyType
+                                            >>= fun type' -> State.return' { Name = field.Name; Type = type' }
+                                    ]
+                                    |> State.collect
 
-                              let! context = State.get
+                                let! context = State.get
 
-                              let conter =
-                                  let mutable i = 0
+                                let conter =
+                                    let mutable i = 0
 
-                                  if context.StructInplaceCounter.TryGetValue($"{structName}Type", &i) then
-                                      context.StructInplaceCounter.[$"{structName}Type"] <- i + 1
-                                      i
-                                  else
-                                      context.StructInplaceCounter.Add($"{structName}Type", 1)
-                                      0
+                                    if context.StructInplaceCounter.TryGetValue($"{structName}Type", &i) then
+                                        context.StructInplaceCounter.[$"{structName}Type"] <- i + 1
+                                        i
+                                    else
+                                        context.StructInplaceCounter.Add($"{structName}Type", 1)
+                                        0
 
-                              return
-                                  tag,
-                                  { Name = structName
-                                    Type = StructInplaceType($"{structName}Type{conter}", fields) }
-                          } ]
+                                return
+                                    tag,
+                                    {
+                                        Name = structName
+                                        Type = StructInplaceType($"{structName}Type{conter}", fields)
+                                    }
+                            }
+                    ]
                     |> State.collect
 
                 let! index = State.gets (fun ctx -> ctx.CStructDecls.Count)
@@ -217,7 +229,8 @@ module rec Type =
                 do!
                     State.modify (fun context ->
                         context.CStructDecls.Add(type', duType)
-                        context)
+                        context
+                    )
 
                 return duType :> StructType<_>
         }

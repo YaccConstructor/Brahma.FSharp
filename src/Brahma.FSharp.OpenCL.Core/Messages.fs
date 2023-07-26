@@ -68,23 +68,26 @@ type Msg =
 
     static member CreateToHostMsg<'a>(src, dst, ?ch) =
         { new IToHostCrate with
-            member this.Apply evaluator =
-                evaluator.Eval <| ToHost<'a>(src, dst, ?replyChannel = ch) }
+            member this.Apply evaluator = evaluator.Eval <| ToHost<'a>(src, dst, ?replyChannel = ch)
+        }
         |> MsgToHost
 
     static member CreateToGPUMsg<'a>(src, dst) =
         { new IToGPUCrate with
-            member this.Apply evaluator = evaluator.Eval <| ToGPU<'a>(src, dst) }
+            member this.Apply evaluator = evaluator.Eval <| ToGPU<'a>(src, dst)
+        }
         |> MsgToGPU
 
     static member CreateFreeMsg<'a>(src) =
         { new IFreeCrate with
-            member this.Apply evaluator = evaluator.Eval <| Free(src) }
+            member this.Apply evaluator = evaluator.Eval <| Free(src)
+        }
         |> MsgFree
 
     static member CreateRunMsg<'TRange, 'a when 'TRange :> INDRange>(kernel) =
         { new IRunCrate with
-            member this.Apply evaluator = evaluator.Eval <| Run(kernel) }
+            member this.Apply evaluator = evaluator.Eval <| Run(kernel)
+        }
         |> MsgRun
 
     static member CreateBarrierMessages(numOfQueuesOnBarrier: int) =

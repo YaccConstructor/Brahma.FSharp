@@ -96,7 +96,8 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
                         | _ ->
                             failwithf
                                 $"Something went wrong with type of atomic global var. \
-                            Expected var of type '%s{ClArray_}' or '%s{ClCell_}', but given %s{var.Type.Name}")
+                            Expected var of type '%s{ClArray_}' or '%s{ClCell_}', but given %s{var.Type.Name}"
+                    )
                 )
 
             let regularArgs =
@@ -128,7 +129,8 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
 
                             (%%(Expr.Var mutexBuffersVar): ResizeArray<IBuffer<Mutex>>).Add mutexBuffer
 
-                            box mutexBuffer)
+                            box mutexBuffer
+                        )
                     @@>,
                     Expr.Let(
                         xVar,

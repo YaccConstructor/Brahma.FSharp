@@ -19,5 +19,4 @@ module Utils =
         tp.GetCustomAttributes(false)
         |> Seq.exists (fun attr -> attr.GetType() = typeof<'attr>)
 
-    let roundUp n x =
-        if x % n <> 0 then (x / n) * n + n else x
+    let roundUp n x = if x % n <> 0 then (x / n) * n + n else x

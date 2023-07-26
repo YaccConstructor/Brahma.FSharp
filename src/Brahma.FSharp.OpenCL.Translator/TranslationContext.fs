@@ -76,39 +76,39 @@ type Namer() =
 
 type TranslationContext<'lang, 'vDecl> =
     {
-      // translator scope
-      TranslatorOptions: TranslatorOptions
+        // translator scope
+        TranslatorOptions: TranslatorOptions
 
-      // kernel scope
-      CStructDecls: Dictionary<Type, StructType<'lang>>
-      StructInplaceCounter: Dictionary<string, int>
-      TopLevelVarsDecls: ResizeArray<'vDecl>
-      Flags: HashSet<Flag>
+        // kernel scope
+        CStructDecls: Dictionary<Type, StructType<'lang>>
+        StructInplaceCounter: Dictionary<string, int>
+        TopLevelVarsDecls: ResizeArray<'vDecl>
+        Flags: HashSet<Flag>
 
-      // function scope
-      VarDecls: ResizeArray<'vDecl>
-      Namer: Namer
+        // function scope
+        VarDecls: ResizeArray<'vDecl>
+        Namer: Namer
 
-      // specific scope
-      ArrayKind: ArrayKind }
+        // specific scope
+        ArrayKind: ArrayKind
+    }
 
     static member Create(options) =
-        { TranslatorOptions = options
+        {
+            TranslatorOptions = options
 
-          CStructDecls = Dictionary<Type, StructType<'lang>>()
-          StructInplaceCounter = Dictionary<string, int>()
-          TopLevelVarsDecls = ResizeArray<'vDecl>()
-          Flags = HashSet()
+            CStructDecls = Dictionary<Type, StructType<'lang>>()
+            StructInplaceCounter = Dictionary<string, int>()
+            TopLevelVarsDecls = ResizeArray<'vDecl>()
+            Flags = HashSet()
 
-          VarDecls = ResizeArray<'vDecl>()
-          Namer = Namer()
+            VarDecls = ResizeArray<'vDecl>()
+            Namer = Namer()
 
-          ArrayKind = CPointer }
+            ArrayKind = CPointer
+        }
 
-    member this.WithNewLocalContext() =
-        { this with
-            VarDecls = ResizeArray()
-            Namer = Namer() }
+    member this.WithNewLocalContext() = { this with VarDecls = ResizeArray(); Namer = Namer() }
 
 type TargetContext = TranslationContext<Lang, Statement<Lang>>
 

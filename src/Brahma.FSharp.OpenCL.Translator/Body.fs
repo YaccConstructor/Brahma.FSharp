@@ -113,7 +113,8 @@ module rec Body =
                     let! state = state
                     let! translated = translateCond arg
                     return translated :: state
-                })
+                }
+            )
             (State.return' [])
         |> State.map List.rev
 
@@ -159,134 +160,90 @@ module rec Body =
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_add",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_add", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicsub" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_sub",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_sub", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicxchg" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_xchg",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_xchg", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicmax" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_max",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_max", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicmin" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_min",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_min", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicinc" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
+                        context
+                    )
 
                 return FunCall("atom_inc", [ args.[0] ]) :> Statement<_>
             | "atomicdec" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
+                        context
+                    )
 
                 return FunCall("atom_dec", [ args.[0] ]) :> Statement<_>
             | "atomiccmpxchg" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_cmpxchg",
-                        [ args.[0]
-                          args.[1]
-                          args.[2] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_cmpxchg", [ args.[0]; args.[1]; args.[2] ]) :> Statement<_>
             | "atomicand" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_and",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_and", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicor" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_or",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_or", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicxor" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context)
-
-                return
-                    FunCall(
-                        "atom_xor",
-                        [ args.[0]
-                          args.[1] ]
+                        context
                     )
-                    :> Statement<_>
+
+                return FunCall("atom_xor", [ args.[0]; args.[1] ]) :> Statement<_>
             | "todouble" -> return Cast(args.[0], PrimitiveType Float) :> Statement<_>
             | "toint" -> return Cast(args.[0], PrimitiveType Int) :> Statement<_>
             | "toint16" -> return Cast(args.[0], PrimitiveType Short) :> Statement<_>
@@ -514,11 +471,7 @@ module rec Body =
             | "boolean" ->
                 let! translatedType = Type.translate sType
 
-                let stringValue =
-                    if value.ToString().ToLowerInvariant() = "false" then
-                        "0"
-                    else
-                        "1"
+                let stringValue = if value.ToString().ToLowerInvariant() = "false" then "0" else "1"
 
                 return translatedType, stringValue
 
@@ -603,7 +556,8 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.Namer.LetIn loopVar.Name
-                    context)
+                    context
+                )
 
             let! loopVarModifier =
                 match step with
@@ -611,13 +565,8 @@ module rec Body =
                     Expr.VarSet(
                         loopVar,
                         Expr.Call(
-                            Utils.makeGenericMethodCall
-                                [ loopVarType
-                                  loopVarType
-                                  loopVarType ]
-                                <@ (+) @>,
-                            [ Expr.Var loopVar
-                              step ]
+                            Utils.makeGenericMethodCall [ loopVarType; loopVarType; loopVarType ] <@ (+) @>,
+                            [ Expr.Var loopVar; step ]
                         )
                     )
                     |> translate
@@ -629,7 +578,8 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.Namer.LetOut()
-                    context)
+                    context
+                )
 
             return ForIntegerLoop(loopVarBinding, loopCond, loopVarModifier, loopBody)
         }
@@ -660,13 +610,15 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.VarDecls.Clear()
-                    context)
+                    context
+                )
 
             for expr in linearized do
                 do!
                     State.modify (fun context ->
                         context.VarDecls.Clear()
-                        context)
+                        context
+                    )
 
                 match! translate expr with
                 | :? StatementBlock<Lang> as s1 -> decls.AddRange(s1.Statements)
@@ -800,12 +752,14 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.VarDecls.Add vDecl
-                    context)
+                    context
+                )
 
             do!
                 State.modify (fun context ->
                     context.Namer.LetIn var.Name
-                    context)
+                    context
+                )
 
             let! res = translate inExpr |> State.using clearContext
             let! sb = State.gets (fun context -> context.VarDecls)
@@ -817,7 +771,8 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.Namer.LetOut()
-                    context)
+                    context
+                )
 
             do! State.modify clearContext
 

@@ -35,155 +35,157 @@ let private quotationTransformerTest =
             assertMethodListsEqual actualKernelMethods expectedMethods
             equalToTheExactUnitVars actualKernelExpr expectedKernelExpr "kernels not equals"
 
-    [ genTest
-          testCase
-          "Test 0"
-          <@
-              fun (range: Range1D) (buf: array<int>) ->
-                  let mutable x = 1
-                  let f y = x <- y
-                  f 10
-                  buf.[0] <- x
-          @>
-          <@
-              let f xRef (y: int) = xRef := y
+    [
+        genTest
+            testCase
+            "Test 0"
+            <@
+                fun (range: Range1D) (buf: array<int>) ->
+                    let mutable x = 1
+                    let f y = x <- y
+                    f 10
+                    buf.[0] <- x
+            @>
+            <@
+                let f xRef (y: int) = xRef := y
 
-              fun (range: Range1D) (buf: array<int>) ->
-                  let mutable x = 1
-                  let xRef = ref x
+                fun (range: Range1D) (buf: array<int>) ->
+                    let mutable x = 1
+                    let xRef = ref x
 
-                  f xRef 10
-                  buf.[0] <- !xRef
-          @>
+                    f xRef 10
+                    buf.[0] <- !xRef
+            @>
 
-      genTest
-          testCase
-          "Test 1"
-          <@
-              fun (range: Range1D) (buf: array<int>) ->
-                  let mutable x = 1
-                  let f y = x <- x + y
-                  f 10
-                  buf.[0] <- x
-          @>
-          <@
-              let f (xRef: _ ref) (y: int) = xRef := !xRef + y
+        genTest
+            testCase
+            "Test 1"
+            <@
+                fun (range: Range1D) (buf: array<int>) ->
+                    let mutable x = 1
+                    let f y = x <- x + y
+                    f 10
+                    buf.[0] <- x
+            @>
+            <@
+                let f (xRef: _ ref) (y: int) = xRef := !xRef + y
 
-              fun (range: Range1D) (buf: array<int>) ->
-                  let mutable x = 1
-                  let xRef = ref x
+                fun (range: Range1D) (buf: array<int>) ->
+                    let mutable x = 1
+                    let xRef = ref x
 
-                  f xRef 10
-                  buf.[0] <- !xRef
-          @>
+                    f xRef 10
+                    buf.[0] <- !xRef
+            @>
 
-      genTest
-          testCase
-          "Test 2: simple lambda lifting without capturing variables"
-          <@
-              fun (range: Range1D) ->
-                  let f x =
-                      let g y = y + 1
-                      g x
+        genTest
+            testCase
+            "Test 2: simple lambda lifting without capturing variables"
+            <@
+                fun (range: Range1D) ->
+                    let f x =
+                        let g y = y + 1
+                        g x
 
-                  f 2
-          @>
-          <@
-              let g y = y + 1
-              let f x = g x
-              fun (range: Range1D) -> f 2
-          @>
+                    f 2
+            @>
+            <@
+                let g y = y + 1
+                let f x = g x
+                fun (range: Range1D) -> f 2
+            @>
 
-      genTest
-          testCase
-          "Test 3: simple lambda lifting with capturing variables"
-          <@
-              fun (range: Range1D) ->
-                  let f x =
-                      let g y = y + x
-                      g (x + 1)
+        genTest
+            testCase
+            "Test 3: simple lambda lifting with capturing variables"
+            <@
+                fun (range: Range1D) ->
+                    let f x =
+                        let g y = y + x
+                        g (x + 1)
 
-                  f 2
-          @>
-          <@
-              let g x y = y + x
-              let f x = g x (x + 1)
-              fun (range: Range1D) -> f 2
-          @>
+                    f 2
+            @>
+            <@
+                let g x y = y + x
+                let f x = g x (x + 1)
+                fun (range: Range1D) -> f 2
+            @>
 
-      genTest
-          testCase
-          "Test 4"
-          <@
-              fun (range: Range1D) (arr: array<int>) ->
-                  let x =
-                      let mutable y = 0
+        genTest
+            testCase
+            "Test 4"
+            <@
+                fun (range: Range1D) (arr: array<int>) ->
+                    let x =
+                        let mutable y = 0
 
-                      let addToY x = y <- y + x
+                        let addToY x = y <- y + x
 
-                      for i in 0..10 do
-                          addToY arr.[i]
+                        for i in 0..10 do
+                            addToY arr.[i]
 
-                      y
+                        y
 
-                  x
-          @>
-          <@
-              let addToY (yRef: _ ref) x = yRef := !yRef + x
+                    x
+            @>
+            <@
+                let addToY (yRef: _ ref) x = yRef := !yRef + x
 
-              let x1UnitFunc (arr: array<int>) =
-                  let y = 0
-                  let yRef = ref y
+                let x1UnitFunc (arr: array<int>) =
+                    let y = 0
+                    let yRef = ref y
 
-                  for i in 0..10 do
-                      addToY yRef arr.[i]
+                    for i in 0..10 do
+                        addToY yRef arr.[i]
 
-                  !yRef
+                    !yRef
 
-              fun (range: Range1D) (arr: array<int>) ->
-                  let x1 = x1UnitFunc arr
-                  x1
-          @>
+                fun (range: Range1D) (arr: array<int>) ->
+                    let x1 = x1UnitFunc arr
+                    x1
+            @>
 
-      genTest
-          testCase
-          "Test 5"
-          <@
-              fun (range: Range1D) (arr: array<int>) ->
-                  let mutable x = if 0 > 1 then 2 else 3
+        genTest
+            testCase
+            "Test 5"
+            <@
+                fun (range: Range1D) (arr: array<int>) ->
+                    let mutable x = if 0 > 1 then 2 else 3
 
-                  let mutable y =
-                      for i in 0..10 do
-                          x <- x + 1
+                    let mutable y =
+                        for i in 0..10 do
+                            x <- x + 1
 
-                      x + 1
+                        x + 1
 
-                  let z = x + y
+                    let z = x + y
 
-                  let f () = arr.[0] <- x + y + z
-                  f ()
-          @>
-          <@
-              let xUnitFunc () = if 0 > 1 then 2 else 3
+                    let f () = arr.[0] <- x + y + z
+                    f ()
+            @>
+            <@
+                let xUnitFunc () = if 0 > 1 then 2 else 3
 
-              let yUnitFunc xRef =
-                  for i in 0..10 do
-                      xRef := !xRef + 1
+                let yUnitFunc xRef =
+                    for i in 0..10 do
+                        xRef := !xRef + 1
 
-                  !xRef + 1
+                    !xRef + 1
 
-              let f (arr: array<int>) xRef yRef z = arr.[0] <- !xRef + !yRef + z
+                let f (arr: array<int>) xRef yRef z = arr.[0] <- !xRef + !yRef + z
 
-              fun (range: Range1D) (arr: array<int>) ->
-                  let mutable x = xUnitFunc ()
-                  let xRef = ref x
+                fun (range: Range1D) (arr: array<int>) ->
+                    let mutable x = xUnitFunc ()
+                    let xRef = ref x
 
-                  let mutable y = yUnitFunc xRef
-                  let yRef = ref y
+                    let mutable y = yUnitFunc xRef
+                    let yRef = ref y
 
-                  let z = !xRef + !yRef
+                    let z = !xRef + !yRef
 
-                  f arr xRef yRef z
-          @> ]
+                    f arr xRef yRef z
+            @>
+    ]
 
 let tests = quotationTransformerTest |> testList "Transformation"

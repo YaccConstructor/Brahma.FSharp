@@ -28,7 +28,8 @@ module AST =
             | :? CLPragma<'lang> as clp -> Pragmas.print clp
             | :? StructDecl<'lang> as s -> TypeDecl.printStructDeclaration s
             | :? VarDecl<'lang> as s -> Statements.print false s
-            | _ -> failwithf "Printer. Unsupported toplevel declaration: %A" d)
+            | _ -> failwithf "Printer. Unsupported toplevel declaration: %A" d
+        )
         // |> LayoutOps.sepListL (LayoutOps.wordL "\r\n")
         // |> Display.layout_to_string FormatOptions.Default
         |> LayoutOps.aboveListL

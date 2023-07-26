@@ -50,35 +50,31 @@ let private collectUnionTests =
             |> fun unions -> Expect.sequenceEqual unions expected "Should be equal"
         }
 
-    [ testGen
-          "Simple union"
-          [| typeof<SimpleUnion> |]
-          <@
-              let x = SimpleOne
-              let y = SimpleTwo 2
-              ()
-          @>
+    [
+        testGen
+            "Simple union"
+            [| typeof<SimpleUnion> |]
+            <@
+                let x = SimpleOne
+                let y = SimpleTwo 2
+                ()
+            @>
 
-      testGen
-          "Nested union 1"
-          [| typeof<SimpleUnion>
-             typeof<OuterUnion> |]
-          <@
-              let x = Outer 5
-              ()
-          @>
+        testGen
+            "Nested union 1"
+            [| typeof<SimpleUnion>; typeof<OuterUnion> |]
+            <@
+                let x = Outer 5
+                ()
+            @>
 
-      testGen
-          "Nested union 2"
-          [| typeof<SimpleUnion>
-             typeof<OuterUnion> |]
-          <@
-              let x = Inner SimpleOne
-              ()
-          @> ]
+        testGen
+            "Nested union 2"
+            [| typeof<SimpleUnion>; typeof<OuterUnion> |]
+            <@
+                let x = Inner SimpleOne
+                ()
+            @>
+    ]
 
-let tests =
-    [ unionTests
-      collectUnionTests ]
-    |> List.concat
-    |> testList "Union"
+let tests = [ unionTests; collectUnionTests ] |> List.concat |> testList "Union"

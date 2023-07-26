@@ -261,24 +261,20 @@ module Atomic =
                         match lambdaBody with
                         | DerivedPatterns.SpecificCall <@ inc @> (_, onType :: _, [ Patterns.Var p ]) ->
                             Expr.Call(
-                                Utils.makeGenericMethodCall
-                                    [ onType
-                                      onType
-                                      onType ]
-                                    <@ (+) @>,
-                                [ Expr.Var p
-                                  Expr.Call(Utils.makeGenericMethodCall [ onType ] <@ GenericOne<int> @>, List.empty) ]
+                                Utils.makeGenericMethodCall [ onType; onType; onType ] <@ (+) @>,
+                                [
+                                    Expr.Var p
+                                    Expr.Call(Utils.makeGenericMethodCall [ onType ] <@ GenericOne<int> @>, List.empty)
+                                ]
                             )
 
                         | DerivedPatterns.SpecificCall <@ dec @> (_, onType :: _, [ Patterns.Var p ]) ->
                             Expr.Call(
-                                Utils.makeGenericMethodCall
-                                    [ onType
-                                      onType
-                                      onType ]
-                                    <@ (-) @>,
-                                [ Expr.Var p
-                                  Expr.Call(Utils.makeGenericMethodCall [ onType ] <@ GenericOne<int> @>, List.empty) ]
+                                Utils.makeGenericMethodCall [ onType; onType; onType ] <@ (-) @>,
+                                [
+                                    Expr.Var p
+                                    Expr.Call(Utils.makeGenericMethodCall [ onType ] <@ GenericOne<int> @>, List.empty)
+                                ]
                             )
 
                         | DerivedPatterns.SpecificCall <@ xchg @> (_, _, [ Patterns.Var p; Patterns.Var value ]) ->
@@ -292,8 +288,7 @@ module Atomic =
                             Expr.IfThenElse(
                                 Expr.Call(
                                     Utils.makeGenericMethodCall [ onType ] <@ (=) @>,
-                                    [ Expr.Var p
-                                      Expr.Var cmp ]
+                                    [ Expr.Var p; Expr.Var cmp ]
                                 ),
                                 Expr.Var value,
                                 Expr.Var p
@@ -313,7 +308,8 @@ module Atomic =
                     let atomicFuncArgs =
                         baseFuncArgs
                         |> modifyFirstOfListList (fun x ->
-                            Var(x.Name, typeof<ref<_>>.GetGenericTypeDefinition().MakeGenericType(x.Type), x.IsMutable))
+                            Var(x.Name, typeof<ref<_>>.GetGenericTypeDefinition().MakeGenericType(x.Type), x.IsMutable)
+                        )
 
                     let! state = State.get
 
@@ -324,12 +320,9 @@ module Atomic =
                         | None ->
                             Var(
                                 pointerVar.Name + "Mutex",
-                                if nonPrivateVars.[pointerVar] = GlobalQ then
-                                    typeof<IBuffer<Mutex>>
-                                elif pointerVar.Type.IsArray then
-                                    typeof<Mutex[]>
-                                else
-                                    typeof<Mutex>
+                                if nonPrivateVars.[pointerVar] = GlobalQ then typeof<IBuffer<Mutex>>
+                                elif pointerVar.Type.IsArray then typeof<Mutex[]>
+                                else typeof<Mutex>
                             )
 
                     do! State.modify (fun state -> state |> Map.add pointerVar mutexVar)
@@ -362,8 +355,7 @@ module Atomic =
                                                                                               [ Patterns.Var _; idx ]) ->
                                 Expr.Call(
                                     Utils.getMethodInfoOfCall <@ IntrinsicFunctions.GetArray<Mutex> @>,
-                                    [ Expr.Var mutexVar
-                                      idx ]
+                                    [ Expr.Var mutexVar; idx ]
                                 )
 
                             | _ -> failwith "Invalid volatile argument. This exception should never occur :)"
@@ -468,7 +460,8 @@ module Atomic =
                 pointerVarToMutexVarMap
                 |> Map.iter (fun var mutexVar ->
                     if args |> List.contains var then
-                        newArgs.Add mutexVar)
+                        newArgs.Add mutexVar
+                )
 
                 // Set local args
                 let rec go expr =
@@ -507,9 +500,7 @@ module Atomic =
                                                        Expr.Call(
                                                            Utils.getMethodInfoOfCall
                                                                <@ IntrinsicFunctions.SetArray<Mutex> @>,
-                                                           [ Expr.Var mutexVar
-                                                             Expr.Var i
-                                                             Expr.Value 0 ]
+                                                           [ Expr.Var mutexVar; Expr.Var i; Expr.Value 0 ]
                                                        )
                                                    ))
 

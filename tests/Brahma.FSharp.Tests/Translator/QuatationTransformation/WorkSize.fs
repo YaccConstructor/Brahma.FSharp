@@ -17,97 +17,98 @@ module Helpers =
     let _localSize2 = Unchecked.defaultof<int>
 
 let private workSizeTests =
-    [ let createTest name =
-          Common.Helpers.createMapTestAndCompareAsStrings WorkSize.get name
+    [
+        let createTest name = Common.Helpers.createMapTestAndCompareAsStrings WorkSize.get name
 
-      createTest "Test 1D. Global"
-      <| <@
-          fun (ndRange: Range1D) ->
-              let fst = ndRange.GlobalWorkSize
+        createTest "Test 1D. Global"
+        <| <@
+            fun (ndRange: Range1D) ->
+                let fst = ndRange.GlobalWorkSize
 
-              ()
-      @>
-      <| <@
-          fun (ndRange: Range1D) ->
-              let fst = Helpers._globalSize0
+                ()
+        @>
+        <| <@
+            fun (ndRange: Range1D) ->
+                let fst = Helpers._globalSize0
 
-              ()
-      @>
+                ()
+        @>
 
-      createTest "Test 2D. Global"
-      <| <@
-          fun (ndRange: Range2D) ->
-              let (fst, snd) = ndRange.GlobalWorkSize
+        createTest "Test 2D. Global"
+        <| <@
+            fun (ndRange: Range2D) ->
+                let (fst, snd) = ndRange.GlobalWorkSize
 
-              ()
-      @>
-      <| <@
-          fun (ndRange: Range2D) ->
-              let fst = Helpers._globalSize0
-              let snd = Helpers._globalSize1
+                ()
+        @>
+        <| <@
+            fun (ndRange: Range2D) ->
+                let fst = Helpers._globalSize0
+                let snd = Helpers._globalSize1
 
-              ()
-      @>
+                ()
+        @>
 
-      createTest "Test 3D. Global"
-      <| <@
-          fun (ndRange: Range3D) ->
-              let (fst, snd, thd) = ndRange.GlobalWorkSize
+        createTest "Test 3D. Global"
+        <| <@
+            fun (ndRange: Range3D) ->
+                let (fst, snd, thd) = ndRange.GlobalWorkSize
 
-              ()
-      @>
-      <| <@
-          fun (ndRange: Range3D) ->
-              let fst = Helpers._globalSize0
-              let snd = Helpers._globalSize1
-              let thd = Helpers._globalSize2
+                ()
+        @>
+        <| <@
+            fun (ndRange: Range3D) ->
+                let fst = Helpers._globalSize0
+                let snd = Helpers._globalSize1
+                let thd = Helpers._globalSize2
 
-              ()
-      @>
+                ()
+        @>
 
-      createTest "Test 1D. Local"
-      <| <@
-          fun (ndRange: Range1D) ->
-              let fst = ndRange.LocalWorkSize
+        createTest "Test 1D. Local"
+        <| <@
+            fun (ndRange: Range1D) ->
+                let fst = ndRange.LocalWorkSize
 
-              ()
-      @>
-      <| <@
-          fun (ndRange: Range1D) ->
-              let fst = Helpers._localSize0
+                ()
+        @>
+        <| <@
+            fun (ndRange: Range1D) ->
+                let fst = Helpers._localSize0
 
-              ()
-      @>
+                ()
+        @>
 
-      createTest "Test 2D. Local"
-      <| <@
-          fun (ndRange: Range2D) ->
-              let (fst, snd) = ndRange.LocalWorkSize
+        createTest "Test 2D. Local"
+        <| <@
+            fun (ndRange: Range2D) ->
+                let (fst, snd) = ndRange.LocalWorkSize
 
-              ()
-      @>
-      <| <@
-          fun (ndRange: Range2D) ->
-              let fst = Helpers._localSize0
-              let snd = Helpers._localSize1
+                ()
+        @>
+        <| <@
+            fun (ndRange: Range2D) ->
+                let fst = Helpers._localSize0
+                let snd = Helpers._localSize1
 
-              ()
-      @>
+                ()
+        @>
 
-      createTest "Test 3D. Local"
-      <| <@
-          fun (ndRange: Range3D) ->
-              let (fst, snd, thd) = ndRange.LocalWorkSize
+        createTest "Test 3D. Local"
+        <| <@
+            fun (ndRange: Range3D) ->
+                let (fst, snd, thd) = ndRange.LocalWorkSize
 
-              ()
-      @>
-      <| <@
-          fun (ndRange: Range3D) ->
-              let fst = Helpers._localSize0
-              let snd = Helpers._localSize1
-              let thd = Helpers._localSize2
+                ()
+        @>
+        <| <@
+            fun (ndRange: Range3D) ->
+                let fst = Helpers._localSize0
+                let snd = Helpers._localSize1
+                let thd = Helpers._localSize2
 
-              ()
-      @> ]
+                ()
+        @>
+    ]
 
 let tests = workSizeTests |> testList "WorkSize" |> testSequenced

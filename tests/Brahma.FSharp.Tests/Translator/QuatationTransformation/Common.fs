@@ -51,5 +51,4 @@ module Helpers =
         varEqual (fst actual) (fst expected)
         exprEqual (snd actual) (snd expected)
 
-    let createMapTestAndCompareAsStrings map name source expected =
-        test name { exprEqual (map source) expected }
+    let createMapTestAndCompareAsStrings map name source expected = test name { exprEqual (map source) expected }

@@ -9,6 +9,7 @@
   <PropertyGroup>
     <Title>Brahma.FSharp.OpenCL.Printer</Title>
     <Description>OpenCL C printer: from AST to text.</Description>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Optimize>true</Optimize>

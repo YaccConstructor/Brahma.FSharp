@@ -36,8 +36,7 @@ type DeclSpecifierPack<'lang>
     member val Type = typeSpecifier with get, set
     member val TypeQualifiers = defaultArg typeQualifiers [] with get, set
 
-    member this.AddTypeQual tq =
-        this.TypeQualifiers <- tq :: this.TypeQualifiers
+    member this.AddTypeQual tq = this.TypeQualifiers <- tq :: this.TypeQualifiers
 
     member this.Matches(other: obj) =
         match other with

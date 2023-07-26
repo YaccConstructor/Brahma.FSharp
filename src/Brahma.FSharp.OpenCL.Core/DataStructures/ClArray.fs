@@ -33,8 +33,7 @@ type ClArray<'a> internal (buffer: ClBuffer<'a>) =
 
     member this.Dispose() = (this :> IDisposable).Dispose()
 
-    override this.ToString() =
-        $"{(buffer :> IClMem).Data}, %A{(buffer :> IClMem).Size}"
+    override this.ToString() = $"{(buffer :> IClMem).Data}, %A{(buffer :> IClMem).Size}"
 
 // fsharplint:disable-next-line
 type clarray<'a> = ClArray<'a>
@@ -52,8 +51,7 @@ module ClArray =
     // or allocate with null ptr and write
     // TODO if array.Length = 0 ...
     /// Transfers specified array to device with default memory flags.
-    let toDevice (array: 'a[]) =
-        toDeviceWithFlags array ClMemFlags.DefaultIfData
+    let toDevice (array: 'a[]) = toDeviceWithFlags array ClMemFlags.DefaultIfData
 
     /// Allocate empty array on device with specified memory flags.
     let allocWithFlags<'a> (size: int) (memFlags: ClMemFlags) =
@@ -65,8 +63,7 @@ module ClArray =
         }
 
     /// Allocate empty array on device with default memory flags.
-    let alloc<'a> (size: int) =
-        allocWithFlags<'a> size ClMemFlags.DefaultIfNoData
+    let alloc<'a> (size: int) = allocWithFlags<'a> size ClMemFlags.DefaultIfNoData
 
     /// Transfers specified array from device to host.
     let toHost (clArray: ClArray<'a>) =
@@ -79,12 +76,10 @@ module ClArray =
         }
 
     // TODO impl it using clEnqueCopy
-    let copy (clArray: ClArray<'a>) =
-        opencl { failwith "Not implemented yet" }
+    let copy (clArray: ClArray<'a>) = opencl { failwith "Not implemented yet" }
 
     // TODO impl it
-    let copyTo (destination: ClArray<'a>) (source: ClArray<'a>) =
-        opencl { failwith "Not implemented yet" }
+    let copyTo (destination: ClArray<'a>) (source: ClArray<'a>) = opencl { failwith "Not implemented yet" }
 
     let close (clArray: ClArray<'a>) =
         opencl {

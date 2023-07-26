@@ -92,16 +92,14 @@ type KernelFunc(var: Var, expr: Expr) =
         translation {
             let! context = State.get
 
-            let brahmaDimensionsTypes =
-                [ Range1D_
-                  Range2D_
-                  Range3D_ ]
+            let brahmaDimensionsTypes = [ Range1D_; Range2D_; Range3D_ ]
 
             return
                 args
                 |> List.filter (fun (variable: Var) ->
                     brahmaDimensionsTypes
-                    |> (not << List.contains (variable.Type.Name.ToLowerInvariant())))
+                    |> (not << List.contains (variable.Type.Name.ToLowerInvariant()))
+                )
                 |> List.map (fun variable ->
                     let vType = Type.translate variable.Type |> State.eval context
                     let declSpecs = DeclSpecifierPack(typeSpecifier = vType)
@@ -109,7 +107,8 @@ type KernelFunc(var: Var, expr: Expr) =
                     if vType :? RefType<_> then
                         declSpecs.AddressSpaceQualifier <- Global
 
-                    FunFormalArg(declSpecs, variable.Name))
+                    FunFormalArg(declSpecs, variable.Name)
+                )
         }
 
     override this.BuildFunction(args, body) =
@@ -137,7 +136,8 @@ type Function(var: Var, expr: Expr) =
                     elif vType :? RefType<_> && localVars |> List.contains variable.Name then
                         declSpecs.AddressSpaceQualifier <- Local
 
-                    FunFormalArg(declSpecs, variable.Name))
+                    FunFormalArg(declSpecs, variable.Name)
+                )
         }
 
     override this.BuildFunction(args, body) =
@@ -180,7 +180,8 @@ type AtomicFunc(var: Var, expr: Expr, qual: AddressSpaceQualifier<Lang>) =
                     elif vType :? RefType<_> && localVars |> List.contains variable.Name then
                         declSpecs.AddressSpaceQualifier <- Local
 
-                    FunFormalArg(declSpecs, variable.Name))
+                    FunFormalArg(declSpecs, variable.Name)
+                )
         }
 
     override this.BuildFunction(args, body) =

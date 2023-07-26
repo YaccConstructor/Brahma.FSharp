@@ -23,10 +23,7 @@ open Microsoft.FSharp.Collections
 
 module Statements =
     let rec private printAssignment (a: Assignment<'lang>) =
-        [ Expressions.print a.Name
-          wordL "="
-          Expressions.print a.Value ]
-        |> spaceListL
+        [ Expressions.print a.Name; wordL "="; Expressions.print a.Value ] |> spaceListL
 
     and private printSpaceModeifier (sm: AddressSpaceQualifier<_>) =
         match sm with
@@ -37,17 +34,16 @@ module Statements =
         | Default -> wordL "__default"
 
     and private printVarDecl (vd: VarDecl<'lang>) =
-        [ if vd.SpaceModifier.IsSome then
-              yield printSpaceModeifier vd.SpaceModifier.Value
-          yield Types.print vd.Type
-          yield wordL vd.Name
-          if vd.Type :? ArrayType<_> then
-              yield wordL "[" ^^ wordL (string vd.Type.Size) ^^ wordL "]"
-          if vd.Expr.IsSome && not <| vd.IsLocal() then
-              yield
-                  [ wordL "="
-                    Expressions.print vd.Expr.Value ]
-                  |> spaceListL ]
+        [
+            if vd.SpaceModifier.IsSome then
+                yield printSpaceModeifier vd.SpaceModifier.Value
+            yield Types.print vd.Type
+            yield wordL vd.Name
+            if vd.Type :? ArrayType<_> then
+                yield wordL "[" ^^ wordL (string vd.Type.Size) ^^ wordL "]"
+            if vd.Expr.IsSome && not <| vd.IsLocal() then
+                yield [ wordL "="; Expressions.print vd.Expr.Value ] |> spaceListL
+        ]
         |> spaceListL
 
     and private printVar (v: Variable<'lang>) = wordL v.Name
@@ -68,10 +64,12 @@ module Statements =
             | Some x -> print true x
             | None -> wordL ""
 
-        [ yield wordL "if" ++ cond
-          yield then'
-          if if'.Else.IsSome then
-              yield aboveL (wordL "else") else' ]
+        [
+            yield wordL "if" ++ cond
+            yield then'
+            if if'.Else.IsSome then
+                yield aboveL (wordL "else") else'
+        ]
         |> aboveListL
 
     and private printForInteger (for': ForIntegerLoop<_>) =
@@ -80,24 +78,15 @@ module Statements =
         let cModif = print true for'.CountModifier
         let body = print true for'.Body
 
-        let header =
-            [ i
-              cond
-              cModif ]
-            |> sepListL (wordL ";")
-            |> bracketL
+        let header = [ i; cond; cModif ] |> sepListL (wordL ";") |> bracketL
 
-        [ yield wordL "for" ++ header
-          yield body ]
-        |> aboveListL
+        [ yield wordL "for" ++ header; yield body ] |> aboveListL
 
     and printWhileLoop (wl: WhileLoop<_>) =
         let cond = Expressions.print wl.Condition |> bracketL
         let body = print true wl.WhileBlock
 
-        [ yield wordL "while" ++ cond
-          yield body ]
-        |> aboveListL
+        [ yield wordL "while" ++ cond; yield body ] |> aboveListL
 
     and printFunCall (fc: FunCall<_>) =
         let args = fc.Args |> List.map Expressions.print |> commaListL |> bracketL
@@ -110,20 +99,14 @@ module Statements =
         | MemFence.Global -> wordL "barrier(CLK_GLOBAL_MEM_FENCE)"
         | Both -> wordL "barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE)"
 
-    and printReturn (r: Return<_>) =
-        wordL "return" ++ Expressions.print r.Expression
+    and printReturn (r: Return<_>) = wordL "return" ++ Expressions.print r.Expression
 
     and printFieldSet (fs: FieldSet<_>) =
         let host = Expressions.print fs.Host
         let fld = wordL fs.Field
         let val' = Expressions.print fs.Val
 
-        [ host |> bracketL
-          wordL "."
-          fld
-          wordL "="
-          val' ]
-        |> spaceListL
+        [ host |> bracketL; wordL "."; fld; wordL "="; val' ] |> spaceListL
 
     and print isToplevel (stmt: Statement<'lang>) =
         let res =

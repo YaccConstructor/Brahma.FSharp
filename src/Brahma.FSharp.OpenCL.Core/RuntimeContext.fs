@@ -2,8 +2,9 @@ namespace Brahma.FSharp
 
 type RuntimeOptions =
     {
-      // TODO if 2D or 3D
-      WorkgroupSize: int }
+        // TODO if 2D or 3D
+        WorkgroupSize: int
+    }
 
     static member Default = { WorkgroupSize = 256 }
 
@@ -25,8 +26,7 @@ type RuntimeContext(clContext: ClContext) =
 
     member this.ClContext = clContext
 
-    member internal this.WithNewCommandQueue() =
-        RuntimeContext(clContext, RuntimeOptions = this.RuntimeOptions)
+    member internal this.WithNewCommandQueue() = RuntimeContext(clContext, RuntimeOptions = this.RuntimeOptions)
 
     member internal this.WithRuntimeOptions(runtimeOptions) =
         RuntimeContext(clContext, RuntimeOptions = runtimeOptions, CommandQueue = this.CommandQueue)

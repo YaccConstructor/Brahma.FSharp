@@ -4,19 +4,21 @@ open Brahma.FSharp.OpenCL.Translator
 open FSharp.Quotations
 
 type Context =
-    { FreeVariables: Map<Var, List<Var>>
-      Substitution: Map<Var, Expr> }
+    {
+        FreeVariables: Map<Var, List<Var>>
+        Substitution: Map<Var, Expr>
+    }
 
     member this.Update(oldFun, newFunVar, freeVars) =
         let newApplication =
             freeVars |> List.map Expr.Var |> Utils.makeApplicationExpr (Expr.Var newFunVar)
 
-        { FreeVariables = this.FreeVariables.Add(oldFun, freeVars)
-          Substitution = this.Substitution.Add(oldFun, newApplication) }
+        {
+            FreeVariables = this.FreeVariables.Add(oldFun, freeVars)
+            Substitution = this.Substitution.Add(oldFun, newApplication)
+        }
 
-    static member empty =
-        { FreeVariables = Map.empty
-          Substitution = Map.empty }
+    static member empty = { FreeVariables = Map.empty; Substitution = Map.empty }
 
 module Lift =
     module Parameters =
@@ -83,10 +85,12 @@ module Lift =
         let private takeOutArgs (args: Expr list) app =
             args
             |> List.filter (fun e -> e.Type = typeof<unit>)
-            |> List.filter (function
+            |> List.filter (
+                function
                 | Patterns.Var _
                 | Patterns.Value _ -> false
-                | _ -> true)
+                | _ -> true
+            )
             |> (fun args -> List.foldBack (fun f s -> Expr.Sequential(f, s)) args app)
 
         /// args: [x1: t1; x2: t2; x3: t3], boyd: t4
@@ -101,9 +105,11 @@ module Lift =
         // Value(<null>) in Applications patterns go to []
         // Then i think we should map [] -> [ Value((), typeof<unit>) ] in exps
         let private mapExpsToArgs =
-            List.map (function
+            List.map (
+                function
                 | [] -> [ Expr.Value((), typeof<unit>) ]
-                | x -> x)
+                | x -> x
+            )
             >> List.concat
 
         let cleanUp (expr: Expr) =
@@ -123,7 +129,8 @@ module Lift =
                         let args' = filterUnit args |> List.map (parse subst)
                         let app' = Utils.makeApplicationExpr (Expr.Var var') args'
 
-                        takeOutArgs args app')
+                        takeOutArgs args app'
+                    )
                     |> Option.defaultValue source
                 | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, parse subst body)
                 | ExprShape.ShapeVar var as source ->
@@ -153,5 +160,4 @@ module Lift =
                 let exprList', methods = exprList |> List.map lift |> List.unzip
                 ExprShape.RebuildShapeCombination(o, exprList'), List.concat methods
 
-    let parse (expr: Expr) =
-        expr |> Parameters.lift |> UnitArguments.cleanUp |> Lambda.lift
+    let parse (expr: Expr) = expr |> Parameters.lift |> UnitArguments.cleanUp |> Lambda.lift

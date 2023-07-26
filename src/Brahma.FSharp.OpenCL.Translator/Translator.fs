@@ -80,7 +80,8 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
             |> List.map (fun (var, expr) ->
                 match atomicApplicationsInfo |> Map.tryFind var with
                 | Some qual -> AtomicFunc(var, expr, qual) :> Method
-                | None -> Function(var, expr) :> Method)
+                | None -> Function(var, expr) :> Method
+            )
 
         methods @ kernelFunc
 
@@ -121,7 +122,8 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
                 | EnableAtomic ->
                     pragmas.Add(CLPragma CLGlobalInt32BaseAtomics :> ITopDef<_>)
                     pragmas.Add(CLPragma CLLocalInt32BaseAtomics :> ITopDef<_>)
-                | EnableFP64 -> pragmas.Add(CLPragma CLFP64))
+                | EnableFP64 -> pragmas.Add(CLPragma CLFP64)
+            )
 
             List.ofSeq pragmas
 
@@ -140,8 +142,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
 
     member this.TranslatorOptions = translatorOptions
 
-    member this.Translate(qExpr) =
-        lock lockObject <| fun () -> translate qExpr
+    member this.Translate(qExpr) = lock lockObject <| fun () -> translate qExpr
 
     member this.TransformQuotation(expr: Expr) = transformQuotation expr
 
@@ -156,6 +157,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
                 member this.MaxWorkItemSizes = [| 0 |]
                 member this.DeviceExtensions = [||]
                 member this.LocalMemSize = 0<Byte>
-                member this.GlobalMemSize = 0L<Byte> }
+                member this.GlobalMemSize = 0L<Byte>
+            }
 
         FSQuotationToOpenCLTranslator(device)

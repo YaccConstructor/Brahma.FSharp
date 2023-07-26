@@ -32,21 +32,27 @@ type AllocationMode =
 
 /// Represents flags to specify allocation and usage information of OpenCL buffer.
 type ClMemFlags =
-    { HostAccessMode: HostAccessMode
-      DeviceAccessMode: DeviceAccessMode
-      AllocationMode: AllocationMode }
+    {
+        HostAccessMode: HostAccessMode
+        DeviceAccessMode: DeviceAccessMode
+        AllocationMode: AllocationMode
+    }
 
     /// Represents default flags in case of allocation with copying data.
     static member DefaultIfData =
-        { HostAccessMode = HostAccessMode.ReadWrite
-          DeviceAccessMode = DeviceAccessMode.ReadWrite
-          AllocationMode = AllocationMode.AllocAndCopyHostPtr }
+        {
+            HostAccessMode = HostAccessMode.ReadWrite
+            DeviceAccessMode = DeviceAccessMode.ReadWrite
+            AllocationMode = AllocationMode.AllocAndCopyHostPtr
+        }
 
     /// Represents default flags in case of allocation without copying data.
     static member DefaultIfNoData =
-        { HostAccessMode = HostAccessMode.ReadWrite
-          DeviceAccessMode = DeviceAccessMode.ReadWrite
-          AllocationMode = AllocationMode.AllocHostPtr }
+        {
+            HostAccessMode = HostAccessMode.ReadWrite
+            DeviceAccessMode = DeviceAccessMode.ReadWrite
+            AllocationMode = AllocationMode.AllocHostPtr
+        }
 
 type BufferInitParam<'a> =
     | Data of 'a[]
@@ -80,9 +86,11 @@ type ClBuffer<'a>(clContext: ClContext, initParam: BufferInitParam<'a>, ?memFlag
         | DeviceAccessMode.WriteOnly -> flags <- flags ||| MemFlags.WriteOnly
 
         let ifDataFlags =
-            [ AllocationMode.UseHostPtr
-              AllocationMode.CopyHostPtr
-              AllocationMode.AllocAndCopyHostPtr ]
+            [
+                AllocationMode.UseHostPtr
+                AllocationMode.CopyHostPtr
+                AllocationMode.AllocAndCopyHostPtr
+            ]
 
         match initParam with
         | Size _ when ifDataFlags |> List.contains memFlags.AllocationMode ->

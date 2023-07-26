@@ -69,10 +69,7 @@ let tests =
                         rightEdge <- middleIdx - 1
 
                 // Here localID equals either 0 or 1
-                if localID = 0 then
-                    beginIdxLocal <- leftEdge
-                else
-                    endIdxLocal <- leftEdge
+                if localID = 0 then beginIdxLocal <- leftEdge else endIdxLocal <- leftEdge
 
             barrierLocal ()
 

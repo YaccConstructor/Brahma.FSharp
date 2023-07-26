@@ -33,8 +33,7 @@ module State =
             let (x, state) = run state s
             f x, state
 
-    let using f x =
-        State <| fun state -> eval (f state) x, state
+    let using f x = State <| fun state -> eval (f state) x, state
 
     let collect (list: State<'s, 'a> list) =
         list
@@ -55,8 +54,7 @@ type StateBuilder<'state>() =
             let (_, context) = State.run context x1
             State.run context x2
 
-    member inline this.Delay(rest) =
-        this.Bind(this.Zero(), (fun () -> rest ()))
+    member inline this.Delay(rest) = this.Bind(this.Zero(), (fun () -> rest ()))
 
     member inline this.Run(m) = m
 

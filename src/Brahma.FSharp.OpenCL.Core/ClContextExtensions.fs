@@ -19,9 +19,11 @@ module ClContextExtensions =
             ) =
 
             let flags =
-                { HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfData.HostAccessMode
-                  DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfData.DeviceAccessMode
-                  AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfData.AllocationMode }
+                {
+                    HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfData.HostAccessMode
+                    DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfData.DeviceAccessMode
+                    AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfData.AllocationMode
+                }
 
             let buffer = new ClBuffer<'a>(this, Data data, flags)
             new ClArray<_>(buffer)
@@ -36,9 +38,11 @@ module ClContextExtensions =
             ) =
 
             let flags =
-                { HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfNoData.HostAccessMode
-                  DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfNoData.DeviceAccessMode
-                  AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfNoData.AllocationMode }
+                {
+                    HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfNoData.HostAccessMode
+                    DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfNoData.DeviceAccessMode
+                    AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfNoData.AllocationMode
+                }
 
             let buffer = new ClBuffer<'a>(this, Size size, flags)
             new ClArray<_>(buffer)
@@ -53,9 +57,11 @@ module ClContextExtensions =
             ) =
 
             let flags =
-                { HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfData.HostAccessMode
-                  DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfData.DeviceAccessMode
-                  AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfData.AllocationMode }
+                {
+                    HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfData.HostAccessMode
+                    DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfData.DeviceAccessMode
+                    AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfData.AllocationMode
+                }
 
             let buffer = new ClBuffer<'a>(this, Data [| data |], flags)
             new ClCell<_>(buffer)
@@ -69,9 +75,11 @@ module ClContextExtensions =
             ) =
 
             let flags =
-                { HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfNoData.HostAccessMode
-                  DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfNoData.DeviceAccessMode
-                  AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfNoData.AllocationMode }
+                {
+                    HostAccessMode = defaultArg hostAccessMode ClMemFlags.DefaultIfNoData.HostAccessMode
+                    DeviceAccessMode = defaultArg deviceAccessMode ClMemFlags.DefaultIfNoData.DeviceAccessMode
+                    AllocationMode = defaultArg allocationMode ClMemFlags.DefaultIfNoData.AllocationMode
+                }
 
             let buffer = new ClBuffer<'a>(this, Size 1, flags)
             new ClCell<_>(buffer)

@@ -15,7 +15,8 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
     let handleFree (free: IFreeCrate) =
         { new IFreeCrateEvaluator with
-            member this.Eval crate = crate.Source.Dispose() }
+            member this.Eval crate = crate.Source.Dispose()
+        }
         |> free.Apply
 
     let handleToGPU queue (toGpu: IToGPUCrate) =
@@ -40,7 +41,8 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                     )
 
                 if error <> ErrorCode.Success then
-                    raise (Cl.Exception error) }
+                    raise (Cl.Exception error)
+        }
         |> toGpu.Apply
 
     let handleToHost queue (toHost: IToHostCrate) =
@@ -91,7 +93,8 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
                 match crate.ReplyChannel with
                 | Some ch -> ch.Reply crate.Destination
-                | None -> () }
+                | None -> ()
+        }
         |> toHost.Apply
 
     let handleRun queue (run: IRunCrate) =
@@ -115,7 +118,8 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                     )
 
                 if error <> ErrorCode.Success then
-                    raise (Cl.Exception error) }
+                    raise (Cl.Exception error)
+        }
         |> run.Apply
 
     /// <summary>

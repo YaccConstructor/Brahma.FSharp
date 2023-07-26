@@ -25,8 +25,7 @@ type ClTaskBuilder() =
 
     member inline this.Combine(m1, m2) = this.Bind(m1, (fun () -> m2))
 
-    member inline this.Delay(rest) =
-        this.Bind(this.Zero(), (fun () -> rest ()))
+    member inline this.Delay(rest) = this.Bind(this.Zero(), (fun () -> rest ()))
 
     member inline this.Run(m) = m
 
@@ -121,7 +120,8 @@ module ClTask =
                         ctx.CommandQueue.Post <| syncMsgs.[i]
                         return result
                     }
-                    |> fun task -> async { return runComputation task <| ctx.WithNewCommandQueue() })
+                    |> fun task -> async { return runComputation task <| ctx.WithNewCommandQueue() }
+                )
                 |> Async.Parallel
                 |> Async.RunSynchronously
         }

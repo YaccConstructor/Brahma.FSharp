@@ -9,8 +9,7 @@ module Extensions =
 
         /// Builds an expression that represents the lambda
         static member Lambdas(args: Var list list, body: Expr) =
-            let mkRLinear mk (vs, body) =
-                List.foldBack (fun v acc -> mk (v, acc)) vs body
+            let mkRLinear mk (vs, body) = List.foldBack (fun v acc -> mk (v, acc)) vs body
 
             let mkTupledLambda (args, body) =
                 match args with
@@ -24,7 +23,8 @@ module Extensions =
                         tupledArg,
                         (args, [ 0 .. args.Length - 1 ], body)
                         |||> List.foldBack2 (fun var idxInTuple letExpr ->
-                            Expr.Let(var, Expr.TupleGet(Expr.Var tupledArg, idxInTuple), letExpr))
+                            Expr.Let(var, Expr.TupleGet(Expr.Var tupledArg, idxInTuple), letExpr)
+                        )
                     )
 
             mkRLinear mkTupledLambda (args, body)
