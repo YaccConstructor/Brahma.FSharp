@@ -108,7 +108,11 @@ type TranslationContext<'lang, 'vDecl> =
             ArrayKind = CPointer
         }
 
-    member this.WithNewLocalContext() = { this with VarDecls = ResizeArray(); Namer = Namer() }
+    member this.WithNewLocalContext() =
+        { this with
+            VarDecls = ResizeArray()
+            Namer = Namer()
+        }
 
 type TargetContext = TranslationContext<Lang, Statement<Lang>>
 

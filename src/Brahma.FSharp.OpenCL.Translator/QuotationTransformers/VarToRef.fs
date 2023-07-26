@@ -3,7 +3,8 @@ namespace Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open FSharp.Quotations
 
 module VarToRef =
-    let private isMutableVar (var: Var) = var.IsMutable && not (Utils.isFunction var)
+    let private isMutableVar (var: Var) =
+        var.IsMutable && not (Utils.isFunction var)
 
     let rec private collectMutableVarsInClosure =
         function
@@ -52,8 +53,7 @@ module VarToRef =
                 refMap.TryFind var
                 |> Option.map (fun refExpr ->
                     let expr = parse refMap valueExpr
-                    Utils.createReferenceSetCall refExpr expr
-                )
+                    Utils.createReferenceSetCall refExpr expr)
                 |> Option.defaultValue sourceExpr
             | ExprShape.ShapeVar var as sourceExpr ->
                 refMap.TryFind var

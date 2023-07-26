@@ -73,5 +73,4 @@ module Print =
         | Utils.Printf(tpArgs, value, bindArgs) -> <@@ print tpArgs value bindArgs @@>
         | ExprShape.ShapeVar _ as expr -> expr
         | ExprShape.ShapeLambda(x, body) -> Expr.Lambda(x, replace body)
-        | ExprShape.ShapeCombination(combo, exprList) ->
-            ExprShape.RebuildShapeCombination(combo, List.map replace exprList)
+        | ExprShape.ShapeCombination(combo, exprList) -> ExprShape.RebuildShapeCombination(combo, List.map replace exprList)

@@ -65,6 +65,8 @@ module Types =
 
         header ^^ body
 
-    and printUnionInplaceType (t: UnionClInplaceType<_>) = printAggregatingInplaceType "union" t.Name t.Fields
+    and printUnionInplaceType (t: UnionClInplaceType<_>) =
+        printAggregatingInplaceType "union" t.Name t.Fields
 
-    and printStructInplaceType (t: StructInplaceType<_>) = printAggregatingInplaceType "struct" t.Name t.Fields
+    and printStructInplaceType (t: StructInplaceType<_>) =
+        printAggregatingInplaceType "struct" t.Name t.Fields

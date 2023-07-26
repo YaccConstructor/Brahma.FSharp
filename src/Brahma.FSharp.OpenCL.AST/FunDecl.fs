@@ -26,13 +26,7 @@ type FunFormalArg<'lang>(declSpecs: DeclSpecifierPack<'lang>, name: string) =
         | :? FunFormalArg<'lang> as o -> this.DeclSpecs.Matches(o.DeclSpecs) && this.Name.Equals(o.Name)
         | _ -> false
 
-type FunDecl<'lang>
-    (
-        declSpecs: DeclSpecifierPack<'lang>,
-        name: string,
-        args: List<FunFormalArg<'lang>>,
-        body: Statement<'lang>
-    ) =
+type FunDecl<'lang>(declSpecs: DeclSpecifierPack<'lang>, name: string, args: List<FunFormalArg<'lang>>, body: Statement<'lang>) =
 
     inherit Node<'lang>()
     interface ITopDef<'lang>

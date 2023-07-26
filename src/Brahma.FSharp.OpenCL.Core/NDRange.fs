@@ -114,12 +114,7 @@ type Range3D
     /// <param name="localWorkSizeX">Local work size for dimension 0 to use.</param>
     /// <param name="localWorkSizeY">Local work size for dimension 1 to use.</param>
     /// <param name="localWorkSizeZ">Local work size for dimension 2 to use.</param>
-    new(globalWorkSizeX: int,
-        globalWorkSizeY: int,
-        globalWorkSizeZ: int,
-        localWorkSizeX: int,
-        localWorkSizeY: int,
-        localWorkSizeZ: int) =
+    new(globalWorkSizeX: int, globalWorkSizeY: int, globalWorkSizeZ: int, localWorkSizeX: int, localWorkSizeY: int, localWorkSizeZ: int) =
         Range3D(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ, localWorkSizeX, localWorkSizeY, localWorkSizeZ)
 
     /// <summary>
@@ -128,8 +123,7 @@ type Range3D
     /// <param name="globalWorkSizeX">Global work size for dimension 0 to use.</param>
     /// <param name="globalWorkSizeY">Global work size for dimension 1 to use.</param>
     /// <param name="globalWorkSizeZ">Global work size for dimension 2 to use.</param>
-    new(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ) =
-        Range3D(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ, 1, 1, 1)
+    new(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ) = Range3D(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ, 1, 1, 1)
 
     /// Gets the unique global work-item ID for dimension 0.
     member this.GlobalID0: int = FailIfOutsideKernel()

@@ -28,7 +28,8 @@ module Helpers =
 
 let simpleTests context =
     [
-        let inline checkCode command outFile expected = checkCode context command outFile expected
+        let inline checkCode command outFile expected =
+            checkCode context command outFile expected
 
         testCase "Pointers to private values should be explicitly private"
         <| fun () ->

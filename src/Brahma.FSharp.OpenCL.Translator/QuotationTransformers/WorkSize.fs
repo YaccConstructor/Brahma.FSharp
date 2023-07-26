@@ -45,7 +45,8 @@ module WorkSize =
             Some(var, inExp)
         | _ -> None
 
-    let inline private (|Zero|_|) exp = (|CoordinateBind|_|) 0 (|ReturnSome|_|) exp
+    let inline private (|Zero|_|) exp =
+        (|CoordinateBind|_|) 0 (|ReturnSome|_|) exp
 
     let inline private (|First|_|) exp = (|CoordinateBind|_|) 1 (|Zero|_|) exp
 

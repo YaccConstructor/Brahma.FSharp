@@ -67,12 +67,7 @@ module ClContextExtensions =
             new ClCell<_>(buffer)
 
         /// Creates OpenCL default value with specified memory flags.
-        member this.CreateClCell
-            (
-                ?hostAccessMode: HostAccessMode,
-                ?deviceAccessMode: DeviceAccessMode,
-                ?allocationMode: AllocationMode
-            ) =
+        member this.CreateClCell(?hostAccessMode: HostAccessMode, ?deviceAccessMode: DeviceAccessMode, ?allocationMode: AllocationMode) =
 
             let flags =
                 {

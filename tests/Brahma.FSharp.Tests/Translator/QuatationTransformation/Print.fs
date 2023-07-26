@@ -5,7 +5,8 @@ open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 
 let private replaceTests =
     [
-        let inline createTest name = Common.Helpers.createMapTestAndCompareAsStrings Print.replace name
+        let inline createTest name =
+            Common.Helpers.createMapTestAndCompareAsStrings Print.replace name
 
         let tpArgs: System.Type list = []
         let value = ""

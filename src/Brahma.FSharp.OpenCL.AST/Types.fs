@@ -115,7 +115,10 @@ type DiscriminatedUnionType<'lang>(name: string, fields: List<int * Field<'lang>
         StructType<'lang>(
             name,
             [
-                { Name = "tag"; Type = PrimitiveType(Int) }
+                {
+                    Name = "tag"
+                    Type = PrimitiveType(Int)
+                }
                 {
                     Name = "data"
                     Type = UnionClInplaceType(name + "_Data", List.map snd fields)
@@ -126,9 +129,11 @@ type DiscriminatedUnionType<'lang>(name: string, fields: List<int * Field<'lang>
     member this.Tag = this.Fields.[0]
     member this.Data = this.Fields.[1]
 
-    member this.GetCaseByTag(tag: int) = List.tryFind (fun (id, _) -> id = tag) fields |> Option.map snd
+    member this.GetCaseByTag(tag: int) =
+        List.tryFind (fun (id, _) -> id = tag) fields |> Option.map snd
 
-    member this.GetCaseByName(case: string) = List.tryFind (fun (_, f) -> f.Name = case) fields |> Option.map snd
+    member this.GetCaseByName(case: string) =
+        List.tryFind (fun (_, f) -> f.Name = case) fields |> Option.map snd
 
 type TupleType<'lang>(baseStruct: StructType<'lang>) =
     inherit Type<'lang>()
@@ -136,7 +141,8 @@ type TupleType<'lang>(baseStruct: StructType<'lang>) =
     member this.BaseStruct = baseStruct
     override this.Size = baseStruct.Size
 
-    override this.Matches _ = failwith "Not implemented: matches for tuples"
+    override this.Matches _ =
+        failwith "Not implemented: matches for tuples"
 
 type RefType<'lang>(baseType: Type<'lang>, typeQuals: TypeQualifier<'lang> list) =
     inherit Type<'lang>()

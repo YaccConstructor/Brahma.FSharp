@@ -67,65 +67,37 @@ let tupleTestCases context =
         testProperty (message "struct(int * int)")
         <| fun (data: struct (int * int)[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct(int * int64)")
         <| fun (data: struct (int * int64)[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct(bool * bool")
         <| fun (data: struct (bool * bool)[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct((int * int) * (int * int))")
         <| fun (data: struct ((int * int) * (int * int))[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct((int * int64) * (bool * bool))")
         <| fun (data: struct ((int * int64) * (bool * bool))[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct(RecordOfIntInt64 * RecordOfBoolBool)")
         <| fun (data: struct (RecordOfIntInt64 * RecordOfBoolBool)[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct(GenericRecord<int, int64> * GenericRecord<bool, bool>)")
         <| fun (data: struct (GenericRecord<int, int64> * GenericRecord<bool, bool>)[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "struct(int * int64 * bool)")
         <| fun (data: struct (int * int64 * bool)[]) ->
@@ -188,20 +160,12 @@ let recordTestCases context =
         testProperty (message "GenericRecord<int, bool>")
         <| fun (data: GenericRecord<int, bool>[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testProperty (message "GenericRecord<(int * int64), (bool * bool)>")
         <| fun (data: GenericRecord<(int * int64), (bool * bool)>[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
     ]
 
 let genGenericStruct<'a, 'b> =
@@ -219,7 +183,8 @@ let structTests context =
     [
         let inline check data command = check context data command
 
-        let inline checkResult cmd input expected = RuntimeTests.Helpers.checkResult context cmd input expected
+        let inline checkResult cmd input expected =
+            RuntimeTests.Helpers.checkResult context cmd input expected
 
         testCase "Smoke test"
         <| fun _ ->
@@ -296,29 +261,17 @@ let structTests context =
         testPropertyWithConfig config (message "GenericStruct<int, bool>")
         <| fun (data: GenericStruct<int, bool>[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testPropertyWithConfig config (message "GenericStruct<(int * int64), (bool * bool)>")
         <| fun (data: GenericStruct<(int * int64), (bool * bool)>[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
 
         testPropertyWithConfig config (message "GenericStruct<RecordOfIntInt64, RecordOfBoolBool>")
         <| fun (data: GenericStruct<RecordOfIntInt64, RecordOfBoolBool>[]) ->
             if data.Length <> 0 then
-                check
-                    data
-                    (fun length ->
-                        <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>
-                    )
+                check data (fun length -> <@ fun (range: Range1D) (buffer: ClArray<_>) -> (%command length) range.GlobalID0 buffer @>)
     ]
 
 type SimpleDU =

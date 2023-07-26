@@ -96,15 +96,11 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
                         | _ ->
                             failwithf
                                 $"Something went wrong with type of atomic global var. \
-                            Expected var of type '%s{ClArray_}' or '%s{ClCell_}', but given %s{var.Type.Name}"
-                    )
+                            Expected var of type '%s{ClArray_}' or '%s{ClCell_}', but given %s{var.Type.Name}")
                 )
 
             let regularArgs =
-                Expr.NewArray(
-                    typeof<obj>,
-                    argsWithoutMutexes |> List.map (fun v -> Expr.Coerce(Expr.Var v, typeof<obj>))
-                )
+                Expr.NewArray(typeof<obj>, argsWithoutMutexes |> List.map (fun v -> Expr.Coerce(Expr.Var v, typeof<obj>)))
 
             let argsList = argsWithoutMutexes |> List.map List.singleton
 
@@ -117,8 +113,7 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
             let xVar = Var("x", typeof<obj list>)
 
             Expr.Lambdas(
-                [ [ kernelVar ] ]
-                @ [ [ rangeVar ] ] @ [ [ argsVar ] ] @ [ [ mutexBuffersVar ] ] @ argsList,
+                [ [ kernelVar ]; [ rangeVar ]; [ argsVar ]; [ mutexBuffersVar ] ] @ argsList,
                 Expr.Let(
                     mutexArgsVar,
                     <@@
@@ -129,16 +124,13 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
 
                             (%%(Expr.Var mutexBuffersVar): ResizeArray<IBuffer<Mutex>>).Add mutexBuffer
 
-                            box mutexBuffer
-                        )
+                            box mutexBuffer)
                     @@>,
                     Expr.Let(
                         xVar,
                         <@@ %%regularArgs |> List.ofArray @@>,
                         <@@
-                            %%Utils.createReferenceSetCall
-                                (Expr.Var rangeVar)
-                                <@@ unbox<'TRange> (%%Expr.Var xVar: obj list).Head @@>
+                            %%Utils.createReferenceSetCall (Expr.Var rangeVar) <@@ unbox<'TRange> (%%Expr.Var xVar: obj list).Head @@>
 
                             %%Utils.createReferenceSetCall
                                 (Expr.Var argsVar)

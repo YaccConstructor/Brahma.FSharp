@@ -15,13 +15,7 @@
 
 namespace Brahma.FSharp.OpenCL.AST
 
-type VarDecl<'lang>
-    (
-        vType: Type<'lang>,
-        name: string,
-        expr: Option<Expression<'lang>>,
-        ?spaceModifier: AddressSpaceQualifier<'lang>
-    ) =
+type VarDecl<'lang>(vType: Type<'lang>, name: string, expr: Option<Expression<'lang>>, ?spaceModifier: AddressSpaceQualifier<'lang>) =
 
     inherit Statement<'lang>()
     let mutable spaceModifier = spaceModifier
@@ -60,12 +54,7 @@ type Return<'lang>(expression: Expression<'lang>) =
     override this.Children = []
     member this.Expression = expression
 
-type IfThenElse<'lang>
-    (
-        cond: Expression<'lang>,
-        thenBranch: StatementBlock<'lang>,
-        elseBranch: Option<StatementBlock<'lang>>
-    ) =
+type IfThenElse<'lang>(cond: Expression<'lang>, thenBranch: StatementBlock<'lang>, elseBranch: Option<StatementBlock<'lang>>) =
 
     inherit Statement<'lang>()
     override this.Children = []
@@ -73,13 +62,7 @@ type IfThenElse<'lang>
     member this.Then = thenBranch
     member this.Else = elseBranch
 
-type ForIntegerLoop<'lang>
-    (
-        var: VarDecl<'lang>,
-        cond: Expression<'lang>,
-        countModifier: Statement<'lang>,
-        body: StatementBlock<'lang>
-    ) =
+type ForIntegerLoop<'lang>(var: VarDecl<'lang>, cond: Expression<'lang>, countModifier: Statement<'lang>, body: StatementBlock<'lang>) =
 
     inherit Statement<'lang>()
     override this.Children = []

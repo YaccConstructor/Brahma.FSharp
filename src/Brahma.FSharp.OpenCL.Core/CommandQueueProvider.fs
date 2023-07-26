@@ -125,8 +125,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandQueueProvider"/> class with specified device, context and translator.
     /// </summary>
-    new(device: Device, context: Context, translator: FSQuotationToOpenCLTranslator) =
-        CommandQueueProvider(device, context, translator, ())
+    new(device: Device, context: Context, translator: FSQuotationToOpenCLTranslator) = CommandQueueProvider(device, context, translator, ())
 
     /// <summary>
     /// Creates new command queue capable of handling messages of type <see cref="Msg"/>.

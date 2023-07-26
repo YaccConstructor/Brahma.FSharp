@@ -39,9 +39,13 @@ type ClDevice(device: OpenCL.Net.Device) =
         let error = ref Unchecked.defaultof<ClErrorCode>
         let result = f error
 
-        if error.Value <> ClErrorCode.Success then onError else result
+        if error.Value <> ClErrorCode.Success then
+            onError
+        else
+            result
 
-    let (|Contains|_|) (substring: string) (str: string) = if str.Contains substring then Some Contains else None
+    let (|Contains|_|) (substring: string) (str: string) =
+        if str.Contains substring then Some Contains else None
 
     /// Gets internal representation of device specific to OpenCL.Net.
     member this.Device = device
@@ -230,8 +234,7 @@ type ClDevice(device: OpenCL.Net.Device) =
                 Some
                 <| Cl.GetDeviceIDs(platform, DeviceHelpers.convertToDeviceType deviceType, error)
             else
-                None
-        )
+                None)
         |> Seq.concat
         |> Seq.map ClDevice
 

@@ -104,15 +104,13 @@ let stressTestCases context =
             range
             |> List.map (fun size ->
                 testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on int"
-                <| fun () -> stressTest<int> context <@ inc @> size (fun x -> x + 1) (=)
-            )
+                <| fun () -> stressTest<int> context <@ inc @> size (fun x -> x + 1) (=))
 
         yield!
             range
             |> List.map (fun size ->
                 testCase $"Smoke stress test (size %i{size}) on atomic 'dec' on int"
-                <| fun () -> stressTest<int> context <@ dec @> size (fun x -> x - 1) (=)
-            )
+                <| fun () -> stressTest<int> context <@ dec @> size (fun x -> x - 1) (=))
 
         // float32
         yield!
@@ -125,8 +123,7 @@ let stressTestCases context =
                         <@ fun x -> x + 1.f @>
                         size
                         (fun x -> x + 1.f)
-                        (fun x y -> float (abs (x - y)) < Accuracy.low.relative)
-            )
+                        (fun x y -> float (abs (x - y)) < Accuracy.low.relative))
 
         // double
         yield!
@@ -134,21 +131,14 @@ let stressTestCases context =
             |> List.map (fun size ->
                 testCase $"Smoke stress test (size %i{size}) on atomic 'inc' on float"
                 <| fun () ->
-                    stressTest<float>
-                        context
-                        <@ fun x -> x + 1. @>
-                        size
-                        (fun x -> x + 1.)
-                        (fun x y -> abs (x - y) < Accuracy.low.relative)
-            )
+                    stressTest<float> context <@ fun x -> x + 1. @> size (fun x -> x + 1.) (fun x y -> abs (x - y) < Accuracy.low.relative))
 
         // bool
         yield!
             range
             |> List.map (fun size ->
                 testCase $"Smoke stress test (size %i{size}) on atomic 'not' on bool"
-                <| fun () -> stressTest<bool> context <@ not @> size not (=)
-            )
+                <| fun () -> stressTest<bool> context <@ not @> size not (=))
 
         // WrappedInt (не работает транляция или типа того)
         let wrappedIntInc = <@ fun x -> x + WrappedInt(1) @>
@@ -157,8 +147,7 @@ let stressTestCases context =
             range
             |> List.map (fun size ->
                 ptestCase $"Smoke stress test (size %i{size}) on custom atomic 'inc' on WrappedInt"
-                <| fun () -> stressTest<WrappedInt> context wrappedIntInc size (fun x -> x + WrappedInt(1)) (=)
-            )
+                <| fun () -> stressTest<WrappedInt> context wrappedIntInc size (fun x -> x + WrappedInt(1)) (=))
 
         // custom int op
         let incx2 = <@ fun x -> x + 2 @>
@@ -167,15 +156,15 @@ let stressTestCases context =
             range
             |> List.map (fun size ->
                 testCase $"Smoke stress test (size %i{size}) on atomic unary func on int"
-                <| fun () -> stressTest<int> context incx2 size (fun x -> x + 2) (=)
-            )
+                <| fun () -> stressTest<int> context incx2 size (fun x -> x + 2) (=))
     ]
 
 /// Test for add and sub like atomic operations.
 /// Use local and global atomics,
 /// use reading from global mem in local atomic
 let foldTest<'a when 'a: equality and 'a: struct> context f (isEqual: 'a -> 'a -> bool) =
-    let (.=.) left right = isEqual left right |@ $"%A{left} = %A{right}"
+    let (.=.) left right =
+        isEqual left right |@ $"%A{left} = %A{right}"
 
     Check.One(
         Settings.fscheckConfig,

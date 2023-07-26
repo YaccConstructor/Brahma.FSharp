@@ -13,7 +13,11 @@ type StructurePacking =
     {
         Size: int
         Alignment: int
-        Members: {| Pack: StructurePacking; Offsets: int |} list
+        Members:
+            {|
+                Pack: StructurePacking
+                Offsets: int
+            |} list
     }
 
 type CustomMarshaller() =
@@ -63,7 +67,8 @@ type CustomMarshaller() =
 
     // TODO issues with multithreading
     member this.GetTypePacking(type': Type) =
-        let getAlignment elems = elems |> List.map (fun pack -> pack.Alignment) |> List.max
+        let getAlignment elems =
+            elems |> List.map (fun pack -> pack.Alignment) |> List.max
 
         let getSize alignment elems =
             elems
@@ -91,7 +96,11 @@ type CustomMarshaller() =
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | RecordType ->
                     let elems =
@@ -105,7 +114,11 @@ type CustomMarshaller() =
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | UnionType ->
                     let tag = go typeof<int>
@@ -117,7 +130,11 @@ type CustomMarshaller() =
 
                     let unionPacking =
                         if nonEmptyFieldsTypes.Length = 0 then
-                            { Size = 0; Alignment = 1; Members = [] }
+                            {
+                                Size = 0
+                                Alignment = 1
+                                Members = []
+                            }
                         else
                             let packingList =
                                 nonEmptyFieldsTypes
@@ -130,7 +147,11 @@ type CustomMarshaller() =
 
                             let unionSize = packingList |> List.map (fun pack -> pack.Size) |> List.max
 
-                            { Size = unionSize; Alignment = unionAlignment; Members = [] }
+                            {
+                                Size = unionSize
+                                Alignment = unionAlignment
+                                Members = []
+                            }
 
                     let elems = [ tag; unionPacking ]
 
@@ -139,7 +160,11 @@ type CustomMarshaller() =
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | UserDefinedStructureType ->
                     let elems =
@@ -153,15 +178,28 @@ type CustomMarshaller() =
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | PrimitiveType ->
                     let size =
-                        Marshal.SizeOf(if type' = typeof<bool> then typeof<BoolHostAlias> else type')
+                        Marshal.SizeOf(
+                            if type' = typeof<bool> then
+                                typeof<BoolHostAlias>
+                            else
+                                type'
+                        )
 
                     let alignment = size
 
-                    { Size = size; Alignment = alignment; Members = [] }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = []
+                    }
 
             go type'
 
@@ -243,7 +281,12 @@ type CustomMarshaller() =
     member this.WriteToUnmanaged(array: 'a[], ptr: IntPtr) =
         let rec write start (structure: obj) =
             let offsets =
-                this.GetTypeOffsets(if isNull structure then typeof<int option> else structure.GetType())
+                this.GetTypeOffsets(
+                    if isNull structure then
+                        typeof<int option>
+                    else
+                        structure.GetType()
+                )
 
             let mutable i = 0
 
@@ -283,7 +326,10 @@ type CustomMarshaller() =
                     let offset = if isNull structure then 0 else offsets.[i]
 
                     let structure =
-                        if str.GetType() = typeof<bool> then box <| Convert.ToByte str else str
+                        if str.GetType() = typeof<bool> then
+                            box <| Convert.ToByte str
+                        else
+                            str
 
                     Marshal.StructureToPtr(structure, IntPtr.Add(start, offset), false)
                     i <- i + 1
@@ -294,8 +340,7 @@ type CustomMarshaller() =
             (fun j item ->
                 let pack = this.GetTypePacking(typeof<'a>)
                 let start = IntPtr.Add(ptr, j * pack.Size)
-                write start item
-            )
+                write start item)
             array
 
         array.Length * this.GetTypePacking(typeof<'a>).Size
@@ -357,11 +402,17 @@ type CustomMarshaller() =
                     let structure =
                         Marshal.PtrToStructure(
                             IntPtr.Add(start, offset),
-                            if type'' = typeof<bool> then typeof<BoolHostAlias> else type''
+                            if type'' = typeof<bool> then
+                                typeof<BoolHostAlias>
+                            else
+                                type''
                         )
 
                     let structure =
-                        if type'' = typeof<bool> then box <| Convert.ToBoolean structure else structure
+                        if type'' = typeof<bool> then
+                            box <| Convert.ToBoolean structure
+                        else
+                            structure
 
                     i <- i + 1
                     structure
@@ -371,6 +422,5 @@ type CustomMarshaller() =
         Array.Parallel.iteri
             (fun j _ ->
                 let start = IntPtr.Add(ptr, j * this.GetTypePacking(typeof<'a>).Size)
-                array.[j] <- unbox<'a> <| read start typeof<'a>
-            )
+                array.[j] <- unbox<'a> <| read start typeof<'a>)
             array

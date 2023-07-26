@@ -18,7 +18,8 @@ module Helpers =
 
 let private workSizeTests =
     [
-        let createTest name = Common.Helpers.createMapTestAndCompareAsStrings WorkSize.get name
+        let createTest name =
+            Common.Helpers.createMapTestAndCompareAsStrings WorkSize.get name
 
         createTest "Test 1D. Global"
         <| <@

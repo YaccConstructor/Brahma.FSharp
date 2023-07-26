@@ -33,13 +33,12 @@ module State =
             let (x, state) = run state s
             f x, state
 
-    let using f x = State <| fun state -> eval (f state) x, state
+    let using f x =
+        State <| fun state -> eval (f state) x, state
 
     let collect (list: State<'s, 'a> list) =
         list
-        |> List.fold
-            (fun state elem -> state >>= fun state -> elem >>= fun elem -> return' (elem :: state))
-            (return' List.empty)
+        |> List.fold (fun state elem -> state >>= fun state -> elem >>= fun elem -> return' (elem :: state)) (return' List.empty)
         |> fun args -> map List.rev args
 
 type StateBuilder<'state>() =
@@ -54,15 +53,13 @@ type StateBuilder<'state>() =
             let (_, context) = State.run context x1
             State.run context x2
 
-    member inline this.Delay(rest) = this.Bind(this.Zero(), (fun () -> rest ()))
+    member inline this.Delay(rest) =
+        this.Bind(this.Zero(), (fun () -> rest ()))
 
     member inline this.Run(m) = m
 
     member this.For(seq: seq<'a>, f) =
-        this.Bind(
-            this.Return(seq.GetEnumerator()),
-            fun en -> this.While((fun () -> en.MoveNext()), this.Delay(fun () -> f en.Current))
-        )
+        this.Bind(this.Return(seq.GetEnumerator()), (fun en -> this.While((fun () -> en.MoveNext()), this.Delay(fun () -> f en.Current))))
 
     member this.While(cond, body) =
         if not (cond ()) then

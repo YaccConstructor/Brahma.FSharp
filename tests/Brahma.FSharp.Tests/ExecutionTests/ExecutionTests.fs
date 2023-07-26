@@ -11,8 +11,7 @@ let allContexts =
     |> Seq.map (fun device ->
         let translator = FSQuotationToOpenCLTranslator(device)
         let clContext = ClContext(device, translator)
-        RuntimeContext(clContext)
-    )
+        RuntimeContext(clContext))
 
 let tests =
     [

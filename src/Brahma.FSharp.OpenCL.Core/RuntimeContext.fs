@@ -26,7 +26,8 @@ type RuntimeContext(clContext: ClContext) =
 
     member this.ClContext = clContext
 
-    member internal this.WithNewCommandQueue() = RuntimeContext(clContext, RuntimeOptions = this.RuntimeOptions)
+    member internal this.WithNewCommandQueue() =
+        RuntimeContext(clContext, RuntimeOptions = this.RuntimeOptions)
 
     member internal this.WithRuntimeOptions(runtimeOptions) =
         RuntimeContext(clContext, RuntimeOptions = runtimeOptions, CommandQueue = this.CommandQueue)

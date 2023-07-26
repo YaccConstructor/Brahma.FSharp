@@ -6,7 +6,8 @@ open Common
 open FSharp.Quotations
 
 let parameterLiftingTests =
-    let createTest name = createMapTestAndCompareAsStrings Lift.Parameters.lift name
+    let createTest name =
+        createMapTestAndCompareAsStrings Lift.Parameters.lift name
 
     [
         createTest
@@ -108,7 +109,8 @@ let parameterLiftingTests =
 let unitVar name = expVar<unit> name
 
 let unitCleanUpTests =
-    let createTest name = createMapTestAndCompareAsStrings Lift.UnitArguments.cleanUp name
+    let createTest name =
+        createMapTestAndCompareAsStrings Lift.UnitArguments.cleanUp name
 
     [
         createTest "Test 1"
@@ -141,7 +143,13 @@ let unitCleanUpTests =
 
         createTest "Test 7"
         <| <@ let f (x: unit) (y: unit) (z: unit) = if x = y then z else y in () @>
-        <| <@ let f (x: unit) = if x = (%unitVar "y") then (%unitVar "z") else (%unitVar "y") in () @>
+        <| <@
+            let f (x: unit) =
+                if x = (%unitVar "y") then
+                    (%unitVar "z")
+                else
+                    (%unitVar "y") in ()
+        @>
 
         createTest "Test 8"
         <| <@ let f (x: unit) = let g (y: unit) = Some() in () in () @>

@@ -57,8 +57,7 @@ module rec Type =
                 do!
                     State.modify (fun ctx ->
                         ctx.Flags.Add EnableFP64 |> ignore
-                        ctx
-                    )
+                        ctx)
 
                 return PrimitiveType<Lang>(Double) :> Type<Lang>
 
@@ -137,8 +136,7 @@ module rec Type =
                 do!
                     State.modify (fun context ->
                         context.CStructDecls.Add(type', structType)
-                        context
-                    )
+                        context)
 
                 return structType
         }
@@ -158,9 +156,12 @@ module rec Type =
                         translation {
                             let! translatedType = translate type'
 
-                            return { Name = $"_%i{i + 1}"; Type = translatedType }
-                        }
-                    )
+                            return
+                                {
+                                    Name = $"_%i{i + 1}"
+                                    Type = translatedType
+                                }
+                        })
                     |> State.collect
 
                 let! index = State.gets (fun ctx -> ctx.CStructDecls.Count)
@@ -169,8 +170,7 @@ module rec Type =
                 do!
                     State.modify (fun ctx ->
                         ctx.CStructDecls.Add(type', tupleDecl)
-                        ctx
-                    )
+                        ctx)
 
                 return tupleDecl
         }
@@ -229,8 +229,7 @@ module rec Type =
                 do!
                     State.modify (fun context ->
                         context.CStructDecls.Add(type', duType)
-                        context
-                    )
+                        context)
 
                 return duType :> StructType<_>
         }

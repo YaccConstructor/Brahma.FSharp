@@ -32,11 +32,7 @@ module Variables =
 
     // create: let fVal () = expr in unit ()
     let private createDefinitionAndApplication fVar body =
-        Expr.Let(
-            fVar,
-            Expr.Lambda(Var(unitVarName, typeof<unit>), body),
-            Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>))
-        )
+        Expr.Let(fVar, Expr.Lambda(Var(unitVarName, typeof<unit>), body), Expr.Application(Expr.Var fVar, Expr.Value((), typeof<unit>)))
 
     // let x = expr -> let x = let unit () = expr in unit ()
     let rec defsToLambda =

@@ -115,8 +115,7 @@ module Atomic =
             match expr with
             | DerivedPatterns.Applications(DerivedPatterns.SpecificCall <@ atomic @> (_,
                                                                                       _,
-                                                                                      [ DerivedPatterns.Lambdas(lambdaArgs,
-                                                                                                                lambdaBody) ]),
+                                                                                      [ DerivedPatterns.Lambdas(lambdaArgs, lambdaBody) ]),
                                            // atomic application restriction
                                            ([ Patterns.ValidVolatileArg pointerVar as volatileArg ] :: _ as applicationArgs)) when
                 nonPrivateVars |> Map.containsKey pointerVar
@@ -178,9 +177,7 @@ module Atomic =
                     ->
                     return Expr.Call(atomicXchgInfo.MakeGenericMethod(onType), newApplicationArgs)
 
-                | DerivedPatterns.SpecificCall <@ cmpxchg @> (_,
-                                                              onType :: _,
-                                                              [ Patterns.Var _; Patterns.Var _; Patterns.Var _ ]) when
+                | DerivedPatterns.SpecificCall <@ cmpxchg @> (_, onType :: _, [ Patterns.Var _; Patterns.Var _; Patterns.Var _ ]) when
                     onType = typeof<int>
                     || onType = typeof<uint32>
                     ||
@@ -277,19 +274,13 @@ module Atomic =
                                 ]
                             )
 
-                        | DerivedPatterns.SpecificCall <@ xchg @> (_, _, [ Patterns.Var p; Patterns.Var value ]) ->
-                            Expr.Var value
+                        | DerivedPatterns.SpecificCall <@ xchg @> (_, _, [ Patterns.Var p; Patterns.Var value ]) -> Expr.Var value
 
                         | DerivedPatterns.SpecificCall <@ cmpxchg @> (_,
                                                                       onType :: _,
-                                                                      [ Patterns.Var p
-                                                                        Patterns.Var cmp
-                                                                        Patterns.Var value ]) ->
+                                                                      [ Patterns.Var p; Patterns.Var cmp; Patterns.Var value ]) ->
                             Expr.IfThenElse(
-                                Expr.Call(
-                                    Utils.makeGenericMethodCall [ onType ] <@ (=) @>,
-                                    [ Expr.Var p; Expr.Var cmp ]
-                                ),
+                                Expr.Call(Utils.makeGenericMethodCall [ onType ] <@ (=) @>, [ Expr.Var p; Expr.Var cmp ]),
                                 Expr.Var value,
                                 Expr.Var p
                             )
@@ -308,8 +299,7 @@ module Atomic =
                     let atomicFuncArgs =
                         baseFuncArgs
                         |> modifyFirstOfListList (fun x ->
-                            Var(x.Name, typeof<ref<_>>.GetGenericTypeDefinition().MakeGenericType(x.Type), x.IsMutable)
-                        )
+                            Var(x.Name, typeof<ref<_>>.GetGenericTypeDefinition().MakeGenericType(x.Type), x.IsMutable))
 
                     let! state = State.get
 
@@ -320,9 +310,12 @@ module Atomic =
                         | None ->
                             Var(
                                 pointerVar.Name + "Mutex",
-                                if nonPrivateVars.[pointerVar] = GlobalQ then typeof<IBuffer<Mutex>>
-                                elif pointerVar.Type.IsArray then typeof<Mutex[]>
-                                else typeof<Mutex>
+                                if nonPrivateVars.[pointerVar] = GlobalQ then
+                                    typeof<IBuffer<Mutex>>
+                                elif pointerVar.Type.IsArray then
+                                    typeof<Mutex[]>
+                                else
+                                    typeof<Mutex>
                             )
 
                     do! State.modify (fun state -> state |> Map.add pointerVar mutexVar)
@@ -342,21 +335,12 @@ module Atomic =
                                 && propInfo.Name.ToLower().StartsWith "value"
                                 ->
 
-                                Expr.PropertyGet(
-                                    Expr.Var mutexVar,
-                                    typeof<IBuffer<Mutex>>.GetProperty ("Item"),
-                                    [ Expr.Value 0 ]
-                                )
+                                Expr.PropertyGet(Expr.Var mutexVar, typeof<IBuffer<Mutex>>.GetProperty ("Item"), [ Expr.Value 0 ])
 
                             | Patterns.Var _ -> Expr.Var mutexVar
 
-                            | DerivedPatterns.SpecificCall <@ IntrinsicFunctions.GetArray @> (_,
-                                                                                              _,
-                                                                                              [ Patterns.Var _; idx ]) ->
-                                Expr.Call(
-                                    Utils.getMethodInfoOfCall <@ IntrinsicFunctions.GetArray<Mutex> @>,
-                                    [ Expr.Var mutexVar; idx ]
-                                )
+                            | DerivedPatterns.SpecificCall <@ IntrinsicFunctions.GetArray @> (_, _, [ Patterns.Var _; idx ]) ->
+                                Expr.Call(Utils.getMethodInfoOfCall <@ IntrinsicFunctions.GetArray<Mutex> @>, [ Expr.Var mutexVar; idx ])
 
                             | _ -> failwith "Invalid volatile argument. This exception should never occur :)"
                             |> Utils.createRefCall
@@ -367,11 +351,7 @@ module Atomic =
                             |> modifyFirstOfListList Utils.createDereferenceCall
 
                         let oldValueVar =
-                            Var(
-                                "oldValue",
-                                getFirstOfListListWith (fun (x: Var) -> x.Type.GenericTypeArguments.[0]) atomicFuncArgs,
-                                true
-                            )
+                            Var("oldValue", getFirstOfListListWith (fun (x: Var) -> x.Type.GenericTypeArguments.[0]) atomicFuncArgs, true)
 
                         Expr.Let(
                             oldValueVar,
@@ -414,8 +394,7 @@ module Atomic =
             // if pointer var in private memory
             | DerivedPatterns.Applications(DerivedPatterns.SpecificCall <@ atomic @> (_,
                                                                                       _,
-                                                                                      [ DerivedPatterns.Lambdas(lambdaArgs,
-                                                                                                                lambdaBody) ]),
+                                                                                      [ DerivedPatterns.Lambdas(lambdaArgs, lambdaBody) ]),
                                            ([ Patterns.ValidVolatileArg pointerVar ] :: _ as applicationArgs)) when
                 nonPrivateVars |> Map.containsKey pointerVar |> not
                 ->
@@ -425,9 +404,7 @@ module Atomic =
                 Atomic operaion cannot be executed on variables in private memmory"
 
             // if volatile arg is invalid
-            | DerivedPatterns.Applications(DerivedPatterns.SpecificCall <@ atomic @> (_,
-                                                                                      _,
-                                                                                      [ DerivedPatterns.Lambdas _ ]),
+            | DerivedPatterns.Applications(DerivedPatterns.SpecificCall <@ atomic @> (_, _, [ DerivedPatterns.Lambdas _ ]),
                                            [ invalidVolatileArg ] :: _) ->
                 return
                     failwithf
@@ -460,8 +437,7 @@ module Atomic =
                 pointerVarToMutexVarMap
                 |> Map.iter (fun var mutexVar ->
                     if args |> List.contains var then
-                        newArgs.Add mutexVar
-                )
+                        newArgs.Add mutexVar)
 
                 // Set local args
                 let rec go expr =
@@ -498,8 +474,7 @@ module Atomic =
                                                        Expr.Value 0,
                                                        <@@ (%%args.[0]: int) - 1 @@>,
                                                        Expr.Call(
-                                                           Utils.getMethodInfoOfCall
-                                                               <@ IntrinsicFunctions.SetArray<Mutex> @>,
+                                                           Utils.getMethodInfoOfCall <@ IntrinsicFunctions.SetArray<Mutex> @>,
                                                            [ Expr.Var mutexVar; Expr.Var i; Expr.Value 0 ]
                                                        )
                                                    ))
@@ -514,8 +489,7 @@ module Atomic =
 
                     | ExprShape.ShapeVar var -> Expr.Var var
                     | ExprShape.ShapeLambda(var, lambda) -> Expr.Lambda(var, go lambda)
-                    | ExprShape.ShapeCombination(combo, exprs) ->
-                        ExprShape.RebuildShapeCombination(combo, List.map go exprs)
+                    | ExprShape.ShapeCombination(combo, exprs) -> ExprShape.RebuildShapeCombination(combo, List.map go exprs)
 
                 return Expr.Lambdas(Seq.toList newArgs |> List.map List.singleton, go body)
 

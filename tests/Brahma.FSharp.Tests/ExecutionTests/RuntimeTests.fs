@@ -252,14 +252,7 @@ let bindingTests context =
 let operatorsAndMathFunctionsTests context =
     let inline checkResult cmd input expected = checkResult context cmd input expected
 
-    let binaryOpTestGen
-        testCase
-        name
-        (binop: Expr<'a -> 'a -> 'a>)
-        (xs: array<'a>)
-        (ys: array<'a>)
-        (expected: array<'a>)
-        =
+    let binaryOpTestGen testCase name (binop: Expr<'a -> 'a -> 'a>) (xs: array<'a>) (ys: array<'a>) (expected: array<'a>) =
 
         testCase name
         <| fun () ->
@@ -342,21 +335,9 @@ let operatorsAndMathFunctionsTests context =
         unaryOpTestGen testCase "Bitwise NEGATION on int" <@ (~~~) @>
         <|| ([| 1; 10; 99; 0 |] |> fun array -> array, array |> Array.map (fun x -> -x - 1))
 
-        binaryOpTestGen
-            testCase
-            "MAX on float32"
-            <@ max @>
-            [| 1.f; 2.f; 3.f; 4.f |]
-            [| 5.f; 6.f; 7.f; 8.f |]
-            [| 5.f; 6.f; 7.f; 8.f |]
+        binaryOpTestGen testCase "MAX on float32" <@ max @> [| 1.f; 2.f; 3.f; 4.f |] [| 5.f; 6.f; 7.f; 8.f |] [| 5.f; 6.f; 7.f; 8.f |]
 
-        binaryOpTestGen
-            testCase
-            "MIN on float32"
-            <@ min @>
-            [| 1.f; 2.f; 3.f; 4.f |]
-            [| 5.f; 6.f; 7.f; 8.f |]
-            [| 1.f; 2.f; 3.f; 4.f |]
+        binaryOpTestGen testCase "MIN on float32" <@ min @> [| 1.f; 2.f; 3.f; 4.f |] [| 5.f; 6.f; 7.f; 8.f |] [| 1.f; 2.f; 3.f; 4.f |]
 
         ptestCase "MAX on int16 with const"
         <| fun () ->
@@ -688,7 +669,6 @@ let localMemTests context =
                         barrierLocal ()
                         output.[range.GlobalID0] <- localBuf.[(range.LocalID0 + 1) % localWorkSize]
                 @>
-
 
             let expected =
                 [| for x in 1..localWorkSize -> x % localWorkSize |]
@@ -1515,8 +1495,7 @@ let simpleDUTests context =
                     if x < 0 then
                         if y < 0 then 0 else y
                     else
-                        x + y
-                )
+                        x + y)
 
             "Arrays should be equal" |> Expect.sequenceEqual actual expected
 
@@ -1578,8 +1557,7 @@ let simpleDUTests context =
                     if x < 0 then
                         if y < 0 then 0 else y
                     else
-                        x + y
-                )
+                        x + y)
 
             "Arrays should be equal" |> Expect.sequenceEqual actual expected
 
@@ -1647,8 +1625,7 @@ let simpleDUTests context =
                     if x < 0 then
                         if y < 0 then 0 else y
                     else
-                        x + y
-                )
+                        x + y)
 
             "Arrays should be equal" |> Expect.sequenceEqual actual expected
     ]

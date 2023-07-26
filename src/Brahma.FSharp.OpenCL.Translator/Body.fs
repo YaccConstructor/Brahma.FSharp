@@ -61,7 +61,9 @@ module private BodyPatterns =
 module rec Body =
     // new var scope
     let private clearContext (targetContext: TranslationContext<'a, 'b>) =
-        { targetContext with VarDecls = ResizeArray() }
+        { targetContext with
+            VarDecls = ResizeArray()
+        }
 
     let toStb (s: Node<_>) =
         translation {
@@ -93,7 +95,10 @@ module rec Body =
                     | :? ArrayInitializer<_> as ai ->
                         return!
                             Type.translate var.Type
-                            |> State.using (fun ctx -> { ctx with ArrayKind = CArrayDecl ai.Length })
+                            |> State.using (fun ctx ->
+                                { ctx with
+                                    ArrayKind = CArrayDecl ai.Length
+                                })
                     | _ -> return! Type.translate var.Type
                 }
 
@@ -113,8 +118,7 @@ module rec Body =
                     let! state = state
                     let! translated = translateCond arg
                     return translated :: state
-                }
-            )
+                })
             (State.return' [])
         |> State.map List.rev
 
@@ -160,88 +164,77 @@ module rec Body =
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_add", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicsub" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_sub", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicxchg" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_xchg", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicmax" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_max", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicmin" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_min", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicinc" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_inc", [ args.[0] ]) :> Statement<_>
             | "atomicdec" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_dec", [ args.[0] ]) :> Statement<_>
             | "atomiccmpxchg" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_cmpxchg", [ args.[0]; args.[1]; args.[2] ]) :> Statement<_>
             | "atomicand" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_and", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicor" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_or", [ args.[0]; args.[1] ]) :> Statement<_>
             | "atomicxor" ->
                 do!
                     State.modify (fun context ->
                         context.Flags.Add EnableAtomic |> ignore
-                        context
-                    )
+                        context)
 
                 return FunCall("atom_xor", [ args.[0]; args.[1] ]) :> Statement<_>
             | "todouble" -> return Cast(args.[0], PrimitiveType Float) :> Statement<_>
@@ -298,10 +291,8 @@ module rec Body =
                             $"Seems, that you use math function with name %s{fName} not from System.Math or Microsoft.FSharp.Core.Operators"
             | "ref" -> return Ptr args.[0] :> Statement<_>
             | "op_dereference" -> return IndirectionOp args.[0] :> Statement<_>
-            | "op_colonequals" ->
-                return Assignment(Property(PropertyType.VarReference(IndirectionOp args.[0])), args.[1]) :> Statement<_>
-            | "setarray" ->
-                return Assignment(Property(PropertyType.Item(Item(args.[0], args.[1]))), args.[2]) :> Statement<_>
+            | "op_colonequals" -> return Assignment(Property(PropertyType.VarReference(IndirectionOp args.[0])), args.[1]) :> Statement<_>
+            | "setarray" -> return Assignment(Property(PropertyType.Item(Item(args.[0], args.[1]))), args.[2]) :> Statement<_>
             | "getarray" -> return Item(args.[0], args.[1]) :> Statement<_>
             | "barrierlocal" -> return Barrier(MemFence.Local) :> Statement<_>
             | "barrierglobal" -> return Barrier(MemFence.Global) :> Statement<_>
@@ -309,15 +300,11 @@ module rec Body =
             | "local" ->
                 return
                     raise
-                    <| InvalidKernelException(
-                        "Calling the local function is allowed only at the top level of the let binding"
-                    )
+                    <| InvalidKernelException("Calling the local function is allowed only at the top level of the let binding")
             | "arraylocal" ->
                 return
                     raise
-                    <| InvalidKernelException(
-                        "Calling the localArray function is allowed only at the top level of the let binding"
-                    )
+                    <| InvalidKernelException("Calling the localArray function is allowed only at the top level of the let binding")
             | "zerocreate" ->
                 let length =
                     match args.[0] with
@@ -375,9 +362,7 @@ module rec Body =
             | Some expr ->
                 match! State.gets (fun context -> context.CStructDecls.Keys |> Seq.contains expr.Type) with
                 | true ->
-                    match!
-                        State.gets (fun context -> not <| context.CStructDecls.[expr.Type] :? DiscriminatedUnionType<_>)
-                    with
+                    match! State.gets (fun context -> not <| context.CStructDecls.[expr.Type] :? DiscriminatedUnionType<_>) with
                     | true -> return! translateStructFieldGet expr propInfo.Name
                     | false -> return! translateUnionFieldGet expr propInfo
                 | false -> return! translateSpecificPropGet expr propName exprs
@@ -471,7 +456,11 @@ module rec Body =
             | "boolean" ->
                 let! translatedType = Type.translate sType
 
-                let stringValue = if value.ToString().ToLowerInvariant() = "false" then "0" else "1"
+                let stringValue =
+                    if value.ToString().ToLowerInvariant() = "false" then
+                        "0"
+                    else
+                        "1"
 
                 return translatedType, stringValue
 
@@ -485,7 +474,10 @@ module rec Body =
 
                 let! translatedType =
                     Type.translate sType
-                    |> State.using (fun ctx -> { ctx with ArrayKind = CArrayDecl array.Length })
+                    |> State.using (fun ctx ->
+                        { ctx with
+                            ArrayKind = CArrayDecl array.Length
+                        })
 
                 let stringValue = array |> String.concat ", " |> (fun s -> "{ " + s + "}")
 
@@ -556,8 +548,7 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.Namer.LetIn loopVar.Name
-                    context
-                )
+                    context)
 
             let! loopVarModifier =
                 match step with
@@ -578,8 +569,7 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.Namer.LetOut()
-                    context
-                )
+                    context)
 
             return ForIntegerLoop(loopVarBinding, loopCond, loopVarModifier, loopBody)
         }
@@ -610,15 +600,13 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.VarDecls.Clear()
-                    context
-                )
+                    context)
 
             for expr in linearized do
                 do!
                     State.modify (fun context ->
                         context.VarDecls.Clear()
-                        context
-                    )
+                        context)
 
                 match! translate expr with
                 | :? StatementBlock<Lang> as s1 -> decls.AddRange(s1.Statements)
@@ -642,7 +630,6 @@ module rec Body =
                         expr.Substitute(fun v -> if argsDict.ContainsKey v then Some argsDict.[v] else None), true
                     else
                         expr, false
-
 
             let (body, doing) = go expr1 [ expr2 ] []
             return body, doing
@@ -706,16 +693,11 @@ module rec Body =
             match unionCaseField with
             | Some unionCaseField ->
                 return
-                    FieldGet(
-                        FieldGet(FieldGet(unionValueExpr, unionType.Data.Name), unionCaseField.Name),
-                        propInfo.Name
-                    )
-                    :> Expression<_>
+                    FieldGet(FieldGet(FieldGet(unionValueExpr, unionType.Data.Name), unionCaseField.Name), propInfo.Name) :> Expression<_>
             | None ->
                 return
                     raise
-                    <| InvalidKernelException
-                        $"Union field get translation error: union %A{unionType.Name} doesn't have case %A{caseName}"
+                    <| InvalidKernelException $"Union field get translation error: union %A{unionType.Name} doesn't have case %A{caseName}"
         }
 
     let private translateLet (var: Var) expr inExpr =
@@ -740,7 +722,10 @@ module rec Body =
 
                         let! arrayType =
                             Type.translate var.Type
-                            |> State.using (fun ctx -> { ctx with ArrayKind = CArrayDecl arrayLength })
+                            |> State.using (fun ctx ->
+                                { ctx with
+                                    ArrayKind = CArrayDecl arrayLength
+                                })
 
                         return VarDecl(arrayType, bName, None, spaceModifier = Local)
                     | Patterns.DefaultValue _ ->
@@ -752,14 +737,12 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.VarDecls.Add vDecl
-                    context
-                )
+                    context)
 
             do!
                 State.modify (fun context ->
                     context.Namer.LetIn var.Name
-                    context
-                )
+                    context)
 
             let! res = translate inExpr |> State.using clearContext
             let! sb = State.gets (fun context -> context.VarDecls)
@@ -771,8 +754,7 @@ module rec Body =
             do!
                 State.modify (fun context ->
                     context.Namer.LetOut()
-                    context
-                )
+                    context)
 
             do! State.modify clearContext
 
@@ -790,8 +772,7 @@ module rec Body =
                         | _ ->
                             return
                                 raise
-                                <| TranslationFailedException
-                                    $"Failed to parse provided call, expected string call name: {expr}"
+                                <| TranslationFailedException $"Failed to parse provided call, expected string call name: {expr}"
                     | Patterns.Sequential(expr1, expr2) ->
                         let! updatedArgs =
                             translation {
@@ -828,9 +809,7 @@ module rec Body =
 
             | DerivedPatterns.SpecificCall <@@ Print.print @@> (_, _, args) ->
                 match args with
-                | [ Patterns.ValueWithName(argTypes, _, _)
-                    Patterns.ValueWithName(formatStr, _, _)
-                    Patterns.ValueWithName(argValues, _, _) ] ->
+                | [ Patterns.ValueWithName(argTypes, _, _); Patterns.ValueWithName(formatStr, _, _); Patterns.ValueWithName(argValues, _, _) ] ->
 
                     let formatStrArg =
                         Const(PrimitiveType ConstStringLiteral, formatStr :?> string) :> Expression<_>
@@ -841,11 +820,7 @@ module rec Body =
 
             | DerivedPatterns.SpecificCall <@ (|>) @> (_,
                                                        _,
-                                                       [ expr
-                                                         Patterns.Lambda(_,
-                                                                         DerivedPatterns.SpecificCall <@ ignore @> (_,
-                                                                                                                    _,
-                                                                                                                    _)) ]) ->
+                                                       [ expr; Patterns.Lambda(_, DerivedPatterns.SpecificCall <@ ignore @> (_, _, _)) ]) ->
                 return! translate expr
 
             | DerivedPatterns.SpecificCall <@ LanguagePrimitives.GenericOne<int> @> (_, [ onType ], _) ->
@@ -853,10 +828,7 @@ module rec Body =
 
                 let value =
                     Expr
-                        .Call(
-                            Utils.makeGenericMethodCall [ onType ] <@ LanguagePrimitives.GenericOne<int> @>,
-                            List.empty
-                        )
+                        .Call(Utils.makeGenericMethodCall [ onType ] <@ LanguagePrimitives.GenericOne<int> @>, List.empty)
                         .EvaluateUntyped()
                         .ToString()
 
@@ -864,8 +836,7 @@ module rec Body =
 
             | Patterns.Call(exprOpt, mInfo, args) -> return! translateCall exprOpt mInfo args >>= toNode
             | Patterns.Coerce(expr, sType) -> return raise <| InvalidKernelException $"Coerce is not supported: {expr}"
-            | Patterns.DefaultValue sType ->
-                return raise <| InvalidKernelException $"DefaultValue is not supported: {expr}"
+            | Patterns.DefaultValue sType -> return raise <| InvalidKernelException $"DefaultValue is not supported: {expr}"
 
             | Patterns.FieldGet(exprOpt, fldInfo) ->
                 match exprOpt with
@@ -897,12 +868,9 @@ module rec Body =
                 | "___providedCallInfo" -> return! translateProvidedCall expr
                 | _ -> return! translateLet var expr inExpr
 
-            | Patterns.LetRecursive(bindings, expr) ->
-                return raise <| InvalidKernelException $"LetRecursive is not supported: {expr}"
-            | Patterns.NewArray(sType, exprs) ->
-                return raise <| InvalidKernelException $"NewArray is not supported: {expr}"
-            | Patterns.NewDelegate(sType, vars, expr) ->
-                return raise <| InvalidKernelException $"NewDelegate is not supported: {expr}"
+            | Patterns.LetRecursive(bindings, expr) -> return raise <| InvalidKernelException $"LetRecursive is not supported: {expr}"
+            | Patterns.NewArray(sType, exprs) -> return raise <| InvalidKernelException $"NewArray is not supported: {expr}"
+            | Patterns.NewDelegate(sType, vars, expr) -> return raise <| InvalidKernelException $"NewDelegate is not supported: {expr}"
 
             | Patterns.NewObject(constrInfo, exprs) ->
                 let! context = State.get
@@ -951,18 +919,14 @@ module rec Body =
 
                 return NewStruct(unionInfo, tag :: args) :> Node<_>
 
-            | Patterns.PropertyGet(exprOpt, propInfo, exprs) ->
-                return! translatePropGet exprOpt propInfo exprs >>= toNode
-            | Patterns.PropertySet(exprOpt, propInfo, exprs, expr) ->
-                return! translatePropSet exprOpt propInfo exprs expr >>= toNode
+            | Patterns.PropertyGet(exprOpt, propInfo, exprs) -> return! translatePropGet exprOpt propInfo exprs >>= toNode
+            | Patterns.PropertySet(exprOpt, propInfo, exprs, expr) -> return! translatePropSet exprOpt propInfo exprs expr >>= toNode
             | Patterns.Sequential(expr1, expr2) -> return! translateSeq expr1 expr2 >>= toNode
-            | Patterns.TryFinally(tryExpr, finallyExpr) ->
-                return raise <| InvalidKernelException $"TryFinally is not supported: {expr}"
+            | Patterns.TryFinally(tryExpr, finallyExpr) -> return raise <| InvalidKernelException $"TryFinally is not supported: {expr}"
             | Patterns.TryWith(expr1, var1, expr2, var2, expr3) ->
                 return raise <| InvalidKernelException $"TryWith is not supported: {expr}"
             | Patterns.TupleGet(expr, i) -> return! translateStructFieldGet expr $"_{i + 1}" >>= toNode
-            | Patterns.TypeTest(expr, sType) ->
-                return raise <| InvalidKernelException $"TypeTest is not supported: {expr}"
+            | Patterns.TypeTest(expr, sType) -> return raise <| InvalidKernelException $"TypeTest is not supported: {expr}"
 
             | Patterns.UnionCaseTest(expr, unionCaseInfo) ->
                 let! unionInfo = Type.translate unionCaseInfo.DeclaringType
@@ -982,9 +946,7 @@ module rec Body =
                     context.Namer.AddVar name
                     let! res = translateValue obj' sType
 
-                    context.TopLevelVarsDecls.Add(
-                        VarDecl(res.Type, name, Some(res :> Expression<_>), AddressSpaceQualifier.Constant)
-                    )
+                    context.TopLevelVarsDecls.Add(VarDecl(res.Type, name, Some(res :> Expression<_>), AddressSpaceQualifier.Constant))
 
                     let var = Var(name, sType)
                     return! translateVar var >>= toNode

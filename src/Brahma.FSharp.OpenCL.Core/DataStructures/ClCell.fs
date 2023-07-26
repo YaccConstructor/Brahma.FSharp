@@ -45,7 +45,8 @@ module ClCell =
         }
 
     /// Transfers specified value to device with default memory flags.
-    let toDevice (value: 'a) = toDeviceWithFlags value ClMemFlags.DefaultIfData
+    let toDevice (value: 'a) =
+        toDeviceWithFlags value ClMemFlags.DefaultIfData
 
     /// Allocate default value on device with specified memory flags.
     let allocWithFlags<'a> (memFlags: ClMemFlags) =
@@ -57,7 +58,8 @@ module ClCell =
         }
 
     /// Allocate empty array on device with default memory flags.
-    let alloc<'a> () = allocWithFlags<'a> ClMemFlags.DefaultIfNoData
+    let alloc<'a> () =
+        allocWithFlags<'a> ClMemFlags.DefaultIfNoData
 
     /// Transfers specified value from device to host.
     let toHost (clCell: ClCell<'a>) =
@@ -70,4 +72,5 @@ module ClCell =
         }
 
     // TODO impl it
-    let copy (clCell: ClCell<'a>) = opencl { failwith "Not implemented yet" }
+    let copy (clCell: ClCell<'a>) =
+        opencl { failwith "Not implemented yet" }

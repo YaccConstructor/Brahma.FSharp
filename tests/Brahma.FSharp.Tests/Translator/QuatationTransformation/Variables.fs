@@ -5,7 +5,8 @@ open Expecto
 
 let private uniquesTests =
     [
-        let createTest name = Common.Helpers.createMapTestAndCompareAsStrings Variables.defsToLambda name
+        let createTest name =
+            Common.Helpers.createMapTestAndCompareAsStrings Variables.defsToLambda name
 
         createTest "Test 1." <| <@ let x = 1 + 1 in () @> <| <@ let x = 1 + 1 in () @>
 

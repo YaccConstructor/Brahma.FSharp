@@ -40,15 +40,12 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
             let (|AtomicApplArgs|_|) (args: Expr list list) =
                 match args with
                 | [ mutex ] :: _ :: [ [ DerivedPatterns.SpecificCall <@ ref @> (_, _, [ Patterns.ValidVolatileArg var ]) ] ]
-                | [ mutex ] :: [ [ DerivedPatterns.SpecificCall <@ ref @> (_, _, [ Patterns.ValidVolatileArg var ]) ] ] ->
-                    Some(mutex, var)
+                | [ mutex ] :: [ [ DerivedPatterns.SpecificCall <@ ref @> (_, _, [ Patterns.ValidVolatileArg var ]) ] ] -> Some(mutex, var)
                 | _ -> None
 
             let rec go expr =
                 match expr with
-                | DerivedPatterns.Applications(Patterns.Var funcVar, AtomicApplArgs(_, volatileVar)) when
-                    funcVar.Name.StartsWith "atomic"
-                    ->
+                | DerivedPatterns.Applications(Patterns.Var funcVar, AtomicApplArgs(_, volatileVar)) when funcVar.Name.StartsWith "atomic" ->
 
                     if kernelArgumentsNames |> List.contains volatileVar.Name then
                         atomicPointerArgQualifiers.Add(funcVar, Global)
@@ -67,11 +64,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
 
         kernelArgumentsNames, localVarsNames, atomicApplicationsInfo
 
-    let constructMethods
-        (expr: Expr)
-        (functions: (Var * Expr) list)
-        (atomicApplicationsInfo: Map<Var, AddressSpaceQualifier<Lang>>)
-        =
+    let constructMethods (expr: Expr) (functions: (Var * Expr) list) (atomicApplicationsInfo: Map<Var, AddressSpaceQualifier<Lang>>) =
         let kernelFunc =
             KernelFunc(Var(mainKernelName, expr.Type), expr) :> Method |> List.singleton
 
@@ -80,8 +73,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
             |> List.map (fun (var, expr) ->
                 match atomicApplicationsInfo |> Map.tryFind var with
                 | Some qual -> AtomicFunc(var, expr, qual) :> Method
-                | None -> Function(var, expr) :> Method
-            )
+                | None -> Function(var, expr) :> Method)
 
         methods @ kernelFunc
 
@@ -122,8 +114,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
                 | EnableAtomic ->
                     pragmas.Add(CLPragma CLGlobalInt32BaseAtomics :> ITopDef<_>)
                     pragmas.Add(CLPragma CLLocalInt32BaseAtomics :> ITopDef<_>)
-                | EnableFP64 -> pragmas.Add(CLPragma CLFP64)
-            )
+                | EnableFP64 -> pragmas.Add(CLPragma CLFP64))
 
             List.ofSeq pragmas
 
@@ -142,7 +133,8 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
 
     member this.TranslatorOptions = translatorOptions
 
-    member this.Translate(qExpr) = lock lockObject <| fun () -> translate qExpr
+    member this.Translate(qExpr) =
+        lock lockObject <| fun () -> translate qExpr
 
     member this.TransformQuotation(expr: Expr) = transformQuotation expr
 

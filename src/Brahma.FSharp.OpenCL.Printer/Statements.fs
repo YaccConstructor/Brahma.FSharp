@@ -99,7 +99,8 @@ module Statements =
         | MemFence.Global -> wordL "barrier(CLK_GLOBAL_MEM_FENCE)"
         | Both -> wordL "barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE)"
 
-    and printReturn (r: Return<_>) = wordL "return" ++ Expressions.print r.Expression
+    and printReturn (r: Return<_>) =
+        wordL "return" ++ Expressions.print r.Expression
 
     and printFieldSet (fs: FieldSet<_>) =
         let host = Expressions.print fs.Host

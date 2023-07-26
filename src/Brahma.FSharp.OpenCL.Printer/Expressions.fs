@@ -45,9 +45,11 @@ module Expressions =
 
     let private printVar (varible: Variable<'lang>) = wordL varible.Name
 
-    let rec private printItem (itm: Item<'lang>) = (print itm.Arr) ++ squareBracketL (print itm.Idx)
+    let rec private printItem (itm: Item<'lang>) =
+        (print itm.Arr) ++ squareBracketL (print itm.Idx)
 
-    and private printIndirectionOp (deref: IndirectionOp<'lang>) = wordL "*" ++ (print deref.Expr |> bracketL)
+    and private printIndirectionOp (deref: IndirectionOp<'lang>) =
+        wordL "*" ++ (print deref.Expr |> bracketL)
 
     and private printBop (op: BOp<'lang>) =
         match op with

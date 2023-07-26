@@ -13,7 +13,8 @@ module Patterns =
 
     let (|LetFunc|_|) exp = letDefinition Utils.isFunction exp
 
-    let (|LetVar|_|) (expr: Expr) = letDefinition (not << Utils.isFunction) expr
+    let (|LetVar|_|) (expr: Expr) =
+        letDefinition (not << Utils.isFunction) expr
 
     /// let f x1 x2 x3 = body in e
     /// => LetFuncUncurry(f, [x1; x2, x3], body, e)

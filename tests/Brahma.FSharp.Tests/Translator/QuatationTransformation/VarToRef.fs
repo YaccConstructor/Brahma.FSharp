@@ -5,7 +5,8 @@ open Expecto
 
 let private uniquesTests =
     [
-        let inline createTest name = Common.Helpers.createMapTestAndCompareAsStrings VarToRef.transform name
+        let inline createTest name =
+            Common.Helpers.createMapTestAndCompareAsStrings VarToRef.transform name
 
         createTest "Test 1" // id (no mutable vars)
         <| <@

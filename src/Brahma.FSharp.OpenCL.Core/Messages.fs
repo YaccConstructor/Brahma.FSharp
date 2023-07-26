@@ -68,7 +68,8 @@ type Msg =
 
     static member CreateToHostMsg<'a>(src, dst, ?ch) =
         { new IToHostCrate with
-            member this.Apply evaluator = evaluator.Eval <| ToHost<'a>(src, dst, ?replyChannel = ch)
+            member this.Apply evaluator =
+                evaluator.Eval <| ToHost<'a>(src, dst, ?replyChannel = ch)
         }
         |> MsgToHost
 

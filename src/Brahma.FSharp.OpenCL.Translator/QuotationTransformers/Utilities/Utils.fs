@@ -19,7 +19,8 @@ module Utils =
     let makeLambdaType types =
         List.reduceBack (fun domain range -> FSharpType.MakeFunctionType(domain, range)) types
 
-    let makeLambdaExpr (args: Var list) (body: Expr) = List.foldBack (fun var expr -> Expr.Lambda(var, expr)) args body
+    let makeLambdaExpr (args: Var list) (body: Expr) =
+        List.foldBack (fun var expr -> Expr.Lambda(var, expr)) args body
 
     let makeApplicationExpr (head: Expr) (expressions: Expr list) =
         List.fold (fun l r -> Expr.Application(l, r)) head expressions
@@ -51,8 +52,7 @@ module Utils =
     let rec collectLocalVars (expr: Expr) : Var list =
         match expr with
         | Patterns.Let(variable, DerivedPatterns.SpecificCall <@ local @> (_, _, _), cont)
-        | Patterns.Let(variable, DerivedPatterns.SpecificCall <@ localArray @> (_, _, _), cont) ->
-            variable :: collectLocalVars cont
+        | Patterns.Let(variable, DerivedPatterns.SpecificCall <@ localArray @> (_, _, _), cont) -> variable :: collectLocalVars cont
         | ExprShape.ShapeVar _ -> []
         | ExprShape.ShapeLambda(_, lambda) -> collectLocalVars lambda
         | ExprShape.ShapeCombination(_, expressions) -> List.collect collectLocalVars expressions
