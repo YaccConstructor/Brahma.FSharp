@@ -118,9 +118,13 @@ let unitCleanUpTests =
       <| <@ let f (x: unit) (y: int) = x in () @>
       <| <@ let f (y: int) = (%unitVar "x") in () @>
 
-      createTest "Test 3" // TODO(is it correct?)
+      createTest "Test 3"
       <| <@ let f (x: unit) (y: unit) = x in () @>
-      <| <@ let f = (%unitVar "x") in () @>
+      <| <@ let f (x: unit) = x in () @>
+
+      createTest "Test 3.5"
+      <| <@ let f (x: unit) (y: unit) = y in () @>
+      <| <@ let f (x: unit) = (%unitVar "y") in () @>
 
       createTest "Test 4"
       <| <@ let f (x: int) = x in () @>
@@ -137,8 +141,8 @@ let unitCleanUpTests =
       createTest "Test 7"
       <| <@ let f (x: unit) (y: unit) (z: unit) = if x = y then z else y in () @>
       <| <@
-          let f =
-              if (%unitVar "x") = (%unitVar "y") then
+          let f (x: unit) =
+              if x = (%unitVar "y") then
                   (%unitVar "z")
               else
                   (%unitVar "y") in ()
@@ -150,7 +154,7 @@ let unitCleanUpTests =
 
       createTest "Test 9"
       <| <@ let f (x: unit) (y: unit) = let g (z: unit) (c: unit) = x in g y x in () @>
-      <| <@ let f = let g = (%unitVar "x") in g in () @>
+      <| <@ let f (x: unit) = let g (z: unit) = x in g (%unitVar "y") in () @>
 
       createTest "Test 10"
       <| <@
@@ -162,7 +166,7 @@ let unitCleanUpTests =
 
           // side effect in f application
           g (f ()) () 0
-      @> // TODO(unit expr in application)
+      @>
       <| <@
           let f () =
               printfn "side effect"
@@ -170,7 +174,7 @@ let unitCleanUpTests =
 
           let g (z: int) = z
 
-          // no side effect
+          f () // side effect
           g 0
       @>
 
@@ -192,7 +196,7 @@ let unitCleanUpTests =
 
           let g (y: int) = y in
 
-          // no side effect
+          f 0 // side effect
           g 0
       @>
 

@@ -65,13 +65,29 @@ module Lift =
             run Context.empty
 
     module UnitArguments =
-        let inline private unitExpFilter (args: list< ^a > when ^a: (member Type: System.Type)) =
-            match args with
-            | [] -> failwith "Arguments cannot be empty"
-            | [ _ ] -> args
+        let inline private isUnitType< ^a when ^a: (member Type: System.Type)> (e: ^a) = e.Type = typeof<unit>
+
+        let inline private filterUnit< ^a when ^a: (member Type: System.Type)> (pars: ^a list) =
+            match pars with
+            | [] -> failwith "Parameters cannot be empty"
+            | [ _ ] -> pars
             | _ ->
-                // TODO() if several units ???
-                args |> List.filter (fun arg -> arg.Type <> typeof<unit>)
+                let isExistVarWithAnotherType = pars |> List.exists (not << isUnitType)
+
+                if isExistVarWithAnotherType then
+                    pars |> List.filter (not << isUnitType)
+                else
+                    pars |> List.distinctBy (fun v -> v.Type)
+
+        // Take out unit type expressions except Vars and Values.
+        let private takeOutArgs (args: Expr list) app =
+            args
+            |> List.filter (fun e -> e.Type = typeof<unit>)
+            |> List.filter (function
+                | Patterns.Var _
+                | Patterns.Value _ -> false
+                | _ -> true)
+            |> (fun args -> List.foldBack (fun f s -> Expr.Sequential(f, s)) args app)
 
         /// args: [x1: t1; x2: t2; x3: t3], boyd: t4
         /// newVar: t1 -> t2 -> t3 -> t4
@@ -81,10 +97,10 @@ module Lift =
             |> Utils.makeFunctionType body.Type
             |> fun t -> Var(var.Name, t, var.IsMutable)
 
-        // application like <@ f () @> represented as Application(f, Value(<null>));
+        // Application like <@ f () @> represented as Application(f, Value(<null>));
         // Value(<null>) in Applications patterns go to []
         // Then i think we should map [] -> [ Value((), typeof<unit>) ] in exps
-        let private mapExpressions =
+        let private mapExpsToArgs =
             List.map (function
                 | [] -> [ Expr.Value((), typeof<unit>) ]
                 | x -> x)
@@ -94,7 +110,7 @@ module Lift =
             let rec parse (subst: Map<Var, Var>) =
                 function
                 | Patterns.LetFuncUncurry(var, args, body, inExpr) ->
-                    let args' = unitExpFilter args
+                    let args' = filterUnit args
                     let var' = createFunctionVar body args' var
                     let body' = parse subst body |> Utils.makeLambdaExpr args'
                     let inExpr' = parse (subst.Add(var, var')) inExpr
@@ -103,10 +119,11 @@ module Lift =
                 | DerivedPatterns.Applications(Patterns.Var var, exps) as source ->
                     subst.TryFind var
                     |> Option.map (fun var' ->
-                        // TODO(what about exp with unit type???)
-                        let exps' = mapExpressions exps |> unitExpFilter
+                        let args = mapExpsToArgs exps
+                        let args' = filterUnit args |> List.map (parse subst)
+                        let app' = Utils.makeApplicationExpr (Expr.Var var') args'
 
-                        Utils.makeApplicationExpr <| Expr.Var var' <| List.map (parse subst) exps')
+                        takeOutArgs args app')
                     |> Option.defaultValue source
                 | ExprShape.ShapeLambda(var, body) -> Expr.Lambda(var, parse subst body)
                 | ExprShape.ShapeVar var as source ->
