@@ -616,7 +616,7 @@ let formatCode _ =
         |> dotnet.fantomas
 
     if not result.OK then
-        printfn "Errors while formatting all files: %A" result.Messages
+        printfn $"Code: %i{result.ExitCode} Errors while formatting all files: %A{result.Messages}"
 
 let checkFormatCode _ =
     let result =
@@ -636,7 +636,7 @@ let checkFormatCode _ =
     elif result.ExitCode = 99 then
         failwith "Some files need formatting, check output for more info"
     else
-        Trace.logf "Errors while formatting: %A" result.Errors
+        Trace.logf $"Code: %i{result.ExitCode} Errors while formatting: %A{result.Errors}"
 
 let buildDocs _ =
     DocsTool.build ()
@@ -727,7 +727,7 @@ let initTargets () =
         ==>! "Release"
 
     "DotnetRestore"
-        //==> "CheckFormatCode"
+        ==> "CheckFormatCode"
         ==> "DotnetBuild"
         //==> "FSharpAnalyzers"
         ==> "DotnetTest"

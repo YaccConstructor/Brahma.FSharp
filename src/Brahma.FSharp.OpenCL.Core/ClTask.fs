@@ -12,22 +12,18 @@ module internal ClTaskBuilder =
 /// Represents a computation expression for OpenCL computations.
 type ClTaskBuilder() =
     member inline this.Bind(x, f) =
-        ClTask <| fun env ->
+        ClTask
+        <| fun env ->
             let x' = runComputation x env
             runComputation (f x') env
 
-    member inline this.Return(x) =
-        ClTask <| fun _ ->
-            x
+    member inline this.Return(x) = ClTask <| fun _ -> x
 
-    member inline this.ReturnFrom(x) =
-        x
+    member inline this.ReturnFrom(x) = x
 
-    member inline this.Zero() =
-        this.Return(())
+    member inline this.Zero() = this.Return(())
 
-    member inline this.Combine(m1, m2) =
-        this.Bind(m1, (fun () -> m2))
+    member inline this.Combine(m1, m2) = this.Bind(m1, (fun () -> m2))
 
     member inline this.Delay(rest) =
         this.Bind(this.Zero(), (fun () -> rest ()))
@@ -35,23 +31,25 @@ type ClTaskBuilder() =
     member inline this.Run(m) = m
 
     member this.TryWith(ClTask body, handler) =
-        ClTask <| fun env ->
+        ClTask
+        <| fun env ->
             try
                 body env
-            with
-            | e ->
+            with e ->
                 let (ClTask handlerBody) = handler e
                 handlerBody env
 
     member this.TryFinally(ClTask body, finalizer) =
-        ClTask <| fun env ->
+        ClTask
+        <| fun env ->
             try
                 body env
             finally
                 finalizer ()
 
     member this.Using(disposableRes: #System.IDisposable, f) =
-        ClTask <| fun env ->
+        ClTask
+        <| fun env ->
             try
                 runComputation (this.Delay(fun () -> f disposableRes)) env
             finally
@@ -64,10 +62,7 @@ type ClTaskBuilder() =
             this.Combine(this.Run(body), this.Delay(fun () -> this.While(cond, body)))
 
     member this.For(xs: seq<'T>, f) =
-        this.Bind(
-            this.Return(xs.GetEnumerator()),
-            fun en -> this.While((fun () -> en.MoveNext()), this.Delay(fun () -> f en.Current))
-        )
+        this.Bind(this.Return(xs.GetEnumerator()), (fun en -> this.While((fun () -> en.MoveNext()), this.Delay(fun () -> f en.Current))))
 
 [<AutoOpen>]
 module ClTaskImpl =
@@ -82,13 +77,12 @@ module ClTask =
     let ask = ClTask id
 
     /// Returns runtime options.
-    let runtimeOptions =
-        ask >>= fun env -> opencl.Return env.RuntimeOptions
+    let runtimeOptions = ask >>= fun env -> opencl.Return env.RuntimeOptions
 
     /// Creates computation with specified options.
     let withOptions (g: RuntimeOptions -> RuntimeOptions) (ClTask f) =
-        ask >>= fun env ->
-        opencl.Return(f <| env.WithRuntimeOptions(g env.RuntimeOptions))
+        ask
+        >>= fun env -> opencl.Return(f <| env.WithRuntimeOptions(g env.RuntimeOptions))
 
     /// Runs computation with specified runtime context.
     let runSync (context: RuntimeContext) (ClTask f) =
@@ -106,29 +100,28 @@ module ClTask =
     // NOTE maybe switch to manual threads
     // TODO check if it is really parallel
     /// Runs computations in parallel.
-    let inParallel (tasks: seq<ClTask<'a>>) = opencl {
-        let! ctx = ask
+    let inParallel (tasks: seq<ClTask<'a>>) =
+        opencl {
+            let! ctx = ask
 
-        ctx.CommandQueue.PostAndReply <| Msg.MsgNotifyMe
+            ctx.CommandQueue.PostAndReply <| Msg.MsgNotifyMe
 
-        let syncMsgs = Msg.CreateBarrierMessages (Seq.length tasks)
-        let ctxs = Array.create (Seq.length tasks) (ctx.WithNewCommandQueue())
+            let syncMsgs = Msg.CreateBarrierMessages(Seq.length tasks)
+            let ctxs = Array.create (Seq.length tasks) (ctx.WithNewCommandQueue())
 
-        return
-            tasks
-            |> Seq.mapi
-                (fun i task ->
+            return
+                tasks
+                |> Seq.mapi (fun i task ->
                     opencl {
                         let! ctx = ask
                         let! result = task
                         ctx.CommandQueue.Post <| syncMsgs.[i]
                         return result
                     }
-                    |> fun task -> async { return runComputation task <| ctx.WithNewCommandQueue() }
-                )
-            |> Async.Parallel
-            |> Async.RunSynchronously
-    }
+                    |> fun task -> async { return runComputation task <| ctx.WithNewCommandQueue() })
+                |> Async.Parallel
+                |> Async.RunSynchronously
+        }
 
 [<AutoOpen>]
 module ClTaskOpened =

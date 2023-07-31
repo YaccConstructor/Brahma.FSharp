@@ -4,8 +4,8 @@ open System
 
 /// Interface representing n-dimensional index space.
 type INDRange =
-    abstract member GlobalWorkSize: IntPtr[] with get
-    abstract member LocalWorkSize: IntPtr[] with get
+    abstract member GlobalWorkSize: IntPtr[]
+    abstract member LocalWorkSize: IntPtr[]
     abstract member Dimensions: int
 
 (*
@@ -29,17 +29,17 @@ type Range1D private (globalWorkSize: int, localWorkSize: int, __: unit) =
     new(globalWorkSize) = Range1D(globalWorkSize, 1)
 
     /// Gets the unique global work-item ID.
-    member this.GlobalID0 : int = FailIfOutsideKernel()
+    member this.GlobalID0: int = FailIfOutsideKernel()
 
     /// Gets the unique local work-item ID.
-    member this.LocalID0 : int = FailIfOutsideKernel()
+    member this.LocalID0: int = FailIfOutsideKernel()
 
     member this.GlobalWorkSize = globalWorkSize
     member this.LocalWorkSize = localWorkSize
 
     interface INDRange with
-        member this.GlobalWorkSize with get () = [| IntPtr globalWorkSize |]
-        member this.LocalWorkSize with get () = [| IntPtr localWorkSize |]
+        member this.GlobalWorkSize = [| IntPtr globalWorkSize |]
+        member this.LocalWorkSize = [| IntPtr localWorkSize |]
         member this.Dimensions = 1
 
     /// <summary>
@@ -72,27 +72,39 @@ type Range2D private (globalWorkSizeX: int, globalWorkSizeY: int, localWorkSizeX
     new(globalWorkSizeX, globalWorkSizeY) = Range2D(globalWorkSizeX, globalWorkSizeY, 1, 1)
 
     /// Gets the unique global work-item ID for dimension 0.
-    member this.GlobalID0 : int = FailIfOutsideKernel()
+    member this.GlobalID0: int = FailIfOutsideKernel()
 
     /// Gets the unique global work-item ID for dimension 1.
-    member this.GlobalID1 : int = FailIfOutsideKernel()
+    member this.GlobalID1: int = FailIfOutsideKernel()
 
     /// Gets the unique local work-item ID for dimension 0.
-    member this.LocalID0 : int = FailIfOutsideKernel()
+    member this.LocalID0: int = FailIfOutsideKernel()
 
     /// Gets the unique local work-item ID for dimension 1.
-    member this.LocalID1 : int = FailIfOutsideKernel()
+    member this.LocalID1: int = FailIfOutsideKernel()
 
     member this.GlobalWorkSize = (globalWorkSizeX, globalWorkSizeY)
     member this.LocalWorkSize = (localWorkSizeX, localWorkSizeY)
 
     interface INDRange with
-        member this.GlobalWorkSize with get () = [| IntPtr globalWorkSizeX; IntPtr globalWorkSizeY |]
-        member this.LocalWorkSize with get () = [| IntPtr localWorkSizeX; IntPtr localWorkSizeY |]
+        member this.GlobalWorkSize = [| IntPtr globalWorkSizeX; IntPtr globalWorkSizeY |]
+
+        member this.LocalWorkSize = [| IntPtr localWorkSizeX; IntPtr localWorkSizeY |]
+
         member this.Dimensions = 2
 
 /// Represents 3-dimensional index space.
-type Range3D private (globalWorkSizeX: int, globalWorkSizeY: int, globalWorkSizeZ: int, localWorkSizeX: int, localWorkSizeY: int, localWorkSizeZ: int, __: unit) =
+type Range3D
+    private
+    (
+        globalWorkSizeX: int,
+        globalWorkSizeY: int,
+        globalWorkSizeZ: int,
+        localWorkSizeX: int,
+        localWorkSizeY: int,
+        localWorkSizeZ: int,
+        __: unit
+    ) =
     /// <summary>
     /// Initializes a new instance of the <see cref="Range3D"/> class with specified global and local work size.
     /// </summary>
@@ -114,27 +126,31 @@ type Range3D private (globalWorkSizeX: int, globalWorkSizeY: int, globalWorkSize
     new(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ) = Range3D(globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ, 1, 1, 1)
 
     /// Gets the unique global work-item ID for dimension 0.
-    member this.GlobalID0 : int = FailIfOutsideKernel()
+    member this.GlobalID0: int = FailIfOutsideKernel()
 
     /// Gets the unique global work-item ID for dimension 1.
-    member this.GlobalID1 : int = FailIfOutsideKernel()
+    member this.GlobalID1: int = FailIfOutsideKernel()
 
     /// Gets the unique global work-item ID for dimension 2.
-    member this.GlobalID2 : int = FailIfOutsideKernel()
+    member this.GlobalID2: int = FailIfOutsideKernel()
 
     /// Gets the unique local work-item ID for dimension 0.
-    member this.LocalID0 : int = FailIfOutsideKernel()
+    member this.LocalID0: int = FailIfOutsideKernel()
 
     /// Gets the unique local work-item ID for dimension 1.
-    member this.LocalID1 : int = FailIfOutsideKernel()
+    member this.LocalID1: int = FailIfOutsideKernel()
 
     /// Gets the unique local work-item ID for dimension 2.
-    member this.LocalID2 : int = FailIfOutsideKernel()
+    member this.LocalID2: int = FailIfOutsideKernel()
 
     member this.GlobalWorkSize = (globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ)
     member this.LocalWorkSize = (localWorkSizeX, localWorkSizeY, localWorkSizeZ)
 
     interface INDRange with
-        member this.GlobalWorkSize with get () = [| IntPtr globalWorkSizeX; IntPtr globalWorkSizeY; IntPtr globalWorkSizeZ |]
-        member this.LocalWorkSize with get () = [| IntPtr localWorkSizeX; IntPtr localWorkSizeY; IntPtr globalWorkSizeZ |]
+        member this.GlobalWorkSize =
+            [| IntPtr globalWorkSizeX; IntPtr globalWorkSizeY; IntPtr globalWorkSizeZ |]
+
+        member this.LocalWorkSize =
+            [| IntPtr localWorkSizeX; IntPtr localWorkSizeY; IntPtr globalWorkSizeZ |]
+
         member this.Dimensions = 3

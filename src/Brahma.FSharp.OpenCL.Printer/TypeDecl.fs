@@ -22,31 +22,15 @@ open Microsoft.FSharp.Text.StructuredFormat.LayoutOps
 module TypeDecl =
     let printStructDeclaration (decl: StructDecl<_>) =
         let header =
-            [
-                wordL "typedef"
-                wordL "struct"
-                wordL decl.StructType.Name
-            ]
-            |> spaceListL
+            [ wordL "typedef"; wordL "struct"; wordL decl.StructType.Name ] |> spaceListL
 
         let flds =
             [
-                for f in decl.StructType.Fields ->
-                    [
-                        Types.print f.Type
-                        wordL f.Name
-                        wordL ";"
-                    ]
-                    |> spaceListL
+                for f in decl.StructType.Fields -> [ Types.print f.Type; wordL f.Name; wordL ";" ] |> spaceListL
             ]
             |> aboveListL
             |> braceL
 
-        let footer =
-            [
-                wordL decl.StructType.Name
-                wordL ";"
-            ]
-            |> spaceListL
+        let footer = [ wordL decl.StructType.Name; wordL ";" ] |> spaceListL
 
         header ^^ flds ^^ footer

@@ -13,7 +13,11 @@ type StructurePacking =
     {
         Size: int
         Alignment: int
-        Members: {| Pack: StructurePacking; Offsets: int|} list
+        Members:
+            {|
+                Pack: StructurePacking
+                Offsets: int
+            |} list
     }
 
 type CustomMarshaller() =
@@ -23,21 +27,22 @@ type CustomMarshaller() =
 
     let blittableTypes =
         ConcurrentDictionary<Type, bool>(
-            dict [
-                typeof<decimal>, false
-                typeof<byte>, true
-                typeof<sbyte>, true
-                typeof<int16>, true
-                typeof<uint16>, true
-                typeof<int32>, true
-                typeof<uint32>, true
-                typeof<int64>, true
-                typeof<uint64>, true
-                typeof<nativeint>, true
-                typeof<unativeint>, true
-                typeof<single>, true
-                typeof<double>, true
-            ]
+            dict
+                [
+                    typeof<decimal>, false
+                    typeof<byte>, true
+                    typeof<sbyte>, true
+                    typeof<int16>, true
+                    typeof<uint16>, true
+                    typeof<int32>, true
+                    typeof<uint32>, true
+                    typeof<int64>, true
+                    typeof<uint64>, true
+                    typeof<nativeint>, true
+                    typeof<unativeint>, true
+                    typeof<single>, true
+                    typeof<double>, true
+                ]
         )
 
     let (|TupleType|RecordType|UnionType|UserDefinedStructureType|PrimitiveType|) (type': Type) =
@@ -63,11 +68,9 @@ type CustomMarshaller() =
     // TODO issues with multithreading
     member this.GetTypePacking(type': Type) =
         let getAlignment elems =
-            elems
-            |> List.map (fun pack -> pack.Alignment)
-            |> List.max
+            elems |> List.map (fun pack -> pack.Alignment) |> List.max
 
-        let getSize alignment elems  =
+        let getSize alignment elems =
             elems
             |> List.fold (fun state x -> Utils.roundUp x.Alignment state + x.Size) 0
             |> Utils.roundUp alignment
@@ -86,17 +89,18 @@ type CustomMarshaller() =
             let rec go (type': Type) =
                 match type' with
                 | TupleType ->
-                    let elems =
-                        FSharpType.GetTupleElements type'
-                        |> Array.map go
-                        |> Array.toList
+                    let elems = FSharpType.GetTupleElements type' |> Array.map go |> Array.toList
 
                     let alignment = elems |> getAlignment
                     let size = elems |> getSize alignment
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | RecordType ->
                     let elems =
@@ -110,22 +114,27 @@ type CustomMarshaller() =
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | UnionType ->
                     let tag = go typeof<int>
+
                     let nonEmptyFieldsTypes =
                         FSharpType.GetUnionCases type'
-                        |> Array.map
-                            (fun unionCase ->
-                                unionCase.GetFields()
-                                |> Array.map (fun pi -> pi.PropertyType)
-                            )
+                        |> Array.map (fun unionCase -> unionCase.GetFields() |> Array.map (fun pi -> pi.PropertyType))
                         |> Array.filter (fun a -> a.Length <> 0)
 
                     let unionPacking =
                         if nonEmptyFieldsTypes.Length = 0 then
-                            { Size = 0; Alignment = 1; Members = [] }
+                            {
+                                Size = 0
+                                Alignment = 1
+                                Members = []
+                            }
                         else
                             let packingList =
                                 nonEmptyFieldsTypes
@@ -134,25 +143,28 @@ type CustomMarshaller() =
                                 |> Array.toList
 
                             let unionAlignment =
-                                packingList
-                                |> List.map (fun pack -> pack.Alignment)
-                                |> List.max
+                                packingList |> List.map (fun pack -> pack.Alignment) |> List.max
 
-                            let unionSize =
-                                packingList
-                                |> List.map (fun pack -> pack.Size)
-                                |> List.max
+                            let unionSize = packingList |> List.map (fun pack -> pack.Size) |> List.max
 
-                            { Size = unionSize; Alignment = unionAlignment; Members = [] }
+                            {
+                                Size = unionSize
+                                Alignment = unionAlignment
+                                Members = []
+                            }
 
-                    let elems = [tag; unionPacking]
+                    let elems = [ tag; unionPacking ]
 
                     let alignment = elems |> getAlignment
                     let size = elems |> getSize alignment
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | UserDefinedStructureType ->
                     let elems =
@@ -166,16 +178,33 @@ type CustomMarshaller() =
                     let offsets = elems |> getOffsets
                     let members = (elems, offsets) ||> getMembers
 
-                    { Size = size; Alignment = alignment; Members = members }
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = members
+                    }
 
                 | PrimitiveType ->
-                    let size = Marshal.SizeOf (if type' = typeof<bool> then typeof<BoolHostAlias> else type')
+                    let size =
+                        Marshal.SizeOf(
+                            if type' = typeof<bool> then
+                                typeof<BoolHostAlias>
+                            else
+                                type'
+                        )
+
                     let alignment = size
-                    { Size = size; Alignment = alignment; Members = [] }
+
+                    {
+                        Size = size
+                        Alignment = alignment
+                        Members = []
+                    }
 
             go type'
 
         let mutable packing = Unchecked.defaultof<StructurePacking>
+
         if typePacking.TryGetValue(type', &packing) then
             packing
         else
@@ -191,26 +220,26 @@ type CustomMarshaller() =
 
                 for pack in packing.Members do
                     let offset = Utils.roundUp pack.Pack.Alignment size
-                    offsets.Add (offset + start)
+                    offsets.Add(offset + start)
                     size <- offset + pack.Pack.Size
 
                 offsets |> Seq.toList
 
-            let rec loop (packing: StructurePacking) (start: int) = seq {
-                match packing.Members with
-                | [] -> start
-                | _ ->
-                    let packingOffsetPairs =
-                        getFlattenOffsets start packing
-                        |> List.zip packing.Members
+            let rec loop (packing: StructurePacking) (start: int) =
+                seq {
+                    match packing.Members with
+                    | [] -> start
+                    | _ ->
+                        let packingOffsetPairs = getFlattenOffsets start packing |> List.zip packing.Members
 
-                    for (packing, offset) in packingOffsetPairs do
-                        yield! loop packing.Pack offset
-            }
+                        for (packing, offset) in packingOffsetPairs do
+                            yield! loop packing.Pack offset
+                }
 
             loop packing 0 |> Seq.toArray
 
         let mutable offsets = Unchecked.defaultof<int[]>
+
         if typeOffsets.TryGetValue(type', &offsets) then
             offsets
         else
@@ -220,6 +249,7 @@ type CustomMarshaller() =
 
     member this.IsBlittable(type': Type) =
         let mutable isBlittable = false
+
         if blittableTypes.TryGetValue(type', &isBlittable) then
             isBlittable
         // TODO is array check useful here?
@@ -238,9 +268,9 @@ type CustomMarshaller() =
                 blittableTypes.TryAdd(type', isBlittable) |> ignore
                 isBlittable
             with _ ->*)
-                isBlittable <- false
-                blittableTypes.TryAdd(type', isBlittable) |> ignore
-                isBlittable
+            isBlittable <- false
+            blittableTypes.TryAdd(type', isBlittable) |> ignore
+            isBlittable
 
     member this.WriteToUnmanaged(array: 'a[]) =
         let size = array.Length * this.GetTypePacking(typeof<'a>).Size
@@ -250,8 +280,16 @@ type CustomMarshaller() =
 
     member this.WriteToUnmanaged(array: 'a[], ptr: IntPtr) =
         let rec write start (structure: obj) =
-            let offsets = this.GetTypeOffsets(if isNull structure then typeof<int option> else structure.GetType())
+            let offsets =
+                this.GetTypeOffsets(
+                    if isNull structure then
+                        typeof<int option>
+                    else
+                        structure.GetType()
+                )
+
             let mutable i = 0
+
             let rec go (str: obj) =
                 match str with
                 | Tuple ->
@@ -259,19 +297,20 @@ type CustomMarshaller() =
                     let tupleSize = tuple.Length
                     [ 0 .. tupleSize - 1 ] |> List.iter (fun i -> go tuple.[i])
 
-                | Record ->
-                    FSharpValue.GetRecordFields str
-                    |> Array.iter go
+                | Record -> FSharpValue.GetRecordFields str |> Array.iter go
 
                 | Union ->
-                    let (case, data) = FSharpValue.GetUnionFields(str, if isNull str then typeof<int option> else str.GetType())
+                    let (case, data) =
+                        FSharpValue.GetUnionFields(str, (if isNull str then typeof<int option> else str.GetType()))
+
                     go case.Tag
 
                     if data.Length <> 0 then
                         FSharpValue.MakeTuple(
                             data,
                             FSharpType.MakeTupleType(
-                                data |> Array.map (fun o -> if isNull o then typeof<int option> else o.GetType())
+                                data
+                                |> Array.map (fun o -> if isNull o then typeof<int option> else o.GetType())
                             )
                         )
                         |> write (IntPtr.Add(start, offsets.[i]))
@@ -285,21 +324,24 @@ type CustomMarshaller() =
 
                 | Primitive ->
                     let offset = if isNull structure then 0 else offsets.[i]
+
                     let structure =
                         if str.GetType() = typeof<bool> then
                             box <| Convert.ToByte str
                         else
                             str
+
                     Marshal.StructureToPtr(structure, IntPtr.Add(start, offset), false)
                     i <- i + 1
 
             go structure
 
-        Array.Parallel.iteri (fun j item ->
-            let pack = this.GetTypePacking(typeof<'a>)
-            let start = IntPtr.Add(ptr, j * pack.Size)
-            write start item
-        ) array
+        Array.Parallel.iteri
+            (fun j item ->
+                let pack = this.GetTypePacking(typeof<'a>)
+                let start = IntPtr.Add(ptr, j * pack.Size)
+                write start item)
+            array
 
         array.Length * this.GetTypePacking(typeof<'a>).Size
 
@@ -312,6 +354,7 @@ type CustomMarshaller() =
         let rec read start type' =
             let offsets = this.GetTypeOffsets(type')
             let mutable i = 0
+
             let rec go (type'': Type) =
                 match type'' with
                 | TupleType ->
@@ -340,11 +383,13 @@ type CustomMarshaller() =
                             |> read (IntPtr.Add(start, offsets.[i]))
                             |> FSharpValue.GetTupleFields
                             |> fun tupleFields -> FSharpValue.MakeUnion(case, tupleFields)
+
                     i <- i + 1
                     union
 
                 | UserDefinedStructureType ->
                     let inst = Activator.CreateInstance(type'')
+
                     type''.GetFields()
                     |> Array.map (fun fi -> fi, go fi.FieldType)
                     |> Array.iter (fun (fi, value) -> fi.SetValue(inst, value))
@@ -353,22 +398,29 @@ type CustomMarshaller() =
 
                 | PrimitiveType ->
                     let offset = offsets.[i]
+
                     let structure =
                         Marshal.PtrToStructure(
                             IntPtr.Add(start, offset),
-                            if type'' = typeof<bool> then typeof<BoolHostAlias> else type''
+                            if type'' = typeof<bool> then
+                                typeof<BoolHostAlias>
+                            else
+                                type''
                         )
+
                     let structure =
                         if type'' = typeof<bool> then
                             box <| Convert.ToBoolean structure
                         else
                             structure
+
                     i <- i + 1
                     structure
 
             go type'
 
-        Array.Parallel.iteri (fun j _ ->
-            let start = IntPtr.Add(ptr, j * this.GetTypePacking(typeof<'a>).Size)
-            array.[j] <- unbox<'a> <| read start typeof<'a>
-        ) array
+        Array.Parallel.iteri
+            (fun j _ ->
+                let start = IntPtr.Add(ptr, j * this.GetTypePacking(typeof<'a>).Size)
+                array.[j] <- unbox<'a> <| read start typeof<'a>)
+            array

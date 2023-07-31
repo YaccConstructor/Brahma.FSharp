@@ -9,6 +9,7 @@
   <PropertyGroup>
     <Title>Brahma.FSharp.OpenCL.Translator</Title>
     <Description>F# quotations to OpenCL C translator.</Description>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Optimize>true</Optimize>
@@ -25,13 +26,13 @@
     <Compile Include="TranslationContext.fs" />
     <Compile Include="QuotationTransformers\Utilities\Utils.fs" />
     <Compile Include="QuotationTransformers\Utilities\Patterns.fs" />
-    <Compile Include="QuotationTransformers\GettingWorkSizeTransformer.fs" />
-    <Compile Include="QuotationTransformers\AtomicTransformer.fs" />
-    <Compile Include="QuotationTransformers\PrintfTransformer.fs" />
-    <Compile Include="QuotationTransformers\VarDefsToLambdaTransformer.fs" />
-    <Compile Include="QuotationTransformers\MutableVarsToRefTransformer.fs" />
-    <Compile Include="QuotationTransformers\UniqueVarNamesTransformer.fs" />
-    <Compile Include="QuotationTransformers\LambdaLiftingTransformer.fs" />
+    <Compile Include="QuotationTransformers\Print.fs" />
+    <Compile Include="QuotationTransformers\WorkSize.fs" />
+    <Compile Include="QuotationTransformers\Atomic.fs" />
+    <Compile Include="QuotationTransformers\Variables.fs" />
+    <Compile Include="QuotationTransformers\VarToRef.fs" />
+    <Compile Include="QuotationTransformers\Names.fs" />
+    <Compile Include="QuotationTransformers\Lifting.fs" />
     <Compile Include="Type.fs" />
     <Compile Include="Body.fs" />
     <Compile Include="Methods.fs" />

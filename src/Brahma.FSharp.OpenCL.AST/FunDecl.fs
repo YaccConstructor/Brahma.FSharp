@@ -23,18 +23,10 @@ type FunFormalArg<'lang>(declSpecs: DeclSpecifierPack<'lang>, name: string) =
 
     member this.Matches(other: obj) =
         match other with
-        | :? FunFormalArg<'lang> as o ->
-            this.DeclSpecs.Matches(o.DeclSpecs)
-            && this.Name.Equals(o.Name)
+        | :? FunFormalArg<'lang> as o -> this.DeclSpecs.Matches(o.DeclSpecs) && this.Name.Equals(o.Name)
         | _ -> false
 
-type FunDecl<'lang>
-    (
-        declSpecs: DeclSpecifierPack<'lang>,
-        name: string,
-        args: List<FunFormalArg<'lang>>,
-        body: Statement<'lang>
-    ) =
+type FunDecl<'lang>(declSpecs: DeclSpecifierPack<'lang>, name: string, args: List<FunFormalArg<'lang>>, body: Statement<'lang>) =
 
     inherit Node<'lang>()
     interface ITopDef<'lang>
@@ -50,10 +42,7 @@ type FunDecl<'lang>
             let areParamsMatching =
                 (this.Args, o.Args)
                 ||> List.zip
-                |> List.fold
-                    (fun eq (x, y) ->
-                        eq && x.Matches(y)
-                    ) true
+                |> List.fold (fun eq (x, y) -> eq && x.Matches(y)) true
 
             this.DeclSpecs.Matches(o.DeclSpecs)
             && this.Name.Equals(o.Name)

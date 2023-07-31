@@ -10,15 +10,100 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Common.fs" />
-    <Content Include="TranslationTests\Expected\*">
+    <Compile Include="Translator\Common.fs" />
+      
+    <Content Include="Translator\BinOp\Expected\*">  
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Compile Include="TranslationTests\TranslatorTests.fs" />
-    <Compile Include="TranslationTests\QuotationTransformersTests.fs" />
-    <Compile Include="TranslationTests\TranslationTests.fs" />
+    <Compile Include="Translator\BinOp\Tests.fs" />
+
+    <Content Include="Translator\ControlFlow\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\ControlFlow\Tests.fs" />
+
+    <Content Include="Translator\NamesResolving\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\NamesResolving\Tests.fs" />
+
+    <Content Include="Translator\ConstantArray\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\ConstantArray\Tests.fs" />
+
+    <Content Include="Translator\LambdaLifting\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LambdaLifting\Tests.fs" />
+
+    <Content Include="Translator\Carrying\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\Carrying\Tests.fs" />
+
+    <Content Include="Translator\Injection\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\Injection\Tests.fs" />
+
+    <Content Include="Translator\Printf\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\Printf\Tests.fs" />
+
+    <Content Include="Translator\Union\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\Union\Tests.fs" />
+
+    <Content Include="Translator\Specific\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\Specific\MergePath.fs" />
+
+    <Content Include="Translator\LangExtensions\LocalID\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\LocalID\Tests.fs" />
+
+    <Content Include="Translator\LangExtensions\WorkSize\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\WorkSize\Tests.fs" />
+
+    <Content Include="Translator\LangExtensions\LocalMemory\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\LocalMemory\Tests.fs" />
+
+    <Content Include="Translator\LangExtensions\Barrier\Expected\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Translator\LangExtensions\Barrier\Tests.fs" />
+    
+    <Compile Include="Translator\LangExtensions\Atomic.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\Common.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\Print.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\WorkSize.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\Names.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\Variables.fs" />
+    
+    <Compile Include="Translator\QuatationTransformation\VarToRef.fs" />
+    <Compile Include="Translator\QuatationTransformation\Lifting.fs" />
+    <Compile Include="Translator\QuatationTransformation\Transformation.fs" />
+
+    <Compile Include="Translator\All.fs" />
+    
     <Content Include="ExecutionTests\Expected\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    
     <Compile Include="ExecutionTests\RuntimeTests.fs" />
     <Compile Include="ExecutionTests\CompilationTests.fs" />
     <Compile Include="ExecutionTests\WorkflowBuilderTests.fs" />

@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", 
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Brahma.FSharp.Benchmarks", "benchmarks\Brahma.FSharp.Benchmarks\Brahma.FSharp.Benchmarks.fsproj", "{3CB90A8F-D372-426E-930A-65833F46E796}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "build", "build\build.fsproj", "{BB36B500-C0C3-438C-9423-3536BBF1B123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -148,6 +150,18 @@ Global
 		{3CB90A8F-D372-426E-930A-65833F46E796}.Release|x64.Build.0 = Release|Any CPU
 		{3CB90A8F-D372-426E-930A-65833F46E796}.Release|x86.ActiveCfg = Release|Any CPU
 		{3CB90A8F-D372-426E-930A-65833F46E796}.Release|x86.Build.0 = Release|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Debug|x64.Build.0 = Debug|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Debug|x86.Build.0 = Debug|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Release|x64.ActiveCfg = Release|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Release|x64.Build.0 = Release|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Release|x86.ActiveCfg = Release|Any CPU
+		{BB36B500-C0C3-438C-9423-3536BBF1B123}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{455B3C80-98CD-484A-8AD0-6EB93E504D84} = {569DF79C-F1A0-4AE9-BE73-17628649518C}

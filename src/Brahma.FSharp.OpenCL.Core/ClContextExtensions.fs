@@ -5,8 +5,9 @@ open FSharp.Quotations
 [<AutoOpen>]
 module ClContextExtensions =
     type ClContext with
+
         /// Compiles raw kernel to OpenCL program.
-        member this.Compile(srcLambda: Expr<'TRange ->'a>) = ClProgram(this, srcLambda)
+        member this.Compile(srcLambda: Expr<'TRange -> 'a>) = ClProgram(this, srcLambda)
 
         /// Creates OpenCL array based on specified data with specified memory flags.
         member this.CreateClArray
@@ -66,12 +67,7 @@ module ClContextExtensions =
             new ClCell<_>(buffer)
 
         /// Creates OpenCL default value with specified memory flags.
-        member this.CreateClCell
-            (
-                ?hostAccessMode: HostAccessMode,
-                ?deviceAccessMode: DeviceAccessMode,
-                ?allocationMode: AllocationMode
-            ) =
+        member this.CreateClCell(?hostAccessMode: HostAccessMode, ?deviceAccessMode: DeviceAccessMode, ?allocationMode: AllocationMode) =
 
             let flags =
                 {

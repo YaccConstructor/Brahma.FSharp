@@ -115,7 +115,7 @@ type Ptr<'lang>(expr: Expression<'lang>) =
 type ArrayInitializer<'lang>() =
     inherit Expression<'lang>()
     override this.Children = []
-    abstract Length : int
+    abstract Length: int
 
 type ZeroArray<'lang>(length: int) =
     inherit ArrayInitializer<'lang>()

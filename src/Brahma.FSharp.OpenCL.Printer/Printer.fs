@@ -22,17 +22,17 @@ open Brahma.FSharp.OpenCL.Printer
 module AST =
     let print (ast: AST<'lang>) =
         ast.TopDefs
-        |> List.map
-            (fun d ->
-                match d with
-                | :? FunDecl<'lang> as fd -> FunDecl.print fd
-                | :? CLPragma<'lang> as clp -> Pragmas.print clp
-                | :? StructDecl<'lang> as s -> TypeDecl.printStructDeclaration s
-                | :? VarDecl<'lang> as s -> Statements.print false s
-                | _ -> failwithf "Printer. Unsupported toplevel declaration: %A"  d
-            )
+        |> List.map (fun d ->
+            match d with
+            | :? FunDecl<'lang> as fd -> FunDecl.print fd
+            | :? CLPragma<'lang> as clp -> Pragmas.print clp
+            | :? StructDecl<'lang> as s -> TypeDecl.printStructDeclaration s
+            | :? VarDecl<'lang> as s -> Statements.print false s
+            | _ -> failwithf "Printer. Unsupported toplevel declaration: %A" d)
         // |> LayoutOps.sepListL (LayoutOps.wordL "\r\n")
         // |> Display.layout_to_string FormatOptions.Default
         |> LayoutOps.aboveListL
-        |> Display.layout_to_string { FormatOptions.Default with PrintWidth = 100 }
-
+        |> Display.layout_to_string
+            { FormatOptions.Default with
+                PrintWidth = 100
+            }

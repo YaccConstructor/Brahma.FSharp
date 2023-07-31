@@ -58,19 +58,15 @@ module Types =
 
         let body =
             [
-                for field in fields ->
-                    [
-                        print field.Type
-                        wordL field.Name
-                        wordL ";"
-                    ]
-                    |> spaceListL
+                for field in fields -> [ print field.Type; wordL field.Name; wordL ";" ] |> spaceListL
             ]
             |> aboveListL
             |> braceL
 
         header ^^ body
 
-    and printUnionInplaceType (t: UnionClInplaceType<_>) = printAggregatingInplaceType "union" t.Name t.Fields
+    and printUnionInplaceType (t: UnionClInplaceType<_>) =
+        printAggregatingInplaceType "union" t.Name t.Fields
 
-    and printStructInplaceType (t: StructInplaceType<_>) = printAggregatingInplaceType "struct" t.Name t.Fields
+    and printStructInplaceType (t: StructInplaceType<_>) =
+        printAggregatingInplaceType "struct" t.Name t.Fields

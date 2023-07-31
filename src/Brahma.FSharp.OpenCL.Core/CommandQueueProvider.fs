@@ -9,6 +9,7 @@ open System.Runtime.InteropServices
 type CommandQueueProvider private (device, context, translator: FSQuotationToOpenCLTranslator, __: unit) =
     let finish queue =
         let error = Cl.Finish(queue)
+
         if error <> ErrorCode.Success then
             raise <| Cl.Exception error
 
@@ -25,8 +26,19 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
                 let mem = crate.Destination.Memory
                 let elementSize = crate.Destination.ElementSize
-                let error = Cl.EnqueueWriteBuffer(queue, mem, Bool.False, IntPtr(0),
-                                                  IntPtr(crate.Destination.Length * elementSize), crate.Source, 0u, null, eventID)
+
+                let error =
+                    Cl.EnqueueWriteBuffer(
+                        queue,
+                        mem,
+                        Bool.False,
+                        IntPtr(0),
+                        IntPtr(crate.Destination.Length * elementSize),
+                        crate.Source,
+                        0u,
+                        null,
+                        eventID
+                    )
 
                 if error <> ErrorCode.Success then
                     raise (Cl.Exception error)
@@ -35,7 +47,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
     let handleToHost queue (toHost: IToHostCrate) =
         { new IToHostCrateEvaluator with
-            member this.Eval (crate: ToHost<'a>) =
+            member this.Eval(crate: ToHost<'a>) =
                 let eventID = ref Unchecked.defaultof<Event>
                 let clMem = crate.Source.Memory
                 let marshaller = translator.Marshaller
@@ -57,7 +69,8 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                         0u,
                         null,
                         eventID
-                    ) |> finishRead
+                    )
+                    |> finishRead
                 else
                     let size = crate.Destination.Length * marshaller.GetTypePacking(typeof<'a>).Size
                     let hostMem = Marshal.AllocHGlobal size
@@ -72,7 +85,8 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                         0u,
                         null,
                         eventID
-                    ) |> finishRead
+                    )
+                    |> finishRead
 
                     marshaller.ReadFromUnmanaged(hostMem, crate.Destination)
                     Marshal.FreeHGlobal(hostMem)
@@ -89,8 +103,19 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
                 let range = crate.Kernel.NDRange
                 let workDim = uint32 range.Dimensions
                 let eventID = ref Unchecked.defaultof<Event>
-                let error = Cl.EnqueueNDRangeKernel(queue, crate.Kernel.Kernel, workDim, null,
-                                                    range.GlobalWorkSize, range.LocalWorkSize, 0u, null, eventID)
+
+                let error =
+                    Cl.EnqueueNDRangeKernel(
+                        queue,
+                        crate.Kernel.Kernel,
+                        workDim,
+                        null,
+                        range.GlobalWorkSize,
+                        range.LocalWorkSize,
+                        0u,
+                        null,
+                        eventID
+                    )
 
                 if error <> ErrorCode.Success then
                     raise (Cl.Exception error)
@@ -100,68 +125,75 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandQueueProvider"/> class with specified device, context and translator.
     /// </summary>
-    new(device: Device, context: Context, translator: FSQuotationToOpenCLTranslator) =
-        CommandQueueProvider(device, context, translator, ())
+    new(device: Device, context: Context, translator: FSQuotationToOpenCLTranslator) = CommandQueueProvider(device, context, translator, ())
 
     /// <summary>
     /// Creates new command queue capable of handling messages of type <see cref="Msg"/>.
     /// </summary>
     member this.CreateQueue() =
-        let processor = MailboxProcessor.Start <| fun inbox ->
-            let commandQueue =
-                let error = ref Unchecked.defaultof<ErrorCode>
-                let props = CommandQueueProperties.None
-                let queue = Cl.CreateCommandQueue(context, device, props, error)
+        let processor =
+            MailboxProcessor.Start
+            <| fun inbox ->
+                let commandQueue =
+                    let error = ref Unchecked.defaultof<ErrorCode>
+                    let props = CommandQueueProperties.None
+                    let queue = Cl.CreateCommandQueue(context, device, props, error)
 
-                if error.Value <> ErrorCode.Success then
-                    raise <| Cl.Exception error.Value
+                    if error.Value <> ErrorCode.Success then
+                        raise <| Cl.Exception error.Value
 
-                queue
+                    queue
 
-            let mutable itIsFirstNonqueueMsg = true
+                let mutable itIsFirstNonqueueMsg = true
 
-            let rec loop i = async {
-                let! msg = inbox.Receive()
-                match msg with
-                | MsgToHost crate ->
-                    itIsFirstNonqueueMsg  <- true
-                    handleToHost commandQueue crate
+                let rec loop i =
+                    async {
+                        let! msg = inbox.Receive()
 
-                | MsgToGPU crate ->
-                    itIsFirstNonqueueMsg  <- true
-                    handleToGPU commandQueue crate
+                        match msg with
+                        | MsgToHost crate ->
+                            itIsFirstNonqueueMsg <- true
+                            handleToHost commandQueue crate
 
-                | MsgRun crate ->
-                    itIsFirstNonqueueMsg  <- true
-                    handleRun commandQueue crate
+                        | MsgToGPU crate ->
+                            itIsFirstNonqueueMsg <- true
+                            handleToGPU commandQueue crate
 
-                | MsgFree crate ->
-                    if itIsFirstNonqueueMsg then
-                        finish commandQueue
-                        itIsFirstNonqueueMsg  <- false
-                    handleFree crate
+                        | MsgRun crate ->
+                            itIsFirstNonqueueMsg <- true
+                            handleRun commandQueue crate
 
-                | MsgSetArguments setterFunc ->
-                    if itIsFirstNonqueueMsg then
-                        finish commandQueue
-                        itIsFirstNonqueueMsg  <- false
-                    setterFunc ()
+                        | MsgFree crate ->
+                            if itIsFirstNonqueueMsg then
+                                finish commandQueue
+                                itIsFirstNonqueueMsg <- false
 
-                | MsgNotifyMe ch ->
-                    itIsFirstNonqueueMsg  <- true
-                    finish commandQueue
-                    ch.Reply ()
+                            handleFree crate
 
-                | MsgBarrier syncObject ->
-                    itIsFirstNonqueueMsg  <- true
-                    finish commandQueue
-                    syncObject.ImReady()
-                    while not <| syncObject.CanContinue() do ()
+                        | MsgSetArguments setterFunc ->
+                            if itIsFirstNonqueueMsg then
+                                finish commandQueue
+                                itIsFirstNonqueueMsg <- false
 
-                return! loop 0
-            }
+                            setterFunc ()
 
-            loop 0
+                        | MsgNotifyMe ch ->
+                            itIsFirstNonqueueMsg <- true
+                            finish commandQueue
+                            ch.Reply()
+
+                        | MsgBarrier syncObject ->
+                            itIsFirstNonqueueMsg <- true
+                            finish commandQueue
+                            syncObject.ImReady()
+
+                            while not <| syncObject.CanContinue() do
+                                ()
+
+                        return! loop 0
+                    }
+
+                loop 0
 
         // TODO rethink error handling?
         processor.Error.AddHandler(Handler<_>(fun _ -> raise))

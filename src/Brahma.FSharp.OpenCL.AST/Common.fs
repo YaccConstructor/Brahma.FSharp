@@ -17,13 +17,14 @@ namespace Brahma.FSharp.OpenCL.AST
 
 [<AbstractClass>]
 type Node<'lang>() =
-    abstract Children : List<Node<'lang>>
+    abstract Children: List<Node<'lang>>
 
 [<AbstractClass>]
 type Statement<'lang>() =
     inherit Node<'lang>()
 
 type ITopDef<'lang> =
-    interface end
+    interface
+    end
 
 type Lang = | OpenCL

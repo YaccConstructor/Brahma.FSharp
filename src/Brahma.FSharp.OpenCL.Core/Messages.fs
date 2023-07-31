@@ -18,24 +18,28 @@ type Run(kernel: IKernel) =
     member this.Kernel = kernel
 
 type IRunCrate =
-    abstract member Apply : IRunCrateEvaluator -> unit
+    abstract member Apply: IRunCrateEvaluator -> unit
+
 and IRunCrateEvaluator =
-    abstract member Eval : Run -> unit
+    abstract member Eval: Run -> unit
 
 type IToHostCrate =
-    abstract member Apply : IToHostCrateEvaluator -> unit
+    abstract member Apply: IToHostCrateEvaluator -> unit
+
 and IToHostCrateEvaluator =
-    abstract member Eval : ToHost<'a> -> unit
+    abstract member Eval: ToHost<'a> -> unit
 
 type IToGPUCrate =
-    abstract member Apply : IToGPUCrateEvaluator -> unit
+    abstract member Apply: IToGPUCrateEvaluator -> unit
+
 and IToGPUCrateEvaluator =
-    abstract member Eval : ToGPU<'a> -> unit
+    abstract member Eval: ToGPU<'a> -> unit
 
 type IFreeCrate =
-    abstract member Apply : IFreeCrateEvaluator -> unit
+    abstract member Apply: IFreeCrateEvaluator -> unit
+
 and IFreeCrateEvaluator =
-    abstract member Eval : Free -> unit
+    abstract member Eval: Free -> unit
 
 type SyncObject(numToWait: int) =
     let mutable canContinue = false
@@ -43,9 +47,12 @@ type SyncObject(numToWait: int) =
     let mutable counter = 0
 
     member this.ImReady() =
-        lock this <| fun () ->
+        lock this
+        <| fun () ->
             counter <- counter + 1
-            if counter = numToWait then canContinue <- true
+
+            if counter = numToWait then
+                canContinue <- true
 
     member this.CanContinue() = canContinue
 
@@ -61,7 +68,8 @@ type Msg =
 
     static member CreateToHostMsg<'a>(src, dst, ?ch) =
         { new IToHostCrate with
-            member this.Apply evaluator = evaluator.Eval <| ToHost<'a>(src, dst, ?replyChannel = ch)
+            member this.Apply evaluator =
+                evaluator.Eval <| ToHost<'a>(src, dst, ?replyChannel = ch)
         }
         |> MsgToHost
 
