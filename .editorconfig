@@ -33,6 +33,9 @@ trim_trailing_whitespace = true
 indent_size = 2
 
 # fantomas conf
+
+[*]
+end_of_line = lf
        
 [*.fs]
 [*.{fs,fsx}]
