@@ -41,6 +41,6 @@ module Patterns =
         // global
         | GlobalVar v -> Some v
         // non-global
-        | Patterns.Var var
-        | DerivedPatterns.SpecificCall <@ IntrinsicFunctions.GetArray @> (_, _, [ Patterns.Var var; _ ]) -> Some var
+        | Var var
+        | DerivedPatterns.SpecificCall <@ IntrinsicFunctions.GetArray @> (_, _, [ Var var; _ ]) -> Some var
         | _ -> None

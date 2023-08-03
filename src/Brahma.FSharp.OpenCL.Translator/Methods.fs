@@ -72,7 +72,7 @@ type Method(var: Var, expr: Expr) =
 
             match expr with
             | DerivedPatterns.Lambdas(args, body) ->
-                let args = List.collect id args
+                let args = List.concat args
                 let! translatedArgs = this.TranslateArgs(args, globalVars, localVars)
                 let! translatedBody = this.TranslateBody(args, body)
                 let! func = this.BuildFunction(translatedArgs, translatedBody)
@@ -96,7 +96,7 @@ type KernelFunc(var: Var, expr: Expr) =
 
             return
                 args
-                |> List.filter (fun (variable: Var) ->
+                |> List.filter (fun variable ->
                     brahmaDimensionsTypes
                     |> (not << List.contains (variable.Type.Name.ToLowerInvariant())))
                 |> List.map (fun variable ->
@@ -148,45 +148,6 @@ type Function(var: Var, expr: Expr) =
                 match retFunType with
                 | :? PrimitiveType<Lang> as t when t.Type = Void -> body :> Statement<_>
                 | _ -> this.AddReturn(body)
-
-            return FunDecl(declSpecs, var.Name, args, partAST) :> ITopDef<_>
-        }
-
-type AtomicFunc(var: Var, expr: Expr, qual: AddressSpaceQualifier<Lang>) =
-    inherit Method(var, expr)
-
-    override this.TranslateArgs(args, globalVars, localVars) =
-        translation {
-            let! context = State.get
-
-            let firstNonMutexIdx =
-                args
-                |> List.tryFindIndex (fun v -> not <| v.Name.EndsWith "Mutex")
-                |> Option.defaultValue 0
-
-            return
-                args
-                |> List.mapi (fun i variable ->
-                    let vType = Type.translate variable.Type |> State.eval context
-                    let declSpecs = DeclSpecifierPack(typeSpecifier = vType)
-
-                    if i = firstNonMutexIdx then
-                        declSpecs.AddressSpaceQualifier <- qual
-                    elif vType :? RefType<_> && globalVars |> List.contains variable.Name then
-                        declSpecs.AddressSpaceQualifier <- Global
-                    elif vType :? RefType<_> && localVars |> List.contains variable.Name then
-                        declSpecs.AddressSpaceQualifier <- Local
-
-                    FunFormalArg(declSpecs, variable.Name))
-        }
-
-    override this.BuildFunction(args, body) =
-        translation {
-            let! context = State.get
-
-            let retFunType = Type.translate var.Type |> State.eval context
-            let declSpecs = DeclSpecifierPack(typeSpecifier = retFunType)
-            let partAST = this.AddReturn body
 
             return FunDecl(declSpecs, var.Name, args, partAST) :> ITopDef<_>
         }

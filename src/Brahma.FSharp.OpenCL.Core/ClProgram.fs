@@ -12,6 +12,8 @@ open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 open System.Runtime.InteropServices
 open FSharp.Quotations.Evaluator
 
+type Mutex = int
+
 /// Represents an abstraction over OpenCL program.
 type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: Expr<'TRange -> 'a>) =
 

@@ -28,11 +28,11 @@
     <Compile Include="QuotationTransformers\Utilities\Patterns.fs" />
     <Compile Include="QuotationTransformers\Print.fs" />
     <Compile Include="QuotationTransformers\WorkSize.fs" />
-    <Compile Include="QuotationTransformers\Atomic.fs" />
     <Compile Include="QuotationTransformers\Variables.fs" />
     <Compile Include="QuotationTransformers\VarToRef.fs" />
     <Compile Include="QuotationTransformers\Names.fs" />
     <Compile Include="QuotationTransformers\Lifting.fs" />
+    <Compile Include="QuotationTransformers\Atomic.fs" />
     <Compile Include="Type.fs" />
     <Compile Include="Body.fs" />
     <Compile Include="Methods.fs" />
