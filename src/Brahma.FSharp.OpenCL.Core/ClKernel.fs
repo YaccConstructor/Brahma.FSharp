@@ -22,18 +22,9 @@ type ClKernel<'TRange, 'a when 'TRange :> INDRange>(program: ClProgram<'TRange, 
 
     let args = ref [||]
     let range = ref Unchecked.defaultof<'TRange>
-    let mutexBuffers = ResizeArray<IBuffer<Mutex>>()
 
     /// Gets lambda function needed to pass parameters to kernel.
-    member this.KernelFunc =
-        program.KernelPrepare (this :> IKernel) range args mutexBuffers
-
-    // TODO maybe return seq of IDisposable?
-    /// Release internal buffers created inside kernel.
-    member this.ReleaseInternalBuffers(queue: MailboxProcessor<Msg>) =
-        mutexBuffers |> Seq.iter (Msg.CreateFreeMsg >> queue.Post)
-
-        mutexBuffers.Clear()
+    member this.KernelFunc = program.KernelPrepare (this :> IKernel) range args
 
     interface IKernel with
         member this.Kernel = kernel

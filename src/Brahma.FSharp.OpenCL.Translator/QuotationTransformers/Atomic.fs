@@ -10,8 +10,7 @@ module Helpers =
     let grabVariabls =
         function
         | DerivedPatterns.Lambdas(args, body) ->
-            let globalVars =
-                List.concat args |> List.filter Utils.isGlobal |> Set.ofList
+            let globalVars = List.concat args |> List.filter Utils.isGlobal |> Set.ofList
 
             let localVars = Utils.getLocalVars body |> Set.ofList
 
@@ -39,15 +38,17 @@ module private Specific =
 
     let (|Atomic|_|) =
         function
-        | DerivedPatterns.SpecificCall <@ atomic @> (_, _, [ DerivedPatterns.Lambdas (_ , body) ]) -> Some body
+        | DerivedPatterns.SpecificCall <@ atomic @> (_, _, [ DerivedPatterns.Lambdas(_, body) ]) -> Some body
         | _ -> None
 
-        // move to Specific Call
-    let (|CreateRefVar|_|) = function
+    // move to Specific Call
+    let (|CreateRefVar|_|) =
+        function
         | DerivedPatterns.SpecificCall <@ ref @> (_, _, [ Patterns.ValidVolatileArg var ]) -> Some var
         | _ -> None
 
-    let (|AtomicAppArgs|_|) = function
+    let (|AtomicAppArgs|_|) =
+        function
         | _ :: _ :: [ [ CreateRefVar var ] ]
         | _ :: [ [ CreateRefVar var ] ] -> Some var
         | _ -> None
@@ -111,9 +112,10 @@ module Atomic =
     // TODO(more smart predicate: with flags, etc) see next TODO
     // TODO если устройство не поддерживает атомики для этих типов, то вообще работать не будет
     // нужно либо забить на расширения, либо учитывать параметры девайса
-    let mapAtomicCall newApplicationArgs = function
-        | Specific.Binary <@ (+) @> onType when predicate onType
-         -> Expr.Call(atomicAddInfo.MakeGenericMethod(onType, onType, onType), newApplicationArgs)
+    let mapAtomicCall newApplicationArgs =
+        function
+        | Specific.Binary <@ (+) @> onType when predicate onType ->
+            Expr.Call(atomicAddInfo.MakeGenericMethod(onType, onType, onType), newApplicationArgs)
         | Specific.Binary <@ (-) @> onType when predicate onType ->
             Expr.Call(atomicSubInfo.MakeGenericMethod(onType, onType, onType), newApplicationArgs)
         | Specific.Unary <@ inc @> onType when predicate onType ->
@@ -124,16 +126,11 @@ module Atomic =
             Expr.Call(atomicXchgInfo.MakeGenericMethod(onType), newApplicationArgs)
         | Specific.Ternary <@ cmpxchg @> onType when predicate onType ->
             Expr.Call(atomicCmpxchgInfo.MakeGenericMethod(onType), newApplicationArgs)
-        | Specific.Binary <@ min @> onType when predicate onType ->
-            Expr.Call(atomicMinInfo.MakeGenericMethod(onType), newApplicationArgs)
-        | Specific.Binary <@ max @> onType when predicate onType ->
-            Expr.Call(atomicMaxInfo.MakeGenericMethod(onType), newApplicationArgs)
-        | Specific.Binary <@ (&&&) @> onType when predicate onType ->
-            Expr.Call(atomicAndInfo.MakeGenericMethod(onType), newApplicationArgs)
-        | Specific.Binary <@ (|||) @> onType when predicate onType ->
-            Expr.Call(atomicOrInfo.MakeGenericMethod(onType), newApplicationArgs)
-        | Specific.Binary <@ (^^^) @> onType when predicate onType ->
-            Expr.Call(atomicXorInfo.MakeGenericMethod(onType), newApplicationArgs)
+        | Specific.Binary <@ min @> onType when predicate onType -> Expr.Call(atomicMinInfo.MakeGenericMethod(onType), newApplicationArgs)
+        | Specific.Binary <@ max @> onType when predicate onType -> Expr.Call(atomicMaxInfo.MakeGenericMethod(onType), newApplicationArgs)
+        | Specific.Binary <@ (&&&) @> onType when predicate onType -> Expr.Call(atomicAndInfo.MakeGenericMethod(onType), newApplicationArgs)
+        | Specific.Binary <@ (|||) @> onType when predicate onType -> Expr.Call(atomicOrInfo.MakeGenericMethod(onType), newApplicationArgs)
+        | Specific.Binary <@ (^^^) @> onType when predicate onType -> Expr.Call(atomicXorInfo.MakeGenericMethod(onType), newApplicationArgs)
         | _ -> failwith "Arbitrary atomics are not supported"
 
     let rec transform (expr: Expr) nonPrivateVars =

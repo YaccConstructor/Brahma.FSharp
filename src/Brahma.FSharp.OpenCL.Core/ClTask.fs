@@ -134,7 +134,6 @@ module ClTaskOpened =
 
             ctx.CommandQueue.Post <| MsgSetArguments(fun () -> binder kernel.KernelFunc)
             ctx.CommandQueue.Post <| Msg.CreateRunMsg<_, _>(kernel)
-            kernel.ReleaseInternalBuffers(ctx.CommandQueue)
         }
 
     /// Compiles specified raw kernel and runs using specified binder.

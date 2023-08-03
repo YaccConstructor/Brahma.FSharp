@@ -25,16 +25,6 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
     let mainKernelName = "brahmaKernel"
     let lockObject = obj ()
 
-    let constructMethods (expr: Expr) (functions: (Var * Expr) list) =
-        let kernelFunc =
-            KernelFunc(Var(mainKernelName, expr.Type), expr) :> Method |> List.singleton
-
-        let methods =
-            functions
-            |> List.map (fun (var, expr) -> Function(var, expr) :> Method)
-
-        methods @ kernelFunc
-
     let transformQuotation expr =
         expr
         |> Print.replace
@@ -51,14 +41,10 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         let clFuns = ResizeArray()
 
         let kernelArgumentsNames =
-            kernelExpr
-            |> Utils.collectLambdaArguments
-            |> List.map (fun var -> var.Name)
+            kernelExpr |> Utils.collectLambdaArguments |> List.map (fun var -> var.Name)
 
         let localVarsNames =
-            kernelExpr
-            |> Utils.getLocalVars
-            |> List.map (fun var -> var.Name)
+            kernelExpr |> Utils.getLocalVars |> List.map (fun var -> var.Name)
 
         methods
         |> List.iter (fun method -> clFuns.AddRange(method.Translate(kernelArgumentsNames, localVarsNames) |> State.eval context))
@@ -87,8 +73,11 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         let kernelExpr, functions = transformQuotation expr
 
         let kernelFun = KernelFunc(Var(mainKernelName, kernelExpr.Type), kernelExpr)
-        let methodsFun = functions |> List.map (fun (var, expr) -> Function(var, expr) :> Method)
 
+        let methodsFun =
+            functions |> List.map (fun (var, expr) -> Function(var, expr) :> Method)
+
+        // TODO(extract kernel fun)
         let methods = methodsFun @ (kernelFun :> Method |> List.singleton)
 
         let context, clFuns = createTranslationContext kernelExpr methods
