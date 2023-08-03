@@ -1,5 +1,6 @@
 namespace Brahma.FSharp.OpenCL.Translator.QuotationTransformers
 
+open System
 open FSharp.Quotations
 open Brahma.FSharp.OpenCL.Translator
 open Brahma.FSharp
@@ -38,7 +39,7 @@ module private Specific =
 
     let (|Atomic|_|) =
         function
-        | DerivedPatterns.SpecificCall <@ atomic @> (_, _, [ DerivedPatterns.Lambdas _ ]) -> Some()
+        | DerivedPatterns.SpecificCall <@ atomic @> (_, _, [ DerivedPatterns.Lambdas (_ , body) ]) -> Some body
         | _ -> None
 
         // move to Specific Call
@@ -52,7 +53,53 @@ module private Specific =
         | _ -> None
 
 module Atomic =
-    let predicate onType =
+    module Fun =
+        let inline atomicAdd (p: _ ref) v = (+) p.Value v
+        let inline atomicSub (p: _ ref) v = (-) p.Value v
+        let inline atomicInc (p: _ ref) = inc p.Value
+        let inline atomicDec (p: _ ref) = dec p.Value
+        let inline atomicXchg (p: _ ref) v = xchg p.Value v
+        let inline atomicCmpxchg (p: _ ref) cmp v = cmpxchg p.Value cmp v
+        let inline atomicMin (p: _ ref) v = min p.Value v
+        let inline atomicMax (p: _ ref) v = max p.Value v
+        let inline atomicAnd (p: _ ref) v = (&&&) p.Value v
+        let inline atomicOr (p: _ ref) v = (|||) p.Value v
+        let inline atomicXor (p: _ ref) v = (^^^) p.Value v
+
+    let atomicAddInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicAdd @>).GetGenericMethodDefinition()
+
+    let atomicSubInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicSub @>).GetGenericMethodDefinition()
+
+    let atomicIncInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicInc @>).GetGenericMethodDefinition()
+
+    let atomicDecInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicDec @>).GetGenericMethodDefinition()
+
+    let atomicXchgInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicXchg @>).GetGenericMethodDefinition()
+
+    let private atomicCmpxchgInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicCmpxchg @>).GetGenericMethodDefinition()
+
+    let private atomicMinInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicMin @>).GetGenericMethodDefinition()
+
+    let private atomicMaxInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicMax @>).GetGenericMethodDefinition()
+
+    let private atomicAndInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicAnd @>).GetGenericMethodDefinition()
+
+    let private atomicOrInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicOr @>).GetGenericMethodDefinition()
+
+    let private atomicXorInfo =
+        (Utils.getMethodInfoOfCall <@ Fun.atomicXor @>).GetGenericMethodDefinition()
+
+    let private predicate onType =
         onType = typeof<int>
         || onType = typeof<uint32>
         ||
@@ -60,57 +107,11 @@ module Atomic =
         onType = typeof<int64>
         || onType = typeof<uint64>
 
-    let inline private atomicAdd (p: _ ref) v = (+) p.Value v
-    let inline private atomicSub (p: _ ref) v = (-) p.Value v
-    let inline private atomicInc (p: _ ref) = inc p.Value
-    let inline private atomicDec (p: _ ref) = dec p.Value
-    let inline private atomicXchg (p: _ ref) v = xchg p.Value v
-    let inline private atomicCmpxchg (p: _ ref) cmp v = cmpxchg p.Value cmp v
-    let inline private atomicMin (p: _ ref) v = min p.Value v
-    let inline private atomicMax (p: _ ref) v = max p.Value v
-    let inline private atomicAnd (p: _ ref) v = (&&&) p.Value v
-    let inline private atomicOr (p: _ ref) v = (|||) p.Value v
-    let inline private atomicXor (p: _ ref) v = (^^^) p.Value v
-
-    let private atomicAddInfo =
-        (Utils.getMethodInfoOfCall <@ atomicAdd @>).GetGenericMethodDefinition()
-
-    let private atomicSubInfo =
-        (Utils.getMethodInfoOfCall <@ atomicSub @>).GetGenericMethodDefinition()
-
-    let private atomicIncInfo =
-        (Utils.getMethodInfoOfCall <@ atomicInc @>).GetGenericMethodDefinition()
-
-    let private atomicDecInfo =
-        (Utils.getMethodInfoOfCall <@ atomicDec @>).GetGenericMethodDefinition()
-
-    let private atomicXchgInfo =
-        (Utils.getMethodInfoOfCall <@ atomicXchg @>).GetGenericMethodDefinition()
-
-    let private atomicCmpxchgInfo =
-        (Utils.getMethodInfoOfCall <@ atomicCmpxchg @>).GetGenericMethodDefinition()
-
-    let private atomicMinInfo =
-        (Utils.getMethodInfoOfCall <@ atomicMin @>).GetGenericMethodDefinition()
-
-    let private atomicMaxInfo =
-        (Utils.getMethodInfoOfCall <@ atomicMax @>).GetGenericMethodDefinition()
-
-    let private atomicAndInfo =
-        (Utils.getMethodInfoOfCall <@ atomicAnd @>).GetGenericMethodDefinition()
-
-    let private atomicOrInfo =
-        (Utils.getMethodInfoOfCall <@ atomicOr @>).GetGenericMethodDefinition()
-
-    let private atomicXorInfo =
-        (Utils.getMethodInfoOfCall <@ atomicXor @>).GetGenericMethodDefinition()
-
     // https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/atomicFunctions.html
     // TODO(more smart predicate: with flags, etc) see next TODO
     // TODO если устройство не поддерживает атомики для этих типов, то вообще работать не будет
     // нужно либо забить на расширения, либо учитывать параметры девайса
-    let mapAtomicCall newApplicationArgs =
-        function
+    let mapAtomicCall newApplicationArgs = function
         | Specific.Binary <@ (+) @> onType when predicate onType
          -> Expr.Call(atomicAddInfo.MakeGenericMethod(onType, onType, onType), newApplicationArgs)
         | Specific.Binary <@ (-) @> onType when predicate onType ->
@@ -138,22 +139,24 @@ module Atomic =
     let rec transform (expr: Expr) nonPrivateVars =
         match expr with
         // Atomic application restriction
-        | DerivedPatterns.Applications(Specific.Atomic, ([ Patterns.ValidVolatileArg pointerVar ] :: _ as applicationArgs)) ->
+        | DerivedPatterns.Applications(Specific.Atomic body, ([ Patterns.ValidVolatileArg pointerVar ] :: _ as applicationArgs)) ->
             // private vars not supported
             if Set.contains pointerVar nonPrivateVars then
                 let newApplicationArgs =
                     applicationArgs |> List.concat |> List.modifyFirst Utils.createRefCall
 
-                mapAtomicCall newApplicationArgs expr
+                mapAtomicCall newApplicationArgs body
             else
                 $"Invalid address space of {pointerVar} var. \
                 Atomic operation cannot be executed on variables in private memory"
-                |> failwith
+                |> ArgumentException
+                |> raise
         // if volatile arg is invalid
-        | DerivedPatterns.Applications(Specific.Atomic, [ invalidVolatileArg ] :: _) ->
+        | DerivedPatterns.Applications(Specific.Atomic _, [ invalidVolatileArg ] :: _) ->
             $"Invalid volatile arg of atomic function. Must be `var` of `var.[expr]`, \
             where `var` is variable in local or global memory, but given\n{invalidVolatileArg}"
-            |> failwith
+            |> ArgumentException
+            |> raise
         | ExprShape.ShapeVar var -> Expr.Var var
         | ExprShape.ShapeLambda(var, lambda) ->
             let transformedLambda = transform lambda nonPrivateVars

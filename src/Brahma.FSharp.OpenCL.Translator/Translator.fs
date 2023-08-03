@@ -89,7 +89,7 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
         let kernelFun = KernelFunc(Var(mainKernelName, kernelExpr.Type), kernelExpr)
         let methodsFun = functions |> List.map (fun (var, expr) -> Function(var, expr) :> Method)
 
-        let methods = (kernelFun :> Method |> List.singleton) @ methodsFun
+        let methods = methodsFun @ (kernelFun :> Method |> List.singleton)
 
         let context, clFuns = createTranslationContext kernelExpr methods
 

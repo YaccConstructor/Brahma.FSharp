@@ -82,8 +82,6 @@
     </Content>
     <Compile Include="Translator\LangExtensions\Barrier\Tests.fs" />
     
-    <Compile Include="Translator\LangExtensions\Atomic.fs" />
-    
     <Compile Include="Translator\QuatationTransformation\Common.fs" />
     
     <Compile Include="Translator\QuatationTransformation\Print.fs" />
@@ -96,6 +94,7 @@
     
     <Compile Include="Translator\QuatationTransformation\VarToRef.fs" />
     <Compile Include="Translator\QuatationTransformation\Lifting.fs" />
+    <Compile Include="Translator\QuatationTransformation\Atomic.fs" />
     <Compile Include="Translator\QuatationTransformation\Transformation.fs" />
 
     <Compile Include="Translator\All.fs" />
