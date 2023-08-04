@@ -18,7 +18,6 @@ namespace Brahma.FSharp.OpenCL.Translator
 open Microsoft.FSharp.Quotations
 open Brahma.FSharp.OpenCL.AST
 open Brahma.FSharp.OpenCL.Translator.QuotationTransformers
-open System.Collections.Generic
 open Brahma.FSharp
 
 type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: TranslatorOptions) =
@@ -26,108 +25,70 @@ type FSQuotationToOpenCLTranslator(device: IDevice, ?translatorOptions: Translat
     let mainKernelName = "brahmaKernel"
     let lockObject = obj ()
 
-    let collectData (expr: Expr) (functions: (Var * Expr) list) =
-        // global var names
-        let kernelArgumentsNames =
-            expr |> Utils.collectLambdaArguments |> List.map (fun var -> var.Name)
-
-        let localVarsNames =
-            expr |> Utils.collectLocalVars |> List.map (fun var -> var.Name)
-
-        let atomicApplicationsInfo =
-            let atomicPointerArgQualifiers = Dictionary<Var, AddressSpaceQualifier<Lang>>()
-
-            let (|AtomicApplArgs|_|) (args: Expr list list) =
-                match args with
-                | [ mutex ] :: _ :: [ [ DerivedPatterns.SpecificCall <@ ref @> (_, _, [ Patterns.ValidVolatileArg var ]) ] ]
-                | [ mutex ] :: [ [ DerivedPatterns.SpecificCall <@ ref @> (_, _, [ Patterns.ValidVolatileArg var ]) ] ] -> Some(mutex, var)
-                | _ -> None
-
-            let rec go expr =
-                match expr with
-                | DerivedPatterns.Applications(Patterns.Var funcVar, AtomicApplArgs(_, volatileVar)) when funcVar.Name.StartsWith "atomic" ->
-
-                    if kernelArgumentsNames |> List.contains volatileVar.Name then
-                        atomicPointerArgQualifiers.Add(funcVar, Global)
-                    elif localVarsNames |> List.contains volatileVar.Name then
-                        atomicPointerArgQualifiers.Add(funcVar, Local)
-                    else
-                        failwith "Atomic pointer argument should be from local or global memory only"
-
-                | ExprShape.ShapeVar _ -> ()
-                | ExprShape.ShapeLambda(_, lambda) -> go lambda
-                | ExprShape.ShapeCombination(_, exprs) -> List.iter go exprs
-
-            functions |> List.map snd |> (fun tail -> expr :: tail) |> Seq.iter go
-
-            atomicPointerArgQualifiers |> Seq.map (|KeyValue|) |> Map.ofSeq
-
-        kernelArgumentsNames, localVarsNames, atomicApplicationsInfo
-
-    let constructMethods (expr: Expr) (functions: (Var * Expr) list) (atomicApplicationsInfo: Map<Var, AddressSpaceQualifier<Lang>>) =
-        let kernelFunc =
-            KernelFunc(Var(mainKernelName, expr.Type), expr) :> Method |> List.singleton
-
-        let methods =
-            functions
-            |> List.map (fun (var, expr) ->
-                match atomicApplicationsInfo |> Map.tryFind var with
-                | Some qual -> AtomicFunc(var, expr, qual) :> Method
-                | None -> Function(var, expr) :> Method)
-
-        methods @ kernelFunc
-
-    // TODO(add logging (via CE state))
-
     let transformQuotation expr =
         expr
         |> Print.replace
         |> WorkSize.get
-        |> Atomic.parse // TODO(refactor)
+        |> Atomic.parse
         |> Names.makeUnique
         |> Variables.defsToLambda
         |> VarToRef.transform
         |> Names.makeUnique
         |> Lift.parse
 
+    let createTranslationContext (kernelExpr: Expr) (methods: Method list) =
+        let context = TranslationContext.Create(translatorOptions)
+        let clFuns = ResizeArray()
+
+        let kernelArgumentsNames =
+            kernelExpr |> Utils.collectLambdaArguments |> List.map (fun var -> var.Name)
+
+        let localVarsNames =
+            kernelExpr |> Utils.getLocalVars |> List.map (fun var -> var.Name)
+
+        methods
+        |> List.iter (fun method -> clFuns.AddRange(method.Translate(kernelArgumentsNames, localVarsNames) |> State.eval context))
+
+        context, clFuns
+
+    let getPragmas (context: TranslationContext<_, _>) =
+        let pragmas = ResizeArray()
+
+        context.Flags
+        |> Seq.iter (function
+            | EnableAtomic ->
+                pragmas.Add(CLPragma CLGlobalInt32BaseAtomics :> ITopDef<_>)
+                pragmas.Add(CLPragma CLLocalInt32BaseAtomics :> ITopDef<_>)
+            | EnableFP64 -> pragmas.Add(CLPragma CLFP64))
+
+        List.ofSeq pragmas
+
+    let getUserDefinedTypes (context: TranslationContext<_, _>) =
+        context.CStructDecls.Values
+        |> Seq.map StructDecl
+        |> Seq.cast<ITopDef<Lang>>
+        |> List.ofSeq
+
     let translate expr =
-        // TODO: Extract quotationTransformer to translator
-        // what is it?
         let kernelExpr, functions = transformQuotation expr
 
-        let globalVars, localVars, atomicApplicationsInfo = collectData kernelExpr functions
+        let kernelFun = KernelFunc(Var(mainKernelName, kernelExpr.Type), kernelExpr)
 
-        let methods = constructMethods kernelExpr functions atomicApplicationsInfo
+        let methodsFun =
+            functions |> List.map (fun (var, expr) -> Function(var, expr) :> Method)
 
-        let context = TranslationContext.Create(translatorOptions)
-        let clFuncs = ResizeArray()
+        // TODO(extract kernel fun)
+        let methods = methodsFun @ (kernelFun :> Method |> List.singleton)
 
-        methods
-        |> List.iter (fun method -> clFuncs.AddRange(method.Translate(globalVars, localVars) |> State.eval context))
+        let context, clFuns = createTranslationContext kernelExpr methods
 
-        let pragmas =
-            let pragmas = ResizeArray()
+        let pragmas = getPragmas context
 
-            context.Flags
-            |> Seq.iter (fun (flag: Flag) ->
-                match flag with
-                | EnableAtomic ->
-                    pragmas.Add(CLPragma CLGlobalInt32BaseAtomics :> ITopDef<_>)
-                    pragmas.Add(CLPragma CLLocalInt32BaseAtomics :> ITopDef<_>)
-                | EnableFP64 -> pragmas.Add(CLPragma CLFP64))
+        let userDefinedTypes = getUserDefinedTypes context
 
-            List.ofSeq pragmas
+        let ast = AST(pragmas @ userDefinedTypes @ List.ofSeq clFuns)
 
-        let userDefinedTypes =
-            context.CStructDecls.Values
-            |> Seq.map StructDecl
-            |> Seq.cast<ITopDef<Lang>>
-            |> List.ofSeq
-
-        AST(pragmas @ userDefinedTypes @ List.ofSeq clFuncs),
-        methods
-        |> List.find (fun method -> method :? KernelFunc)
-        |> fun kernel -> kernel.FunExpr
+        ast, kernelFun.FunExpr
 
     member val Marshaller = CustomMarshaller()
 

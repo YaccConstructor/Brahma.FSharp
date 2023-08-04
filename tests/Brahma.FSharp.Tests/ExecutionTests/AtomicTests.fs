@@ -56,8 +56,6 @@ module Helpers =
 
         "Results should be equal" |> Expect.equal actual expected
 
-// TODO add tests in inc dec on supported types (generate spinlock)
-
 /// Stress test for unary atomic operations.
 /// Use global atomics
 let stressTest<'a when 'a: equality and 'a: struct> context (f: Expr<'a -> 'a>) size rawF (isEqual: 'a -> 'a -> bool) =
@@ -310,63 +308,10 @@ let xchgTestCases context =
         <| fun () -> xchgTest<WrappedInt> context (WrappedInt 0) (WrappedInt 256)
     ]
 
-// TODO barrier broken
-let perfomanceTest context =
-    fun () ->
-        // use native atomic_inc for int
-        let kernelUsingNativeInc =
-            <@
-                fun (range: Range1D) (result: int clarray) ->
-                    let localAcc = localArray<int> 1
-
-                    if range.LocalID0 = 0 then
-                        localAcc.[0] <- 0
-
-                    atomic inc localAcc.[0] |> ignore
-                    barrierLocal ()
-
-                    if range.LocalID0 = 0 then
-                        result.[0] <- localAcc.[0]
-            @>
-
-        // generate spinlock
-        let kernelUsingCustomInc =
-            let inc = <@ fun x -> x + 1 @>
-
-            <@
-                fun (range: Range1D) (result: int clarray) ->
-                    let localAcc = localArray<int> 1
-
-                    if range.LocalID0 = 0 then
-                        localAcc.[0] <- 0
-
-                    atomic %inc localAcc.[0] |> ignore
-                    barrierLocal ()
-
-                    if range.LocalID0 = 0 then
-                        result.[0] <- localAcc.[0]
-            @>
-
-        let prepare kernel () =
-            opencl {
-                use! result = ClArray.toDevice <| Array.zeroCreate<int> 1
-
-                do!
-                    runCommand kernel
-                    <| fun kernelPrepare -> kernelPrepare <| Range1D(Settings.wgSize, Settings.wgSize) <| result
-
-                return! ClArray.toHost result
-            }
-            |> ClTask.runSync context
-
-        "Kernel wich uses native 'inc' should be faster than with custom one"
-        |> Expect.isFasterThan (prepare kernelUsingNativeInc) (prepare kernelUsingCustomInc)
-
 let tests context =
     [
         testList "Stress tests" << stressTestCases
         ptestList "Fold tests" << foldTestCases
         ptestList "Xchg tests" << xchgTestCases
-        ptestCase "Perfomance test on 'inc'" << perfomanceTest
     ]
     |> List.map (fun testFixture -> testFixture context)

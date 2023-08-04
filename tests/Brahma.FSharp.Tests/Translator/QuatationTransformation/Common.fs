@@ -48,3 +48,6 @@ module Helpers =
 
     let createMapTestAndCompareAsStrings map name source expected =
         test name { exprEqual (map source) expected }
+
+    let createTestWithException<'a, 'e when 'e :> exn> (map: 'a -> unit) name (source: _) =
+        test name { Expect.throwsT<'e> <| (fun () -> map source) <| "Exception should be thrown" }

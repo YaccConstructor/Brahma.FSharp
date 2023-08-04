@@ -28,3 +28,9 @@ module Extensions =
                     )
 
             mkRLinear mkTupledLambda (args, body)
+
+    module List =
+        let modifyFirst f lst =
+            match lst with
+            | x :: tail -> f x :: tail
+            | _ -> invalidArg "lst" "List should not be empty"

@@ -25,17 +25,9 @@ module Utils =
     let makeApplicationExpr (head: Expr) (expressions: Expr list) =
         List.fold (fun l r -> Expr.Application(l, r)) head expressions
 
-    // TODO tail recursion
-    let rec extractLambdaArguments =
-        function
-        | Patterns.Lambda(var, body) ->
-            let vars, body' = extractLambdaArguments body
-            var :: vars, body'
-        | expr -> [], expr
-
     let rec collectLambdaArguments =
         function
-        | ExprShape.ShapeLambda(var, body) -> var :: collectLambdaArguments body
+        | DerivedPatterns.Lambdas(var, _) -> List.concat var
         | _ -> []
 
     let rec collectFreeVarsWithPredicate (predicate: Var -> bool) (expr: Expr) : Set<Var> =
@@ -49,13 +41,17 @@ module Utils =
     let collectFreeFunctionVars: Expr -> Set<Var> =
         collectFreeVarsWithPredicate isFunction
 
-    let rec collectLocalVars (expr: Expr) : Var list =
-        match expr with
-        | Patterns.Let(variable, DerivedPatterns.SpecificCall <@ local @> (_, _, _), cont)
-        | Patterns.Let(variable, DerivedPatterns.SpecificCall <@ localArray @> (_, _, _), cont) -> variable :: collectLocalVars cont
-        | ExprShape.ShapeVar _ -> []
-        | ExprShape.ShapeLambda(_, lambda) -> collectLocalVars lambda
-        | ExprShape.ShapeCombination(_, expressions) -> List.collect collectLocalVars expressions
+    let getLocalVars expr =
+        let rec get acc =
+            function
+            // TODO(Note: precomputation in specificCall, make static?)
+            | Patterns.Let(var, DerivedPatterns.SpecificCall <@ local @> _, body)
+            | Patterns.Let(var, DerivedPatterns.SpecificCall <@ localArray @> _, body) -> get (var :: acc) body
+            | ExprShape.ShapeVar _ -> acc
+            | ExprShape.ShapeLambda(_, lambda) -> get acc lambda
+            | ExprShape.ShapeCombination(_, exp) -> List.collect (get acc) exp
+
+        get [] expr
 
     let createRefVar (var: Var) =
         let refName = var.Name + "Ref"

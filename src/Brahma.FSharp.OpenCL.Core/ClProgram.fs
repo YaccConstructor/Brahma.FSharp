@@ -60,93 +60,36 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
     let kernelPrepare =
         match newLambda with
         | DerivedPatterns.Lambdas(lambdaArgs, _) ->
-            let flattenArgs = List.collect id lambdaArgs
-
-            let firstMutexIdx =
-                flattenArgs
-                |> List.tryFindIndex (fun v -> v.Name.EndsWith "Mutex")
-                |> Option.defaultValue flattenArgs.Length
-
-            let argsWithoutMutexes = flattenArgs.[0 .. firstMutexIdx - 1]
-
-            let mutexLengths =
-                let atomicVars =
-                    List.init<Var> (flattenArgs.Length - firstMutexIdx)
-                    <| fun i ->
-                        let mutexVar = flattenArgs.[firstMutexIdx + i]
-                        argsWithoutMutexes |> List.find (fun v -> mutexVar.Name.Contains v.Name)
-
-                Expr.NewArray(
-                    typeof<int>,
-
-                    atomicVars
-                    |> List.map (fun var ->
-                        match var with
-                        | var when var.Type.Name.ToLower().StartsWith ClArray_ ->
-                            Expr.PropertyGet(
-                                Expr.Var var,
-                                typeof<IBuffer<_>>
-                                    .GetGenericTypeDefinition()
-                                    .MakeGenericType(var.Type.GenericTypeArguments.[0])
-                                    .GetProperty("Length")
-                            )
-
-                        | var when var.Type.Name.ToLower().StartsWith ClCell_ -> Expr.Value 1
-
-                        | _ ->
-                            failwithf
-                                $"Something went wrong with type of atomic global var. \
-                            Expected var of type '%s{ClArray_}' or '%s{ClCell_}', but given %s{var.Type.Name}")
-                )
+            let args = List.concat lambdaArgs
 
             let regularArgs =
-                Expr.NewArray(typeof<obj>, argsWithoutMutexes |> List.map (fun v -> Expr.Coerce(Expr.Var v, typeof<obj>)))
+                Expr.NewArray(typeof<obj>, args |> List.map (fun v -> Expr.Coerce(Expr.Var v, typeof<obj>)))
 
-            let argsList = argsWithoutMutexes |> List.map List.singleton
+            let argsList = args |> List.map List.singleton
 
             let kernelVar = Var("kernel", typeof<IKernel>)
             let rangeVar = Var("range", typeof<'TRange ref>)
             let argsVar = Var("args", typeof<obj[] ref>)
-            let mutexBuffersVar = Var("mutexBuffers", typeof<ResizeArray<IBuffer<Mutex>>>)
 
-            let mutexArgsVar = Var("mutexArgs", typeof<obj list>)
             let xVar = Var("x", typeof<obj list>)
 
             Expr.Lambdas(
-                [ [ kernelVar ]; [ rangeVar ]; [ argsVar ]; [ mutexBuffersVar ] ] @ argsList,
+                [ [ kernelVar ]; [ rangeVar ]; [ argsVar ] ] @ argsList,
                 Expr.Let(
-                    mutexArgsVar,
+                    xVar,
+                    <@@ %%regularArgs |> List.ofArray @@>,
                     <@@
-                        (%%mutexLengths: int[])
-                        |> List.ofArray
-                        |> List.map (fun n ->
-                            let mutexBuffer = new ClBuffer<Mutex>(ctx, Size n)
+                        %%Utils.createReferenceSetCall (Expr.Var rangeVar) <@@ unbox<'TRange> (%%Expr.Var xVar: obj list).Head @@>
 
-                            (%%(Expr.Var mutexBuffersVar): ResizeArray<IBuffer<Mutex>>).Add mutexBuffer
+                        %%Utils.createReferenceSetCall (Expr.Var argsVar) <@@ (%%Expr.Var xVar: obj list).Tail |> Array.ofList @@>
 
-                            box mutexBuffer)
-                    @@>,
-                    Expr.Let(
-                        xVar,
-                        <@@ %%regularArgs |> List.ofArray @@>,
-                        <@@
-                            %%Utils.createReferenceSetCall (Expr.Var rangeVar) <@@ unbox<'TRange> (%%Expr.Var xVar: obj list).Head @@>
-
-                            %%Utils.createReferenceSetCall
-                                (Expr.Var argsVar)
-                                <@@
-                                    (%%Expr.Var xVar: obj list).Tail @ (%%Expr.Var mutexArgsVar: obj list)
-                                    |> Array.ofList
-                                @@>
-
-                            %% Utils.createDereferenceCall(Expr.Var argsVar)
-                            |> Array.iteri (setupArgument (%%(Expr.Var kernelVar): IKernel).Kernel)
-                        @@>
-                    )
+                        %% Utils.createDereferenceCall(Expr.Var argsVar)
+                        |> Array.iteri (setupArgument (%%(Expr.Var kernelVar): IKernel).Kernel)
+                    @@>
                 )
             )
             |> fun kernelPrepare ->
-                <@ %%kernelPrepare: IKernel -> 'TRange ref -> obj[] ref -> ResizeArray<IBuffer<Mutex>> -> 'TRange -> 'a @>
+                <@ %%kernelPrepare: IKernel -> 'TRange ref -> obj[] ref -> 'TRange -> 'a @>
                     .Compile()
 
         | _ -> failwithf $"Invalid kernel expression. Must be lambda, but given\n{newLambda}"
