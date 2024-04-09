@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-alpha1.1] - 2024-04-09
+
+### Added
+- MailboxProcessor replaced with custom agent on System.Threading.Channels.
+
 ## [2.0.5] - 2023-02-10
 
 ### Added
@@ -282,7 +287,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FSharp.Core form NuGet
 - .NET 4.5
 
-[Unreleased]: https://github.com/YaccConstructor/Brahma.FSharp/compare/v2.0.5...HEAD
+[Unreleased]: https://github.com/YaccConstructor/Brahma.FSharp/compare/v3.0.0-alpha1.1...HEAD
+[3.0.0-alpha1.1]: https://github.com/YaccConstructor/Brahma.FSharp/compare/v2.0.5...v3.0.0-alpha1.1
 [2.0.5]: https://github.com/YaccConstructor/Brahma.FSharp/compare/v2.0.4...v2.0.5
 [2.0.4]: https://github.com/YaccConstructor/Brahma.FSharp/compare/v2.0.3...v2.0.4
 [2.0.3]: https://github.com/YaccConstructor/Brahma.FSharp/compare/v2.0.2...v2.0.3
