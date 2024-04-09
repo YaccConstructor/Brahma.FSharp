@@ -14,6 +14,7 @@
     <Compile Include="BenchmarksAtomic\AtomicBenchamrks.fs" />
     <Compile Include="BenchmarksAtomic\BrahmaAtomicBenchamrks.fs" />
     <Compile Include="BenchmarksAtomic\IlgpuAtomicBenchamrks.fs" />
+    <Compile Include="SetArguments.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

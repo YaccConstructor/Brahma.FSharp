@@ -1,4 +1,4 @@
-﻿namespace Brahma.FSharp
+namespace Brahma.FSharp
 
 open Brahma.FSharp
 open Microsoft.FSharp.Control

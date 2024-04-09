@@ -1,4 +1,4 @@
-﻿module RuntimeTests
+module RuntimeTests
 
 open Expecto
 open FSharp.Quotations
@@ -558,7 +558,7 @@ let kernelArgumentsTests context =
 
                 let k = context.Compile kernel
 
-                fun (q: MailboxProcessor<_>) ->
+                fun (q: DeviceCommandQueue<_>) ->
                     let buf = context.CreateClArray(l, allocationMode = AllocationMode.AllocHostPtr)
                     let executable = k.GetKernel()
                     q.Post(Msg.MsgSetArguments(fun () -> executable.KernelFunc (Range1D(l, l)) buf))
@@ -567,10 +567,11 @@ let kernelArgumentsTests context =
 
             let allocator = getAllocator context
 
-            let allocOnGPU (q: MailboxProcessor<_>) allocator =
+            let allocOnGPU (q: DeviceCommandQueue<_>) allocator =
                 let b = allocator q
                 let res = Array.zeroCreate l
-                q.PostAndReply(fun ch -> Msg.CreateToHostMsg(b, res, ch)) |> ignore
+                q.Post(Msg.CreateToHostMsg(b, res))
+                q.Synchronize()
                 q.Post(Msg.CreateFreeMsg b)
                 res
 

@@ -87,7 +87,7 @@ module ClTask =
     /// Runs computation with specified runtime context.
     let runSync (context: RuntimeContext) (ClTask f) =
         let res = f context
-        context.CommandQueue.PostAndReply <| MsgNotifyMe
+        context.CommandQueue.Synchronize()
         res
 
     // TODO implement
@@ -104,7 +104,7 @@ module ClTask =
         opencl {
             let! ctx = ask
 
-            ctx.CommandQueue.PostAndReply <| Msg.MsgNotifyMe
+            ctx.CommandQueue.Synchronize()
 
             let syncMsgs = Msg.CreateBarrierMessages(Seq.length tasks)
             let ctxs = Array.create (Seq.length tasks) (ctx.WithNewCommandQueue())

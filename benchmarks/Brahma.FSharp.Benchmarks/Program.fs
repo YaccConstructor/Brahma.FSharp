@@ -1,6 +1,7 @@
 open BenchmarkDotNet.Configs
 open BenchmarkDotNet.Jobs
 open BenchmarkDotNet.Running
+open Brahma.FSharp.Benchmarks.SetArguments
 open Perfolizer.Mathematics.OutlierDetection
 open Brahma.FSharp.Benchmarks
 open Brahma.FSharp.Benchmarks.Ilgpu
@@ -9,6 +10,7 @@ open Brahma.FSharp.Benchmarks.Fscl
 [<EntryPoint>]
 let main argv =
     let benchmarks = BenchmarkSwitcher [|
+        typeof<BenchmarkSetArgs>
         // alloc
         typeof<Concrete.BrahmaAllocIntBenchmark>
         typeof<Concrete.BrahmaAllocStructOfIntInt64Benchmark>

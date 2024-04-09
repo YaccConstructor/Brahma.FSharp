@@ -1,4 +1,4 @@
-﻿namespace Brahma.FSharp
+namespace Brahma.FSharp
 
 open Brahma.FSharp.OpenCL.Shared
 open System
@@ -74,8 +74,9 @@ module ClArray =
             let! context = ClTask.ask
 
             let array = Array.zeroCreate<'a> clArray.Length
-
-            return context.CommandQueue.PostAndReply(fun ch -> Msg.CreateToHostMsg(clArray.Buffer, array, ch))
+            context.CommandQueue.Post(Msg.CreateToHostMsg(clArray.Buffer, array))
+            context.CommandQueue.Synchronize()
+            return array
         }
 
     // TODO impl it using clEnqueCopy

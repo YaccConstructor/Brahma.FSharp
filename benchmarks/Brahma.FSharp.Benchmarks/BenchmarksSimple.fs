@@ -39,12 +39,12 @@ type SimpleBenchamrks() =
     member this.SetAndRunKernel() =
         this.Context.CommandQueue.Post(Msg.MsgSetArguments (fun () -> this.Kernel.KernelFunc (Range1D.CreateValid(this.GlobalWorkSize, this.WgSize)) this.Cell))
         this.Context.CommandQueue.Post(Msg.CreateRunMsg this.Kernel)
-        this.Context.CommandQueue.PostAndReply(MsgNotifyMe)
+        this.Context.CommandQueue.Synchronize()
 
     [<Benchmark>]
     member this.SetWithoutRunningKernel() =
         this.Context.CommandQueue.Post(Msg.MsgSetArguments (fun () -> this.Kernel.KernelFunc (Range1D.CreateValid(this.GlobalWorkSize, this.WgSize)) this.Cell))
-        this.Context.CommandQueue.PostAndReply(MsgNotifyMe)
+        this.Context.CommandQueue.Synchronize()
 
     [<IterationCleanup>]
     member this.CleanCell() =

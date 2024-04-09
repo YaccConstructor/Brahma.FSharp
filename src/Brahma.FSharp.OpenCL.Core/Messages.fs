@@ -63,7 +63,6 @@ type Msg =
     | MsgRun of IRunCrate
     | MsgFree of IFreeCrate
     | MsgSetArguments of (unit -> unit)
-    | MsgNotifyMe of AsyncReplyChannel<unit>
     | MsgBarrier of SyncObject
 
     static member CreateToHostMsg<'a>(src, dst, ?ch) =

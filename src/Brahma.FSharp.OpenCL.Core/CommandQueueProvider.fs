@@ -1,9 +1,52 @@
 namespace Brahma.FSharp
 
+open System.Threading
+open System.Threading.Channels
+open System.Threading.Tasks
 open Brahma.FSharp.OpenCL.Translator
 open OpenCL.Net
 open System
 open System.Runtime.InteropServices
+
+type msg<'a> =
+    | Regular of 'a
+    | Synchronization of TaskCompletionSource
+
+type DeviceCommandQueue<'message>(messageHandler) =
+    let inbox = Channel.CreateUnbounded<msg<'message>>()
+    let cts = new CancellationTokenSource()
+
+    let work (cancellationToken: CancellationToken) =
+        task {
+            try
+                while not cancellationToken.IsCancellationRequested do
+                    let! ok = inbox.Reader.WaitToReadAsync(cancellationToken)
+                    let mutable read = ok
+
+                    while read do
+                        let ok, msg = inbox.Reader.TryRead()
+                        read <- ok
+
+                        if ok then
+                            match msg with
+                            | Regular a -> messageHandler a
+                            | Synchronization c -> c.SetResult()
+            finally
+                ()
+        }
+
+    do work cts.Token |> ignore
+
+    member this.Post msg =
+        inbox.Writer.TryWrite(Regular msg) |> ignore
+
+    member this.Synchronize() =
+        let c = TaskCompletionSource()
+        inbox.Writer.TryWrite(Synchronization c) |> ignore
+        c.Task.GetAwaiter().GetResult()
+        ()
+
+    member this.Stop() = inbox.Writer.Complete()
 
 /// Provides the ability to create multiple command queues.
 type CommandQueueProvider private (device, context, translator: FSQuotationToOpenCLTranslator, __: unit) =
@@ -131,71 +174,57 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
     /// Creates new command queue capable of handling messages of type <see cref="Msg"/>.
     /// </summary>
     member this.CreateQueue() =
+        let commandQueue =
+            let error = ref Unchecked.defaultof<ErrorCode>
+            let props = CommandQueueProperties.None
+            let queue = Cl.CreateCommandQueue(context, device, props, error)
+
+            if error.Value <> ErrorCode.Success then
+                raise <| Cl.Exception error.Value
+
+            queue
+
+        let mutable itIsFirstNonqueueMsg = true
+
         let processor =
-            MailboxProcessor.Start
-            <| fun inbox ->
-                let commandQueue =
-                    let error = ref Unchecked.defaultof<ErrorCode>
-                    let props = CommandQueueProperties.None
-                    let queue = Cl.CreateCommandQueue(context, device, props, error)
+            DeviceCommandQueue
+            <| fun msg ->
+                match msg with
+                | MsgToHost crate ->
+                    itIsFirstNonqueueMsg <- true
+                    handleToHost commandQueue crate
 
-                    if error.Value <> ErrorCode.Success then
-                        raise <| Cl.Exception error.Value
+                | MsgToGPU crate ->
+                    itIsFirstNonqueueMsg <- true
+                    handleToGPU commandQueue crate
 
-                    queue
+                | MsgRun crate ->
+                    itIsFirstNonqueueMsg <- true
+                    handleRun commandQueue crate
 
-                let mutable itIsFirstNonqueueMsg = true
+                | MsgFree crate ->
+                    if itIsFirstNonqueueMsg then
+                        finish commandQueue
+                        itIsFirstNonqueueMsg <- false
 
-                let rec loop i =
-                    async {
-                        let! msg = inbox.Receive()
+                    handleFree crate
 
-                        match msg with
-                        | MsgToHost crate ->
-                            itIsFirstNonqueueMsg <- true
-                            handleToHost commandQueue crate
+                | MsgSetArguments setterFunc ->
+                    if itIsFirstNonqueueMsg then
+                        finish commandQueue
+                        itIsFirstNonqueueMsg <- false
 
-                        | MsgToGPU crate ->
-                            itIsFirstNonqueueMsg <- true
-                            handleToGPU commandQueue crate
+                    setterFunc ()
 
-                        | MsgRun crate ->
-                            itIsFirstNonqueueMsg <- true
-                            handleRun commandQueue crate
+                | MsgBarrier syncObject ->
+                    itIsFirstNonqueueMsg <- true
+                    finish commandQueue
+                    syncObject.ImReady()
 
-                        | MsgFree crate ->
-                            if itIsFirstNonqueueMsg then
-                                finish commandQueue
-                                itIsFirstNonqueueMsg <- false
-
-                            handleFree crate
-
-                        | MsgSetArguments setterFunc ->
-                            if itIsFirstNonqueueMsg then
-                                finish commandQueue
-                                itIsFirstNonqueueMsg <- false
-
-                            setterFunc ()
-
-                        | MsgNotifyMe ch ->
-                            itIsFirstNonqueueMsg <- true
-                            finish commandQueue
-                            ch.Reply()
-
-                        | MsgBarrier syncObject ->
-                            itIsFirstNonqueueMsg <- true
-                            finish commandQueue
-                            syncObject.ImReady()
-
-                            while not <| syncObject.CanContinue() do
-                                ()
-
-                        return! loop 0
-                    }
-
-                loop 0
+                    while not <| syncObject.CanContinue() do
+                        ()
 
         // TODO rethink error handling?
-        processor.Error.AddHandler(Handler<_>(fun _ -> raise))
+        //processor.Error.AddHandler(Handler<_>(fun _ -> raise))
 
         processor

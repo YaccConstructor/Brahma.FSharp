@@ -68,7 +68,9 @@ module ClCell =
 
             let array = Array.zeroCreate<'a> 1
 
-            return context.CommandQueue.PostAndReply(fun ch -> Msg.CreateToHostMsg(clCell.Buffer, array, ch)).[0]
+            context.CommandQueue.Post(Msg.CreateToHostMsg(clCell.Buffer, array))
+            context.CommandQueue.Synchronize()
+            return array.[0]
         }
 
     // TODO impl it
