@@ -1,5 +1,6 @@
 namespace Brahma.FSharp
 
+open System.Drawing
 open System.Threading
 open System.Threading.Channels
 open System.Threading.Tasks
@@ -12,7 +13,7 @@ type msg<'a> =
     | Regular of 'a
     | Synchronization of TaskCompletionSource
 
-type DeviceCommandQueue<'message>(messageHandler) =
+type DeviceCommandQueue<'message>(clQueueFinishFunction, messageHandler) =
     let inbox = Channel.CreateUnbounded<msg<'message>>()
     let cts = new CancellationTokenSource()
 
@@ -30,7 +31,9 @@ type DeviceCommandQueue<'message>(messageHandler) =
                         if ok then
                             match msg with
                             | Regular a -> messageHandler a
-                            | Synchronization c -> c.SetResult()
+                            | Synchronization c ->
+                                clQueueFinishFunction ()
+                                c.SetResult()
             finally
                 ()
         }
@@ -186,43 +189,43 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
         let mutable itIsFirstNonqueueMsg = true
 
-        let processor =
-            DeviceCommandQueue
-            <| fun msg ->
-                match msg with
-                | MsgToHost crate ->
-                    itIsFirstNonqueueMsg <- true
-                    handleToHost commandQueue crate
+        let msgHandler msg =
+            match msg with
+            | MsgToHost crate ->
+                itIsFirstNonqueueMsg <- true
+                handleToHost commandQueue crate
 
-                | MsgToGPU crate ->
-                    itIsFirstNonqueueMsg <- true
-                    handleToGPU commandQueue crate
+            | MsgToGPU crate ->
+                itIsFirstNonqueueMsg <- true
+                handleToGPU commandQueue crate
 
-                | MsgRun crate ->
-                    itIsFirstNonqueueMsg <- true
-                    handleRun commandQueue crate
+            | MsgRun crate ->
+                itIsFirstNonqueueMsg <- true
+                handleRun commandQueue crate
 
-                | MsgFree crate ->
-                    if itIsFirstNonqueueMsg then
-                        finish commandQueue
-                        itIsFirstNonqueueMsg <- false
-
-                    handleFree crate
-
-                | MsgSetArguments setterFunc ->
-                    if itIsFirstNonqueueMsg then
-                        finish commandQueue
-                        itIsFirstNonqueueMsg <- false
-
-                    setterFunc ()
-
-                | MsgBarrier syncObject ->
-                    itIsFirstNonqueueMsg <- true
+            | MsgFree crate ->
+                if itIsFirstNonqueueMsg then
                     finish commandQueue
-                    syncObject.ImReady()
+                    itIsFirstNonqueueMsg <- false
 
-                    while not <| syncObject.CanContinue() do
-                        ()
+                handleFree crate
+
+            | MsgSetArguments setterFunc ->
+                if itIsFirstNonqueueMsg then
+                    finish commandQueue
+                    itIsFirstNonqueueMsg <- false
+
+                setterFunc ()
+
+            | MsgBarrier syncObject ->
+                itIsFirstNonqueueMsg <- true
+                finish commandQueue
+                syncObject.ImReady()
+
+                while not <| syncObject.CanContinue() do
+                    ()
+
+        let processor = DeviceCommandQueue((fun () -> finish commandQueue), msgHandler)
 
         // TODO rethink error handling?
         //processor.Error.AddHandler(Handler<_>(fun _ -> raise))
