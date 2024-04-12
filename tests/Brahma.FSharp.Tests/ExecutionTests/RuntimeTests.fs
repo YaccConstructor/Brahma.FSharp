@@ -18,7 +18,17 @@ module Helpers =
             opencl {
                 use! inBuf = ClArray.toDevice inArr
                 do! runCommand command <| fun x -> x default1D inBuf
+                return! ClArray.toHost inBuf
+            }
+            |> ClTask.runSync context
 
+        Expect.sequenceEqual actual expectedArr $"For context: %A{context}. Arrays should be equals"
+
+    let checkResult2 context command (inArr: 'a[]) v (expectedArr: 'a[]) =
+        let actual =
+            opencl {
+                use! inBuf = ClArray.toDevice inArr
+                do! runCommand command <| fun x -> x default1D inBuf v
                 return! ClArray.toHost inBuf
             }
             |> ClTask.runSync context
@@ -30,6 +40,9 @@ let logger = Log.create "FullTests"
 let smokeTestsOnPrimitiveTypes context =
     [
         let inline checkResult cmd input expected = checkResult context cmd input expected
+
+        let inline checkResult2 cmd input v expected =
+            checkResult2 context cmd input v expected
 
         testCase "Array item set"
         <| fun _ ->
@@ -78,6 +91,30 @@ let smokeTestsOnPrimitiveTypes context =
                 @>
 
             checkResult command [| 0uy; 255uy; 254uy |] [| 1uy; 0uy; 255uy |]
+
+        testCase "Array item set int value"
+        <| fun _ ->
+            let command = <@ fun (range: Range1D) (buf: ClArray<int>) v -> buf.[0] <- v @>
+
+            checkResult2 command intInArr 3 [| 3; 1; 2; 3 |]
+
+        testCase "Array item set int64 value"
+        <| fun _ ->
+            let command = <@ fun (range: Range1D) (buf: ClArray<int64>) v -> buf.[0] <- v @>
+
+            checkResult2 command [| 0L; 1L; 2L; 3L |] 3L [| 3L; 1L; 2L; 3L |]
+
+        testCase "Array item set float value"
+        <| fun _ ->
+            let command = <@ fun (range: Range1D) (buf: ClArray<float>) v -> buf.[0] <- v @>
+
+            checkResult2 command [| 0.0; 1.0; 2.0; 3.0 |] 3.0 [| 3.0; 1.0; 2.0; 3.0 |]
+
+        testCase "Array item set float32 value"
+        <| fun _ ->
+            let command = <@ fun (range: Range1D) (buf: ClArray<float32>) v -> buf.[0] <- v @>
+
+            checkResult2 command [| 0.0f; 1.0f; 2.0f; 3.0f |] 3.0f [| 3.0f; 1.0f; 2.0f; 3.0f |]
     ]
 
 let typeCastingTests context =

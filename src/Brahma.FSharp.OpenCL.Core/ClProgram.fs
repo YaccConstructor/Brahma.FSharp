@@ -49,6 +49,9 @@ type ClProgram<'TRange, 'a when 'TRange :> INDRange>(ctx: ClContext, srcLambda: 
             match box arg with
             | :? IClMem as buf -> buf.Size, buf.Data
             | :? int as i -> IntPtr(Marshal.SizeOf i), box i
+            | :? int64 as i64 -> IntPtr(Marshal.SizeOf i64), box i64
+            | :? float as f -> IntPtr(Marshal.SizeOf f), box f
+            | :? float32 as f32 -> IntPtr(Marshal.SizeOf f32), box f32
             | other -> failwithf $"Unexpected argument: %A{other}"
 
         let (argSize, argVal) = toIMem arg
