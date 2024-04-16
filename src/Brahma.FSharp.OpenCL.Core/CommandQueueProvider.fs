@@ -1,13 +1,78 @@
 namespace Brahma.FSharp
 
-open System.Drawing
 open System.Threading
 open System.Threading.Channels
 open System.Threading.Tasks
+open Brahma.FSharp.OpenCL.Shared
 open Brahma.FSharp.OpenCL.Translator
 open OpenCL.Net
 open System
 open System.Runtime.InteropServices
+
+module private QueueFunctions =
+    let finish queue =
+        let error = Cl.Finish(queue)
+
+        if error <> ErrorCode.Success then
+            raise <| Cl.Exception error
+
+    let run queue (kernel: IKernel) =
+        let range = kernel.NDRange
+        let workDim = uint32 range.Dimensions
+        let eventID = ref Unchecked.defaultof<Event>
+
+        let error =
+            Cl.EnqueueNDRangeKernel(queue, kernel.Kernel, workDim, null, range.GlobalWorkSize, range.LocalWorkSize, 0u, null, eventID)
+
+        if error <> ErrorCode.Success then
+            raise (Cl.Exception error)
+
+    let toGPU queue blocking (source: array<'a>) (destination: IBuffer<'a>) =
+        let eventID = ref Unchecked.defaultof<Event>
+
+        let mem = destination.Memory
+        let elementSize = destination.ElementSize
+        let blocking = if blocking then Bool.True else Bool.False
+        let error =
+            Cl.EnqueueWriteBuffer(queue, mem, blocking, IntPtr(0), IntPtr(destination.Length * elementSize), source, 0u, null, eventID)
+
+        if error <> ErrorCode.Success then
+            raise (Cl.Exception error)
+
+    let toHost queue (translator: FSQuotationToOpenCLTranslator) blocking (source: IBuffer<'a>) (destination: array<'a>) =
+        let eventID = ref Unchecked.defaultof<Event>
+        let clMem = source.Memory
+        let marshaller = translator.Marshaller
+
+        let finishRead error =
+
+            if error <> ErrorCode.Success then
+                raise (Cl.Exception error)
+
+        let blocking = if blocking then Bool.True else Bool.False
+
+        if marshaller.IsBlittable typeof<'a> then
+            Cl.EnqueueReadBuffer(
+                queue,
+                clMem,
+                blocking,
+                IntPtr(0),
+                IntPtr(source.Length * source.ElementSize),
+                destination,
+                0u,
+                null,
+                eventID
+            )
+            |> finishRead
+        else
+            let size = destination.Length * marshaller.GetTypePacking(typeof<'a>).Size
+            let hostMem = Marshal.AllocHGlobal size
+
+            Cl.EnqueueReadBuffer(queue, clMem, blocking, IntPtr(0), IntPtr(source.Length * source.ElementSize), hostMem, 0u, null, eventID)
+            |> finishRead
+
+            marshaller.ReadFromUnmanaged(hostMem, destination)
+            Marshal.FreeHGlobal(hostMem)
 
 type msg<'a> =
     | Regular of 'a
@@ -51,14 +116,29 @@ type DeviceCommandQueue<'message>(clQueueFinishFunction, messageHandler) =
 
     member this.Stop() = inbox.Writer.Complete()
 
+type RawCommandQueue(device: Device, context: Context, translator: FSQuotationToOpenCLTranslator) =
+    let commandQueue =
+        let error = ref Unchecked.defaultof<ErrorCode>
+        let props = CommandQueueProperties.None
+        let queue = Cl.CreateCommandQueue(context, device, props, error)
+
+        if error.Value <> ErrorCode.Success then
+            raise <| Cl.Exception error.Value
+
+        queue
+
+    member this.Synchronize() = QueueFunctions.finish commandQueue
+
+    member this.ToHost(source: IBuffer<'a>, destination: array<'a>, blocking) =
+        QueueFunctions.toHost commandQueue translator blocking source destination
+
+    member this.ToGPU(source: array<'a>, destination: IBuffer<'a>, blocking) =
+        QueueFunctions.toGPU commandQueue blocking source destination
+
+    member this.RunKernel(kernel: IKernel) = QueueFunctions.run commandQueue kernel
+
 /// Provides the ability to create multiple command queues.
 type CommandQueueProvider private (device, context, translator: FSQuotationToOpenCLTranslator, __: unit) =
-    let finish queue =
-        let error = Cl.Finish(queue)
-
-        if error <> ErrorCode.Success then
-            raise <| Cl.Exception error
-
     let handleFree (free: IFreeCrate) =
         { new IFreeCrateEvaluator with
             member this.Eval crate = crate.Source.Dispose()
@@ -68,74 +148,14 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
     let handleToGPU queue (toGpu: IToGPUCrate) =
         { new IToGPUCrateEvaluator with
             member this.Eval crate =
-                let eventID = ref Unchecked.defaultof<Event>
-
-                let mem = crate.Destination.Memory
-                let elementSize = crate.Destination.ElementSize
-
-                let error =
-                    Cl.EnqueueWriteBuffer(
-                        queue,
-                        mem,
-                        Bool.False,
-                        IntPtr(0),
-                        IntPtr(crate.Destination.Length * elementSize),
-                        crate.Source,
-                        0u,
-                        null,
-                        eventID
-                    )
-
-                if error <> ErrorCode.Success then
-                    raise (Cl.Exception error)
+                QueueFunctions.toGPU queue false crate.Source crate.Destination
         }
         |> toGpu.Apply
 
     let handleToHost queue (toHost: IToHostCrate) =
         { new IToHostCrateEvaluator with
             member this.Eval(crate: ToHost<'a>) =
-                let eventID = ref Unchecked.defaultof<Event>
-                let clMem = crate.Source.Memory
-                let marshaller = translator.Marshaller
-
-                let finishRead error =
-                    if error <> ErrorCode.Success then
-                        raise (Cl.Exception error)
-
-                    finish queue
-
-                if marshaller.IsBlittable typeof<'a> then
-                    Cl.EnqueueReadBuffer(
-                        queue,
-                        clMem,
-                        Bool.False,
-                        IntPtr(0),
-                        IntPtr(crate.Source.Length * crate.Source.ElementSize),
-                        crate.Destination,
-                        0u,
-                        null,
-                        eventID
-                    )
-                    |> finishRead
-                else
-                    let size = crate.Destination.Length * marshaller.GetTypePacking(typeof<'a>).Size
-                    let hostMem = Marshal.AllocHGlobal size
-
-                    Cl.EnqueueReadBuffer(
-                        queue,
-                        clMem,
-                        Bool.False,
-                        IntPtr(0),
-                        IntPtr(crate.Source.Length * crate.Source.ElementSize),
-                        hostMem,
-                        0u,
-                        null,
-                        eventID
-                    )
-                    |> finishRead
-
-                    marshaller.ReadFromUnmanaged(hostMem, crate.Destination)
-                    Marshal.FreeHGlobal(hostMem)
+                QueueFunctions.toHost queue translator true crate.Source crate.Destination
 
                 match crate.ReplyChannel with
                 | Some ch -> ch.Reply crate.Destination
@@ -145,26 +165,7 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
     let handleRun queue (run: IRunCrate) =
         { new IRunCrateEvaluator with
-            member this.Eval crate =
-                let range = crate.Kernel.NDRange
-                let workDim = uint32 range.Dimensions
-                let eventID = ref Unchecked.defaultof<Event>
-
-                let error =
-                    Cl.EnqueueNDRangeKernel(
-                        queue,
-                        crate.Kernel.Kernel,
-                        workDim,
-                        null,
-                        range.GlobalWorkSize,
-                        range.LocalWorkSize,
-                        0u,
-                        null,
-                        eventID
-                    )
-
-                if error <> ErrorCode.Success then
-                    raise (Cl.Exception error)
+            member this.Eval crate = QueueFunctions.run queue crate.Kernel
         }
         |> run.Apply
 
@@ -205,27 +206,26 @@ type CommandQueueProvider private (device, context, translator: FSQuotationToOpe
 
             | MsgFree crate ->
                 if itIsFirstNonqueueMsg then
-                    finish commandQueue
                     itIsFirstNonqueueMsg <- false
 
                 handleFree crate
 
             | MsgSetArguments setterFunc ->
                 if itIsFirstNonqueueMsg then
-                    finish commandQueue
                     itIsFirstNonqueueMsg <- false
 
                 setterFunc ()
 
             | MsgBarrier syncObject ->
                 itIsFirstNonqueueMsg <- true
-                finish commandQueue
+                QueueFunctions.finish commandQueue
                 syncObject.ImReady()
 
                 while not <| syncObject.CanContinue() do
                     ()
 
-        let processor = DeviceCommandQueue((fun () -> finish commandQueue), msgHandler)
+        let processor =
+            DeviceCommandQueue((fun () -> QueueFunctions.finish commandQueue), msgHandler)
 
         // TODO rethink error handling?
         //processor.Error.AddHandler(Handler<_>(fun _ -> raise))
