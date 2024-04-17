@@ -33,6 +33,7 @@ module private QueueFunctions =
         let mem = destination.Memory
         let elementSize = destination.ElementSize
         let blocking = if blocking then Bool.True else Bool.False
+
         let error =
             Cl.EnqueueWriteBuffer(queue, mem, blocking, IntPtr(0), IntPtr(destination.Length * elementSize), source, 0u, null, eventID)
 
