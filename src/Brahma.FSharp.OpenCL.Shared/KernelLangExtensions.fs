@@ -30,6 +30,10 @@ module KernelLangExtensions =
         failIfOutsideKernel ()
         Unchecked.defaultof<array<'a>>
 
+    let threadLocalArray<'a> (size: int) =
+        failIfOutsideKernel ()
+        Unchecked.defaultof<array<'a>>
+
     let atomic (f: 'a -> 'b) =
         failIfOutsideKernel ()
         f

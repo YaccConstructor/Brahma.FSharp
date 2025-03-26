@@ -728,6 +728,24 @@ module rec Body =
                                 })
 
                         return VarDecl(arrayType, bName, None, spaceModifier = Local)
+                    | DerivedPatterns.SpecificCall <@@ threadLocalArray @@> (_, _, [ arg ]) ->
+                        let! expr = translateCond arg
+
+                        let arrayLength =
+                            match expr with
+                            | :? Const<Lang> as c -> int c.Val
+                            | other ->
+                                raise
+                                <| InvalidKernelException $"Calling threadLocalArray with a non-const argument %A{other}"
+
+                        let! arrayType =
+                            Type.translate var.Type
+                            |> State.using (fun ctx ->
+                                { ctx with
+                                    ArrayKind = CArrayDecl arrayLength
+                                })
+
+                        return VarDecl(arrayType, bName, None, spaceModifier = Private)
                     | Patterns.DefaultValue _ ->
                         let! vType = Type.translate var.Type
                         return VarDecl(vType, bName, None)

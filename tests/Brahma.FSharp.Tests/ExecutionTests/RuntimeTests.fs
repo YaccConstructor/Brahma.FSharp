@@ -703,6 +703,66 @@ let localMemTests context =
             checkResult command [| 0L; 1L; 2L; 3L |] [| 1L; 1L; 2L; 3L |]
     ]
 
+let threadLocalArrayTests context =
+    [
+        let inline checkResult cmd input expected = checkResult context cmd input expected
+
+        testCase "Thread-local array. Test 1"
+        <| fun _ ->
+            let localWorkSize = 5
+            let globalWorkSize = 15
+            let n = 4
+
+            let command =
+                <@
+                    fun (range: Range1D) (input: ClArray<int>) (output: ClArray<int>) ->
+                        let k = range.LocalID0
+                        let localBuf = threadLocalArray<int> n
+
+                        for i in 0 .. n - 1 do
+                            localBuf[i] <- k
+
+                        let mutable r = 0
+
+                        for i in 0 .. n - 1 do
+                            r <- r + localBuf.[i]
+
+                        output.[range.GlobalID0] <- r
+                @>
+
+            let expected =
+                [| for x in 0 .. localWorkSize - 1 -> x * n |]
+                |> Array.replicate (globalWorkSize / localWorkSize)
+                |> Array.concat
+
+            let actual =
+                opencl {
+                    use! inBuf = ClArray.toDevice (Array.zeroCreate globalWorkSize)
+                    use! outBuf = ClArray.toDevice (Array.zeroCreate globalWorkSize)
+
+                    do!
+                        runCommand command
+                        <| fun x -> x (Range1D(globalWorkSize, localWorkSize)) inBuf outBuf
+
+                    return! ClArray.toHost outBuf
+                }
+                |> ClTask.runSync context
+
+            Expect.sequenceEqual actual expected "Arrays should be equals"
+
+        ptestCase "Tread-local array. Test 2"
+        <| fun _ ->
+            let command =
+                <@
+                    fun (range: Range1D) (buf: ClArray<int64>) ->
+                        let localBuf = threadLocalArray 42
+                        atomic xchg localBuf.[0] 1L |> ignore
+                        buf.[0] <- localBuf.[0]
+                @>
+
+            checkResult command [| 0L; 1L; 2L; 3L |] [| 1L; 1L; 2L; 3L |]
+    ]
+
 let letTransformationTests context =
     [
         let inline checkResult cmd input expected = checkResult context cmd input expected
@@ -1674,6 +1734,7 @@ let tests context =
         testList "Kernel arguments tests" << kernelArgumentsTests
         testList "Quotation injection tests" << quotationInjectionTests
         testList "Local memory tests" << localMemTests
+        testList "Tread-local array tests" << threadLocalArrayTests
         testList "Let Transformation Tests" << letTransformationTests
         testList "Let Transformation Tests Mutable Vars"
         << letQuotationTransformerSystemTests
